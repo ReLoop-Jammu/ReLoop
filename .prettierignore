@@ -1,0 +1,9 @@
+# Original single-file prototype, kept only for reference
+legacy/
+package-lock.json
+**/.next
+**/node_modules
+**/playwright-report
+**/test-results
+**/coverage
+**/next-env.d.ts
