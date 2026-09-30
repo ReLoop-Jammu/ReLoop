@@ -1,6 +1,6 @@
 # ReLoop — Architecture
 
-_Status: Phases 1–2 built on branch `phase-1-foundation` (awaiting review). Last updated 2026-09-30._
+_Status: Phases 1–2 built, and the Phase 3 database schema is written and tested (on branch `phase-1-foundation`, awaiting review). Last updated 2026-09-30._
 
 ## Context
 
@@ -41,38 +41,35 @@ ReLoop is currently one ~200KB `index.html` (plain HTML/CSS/JS, localStorage "da
 
 ## 2. Repository structure
 
+Frontend and backend live in separate top-level folders (npm workspaces):
+
 ```
 reloop/
-├─ src/
-│  ├─ app/                      # routes only; thin, compose features
-│  │  ├─ (marketing)/           # /, /impact, /how-it-works, /about, legal pages
-│  │  ├─ (marketplace)/         # /listings, /listings/[slug], /categories/[category]
-│  │  ├─ (auth)/                # /login, /signup, /auth/callback
-│  │  ├─ account/               # buyer & seller dashboard (protected)
-│  │  ├─ admin/                 # ReLoop admin console (admin-only)
-│  │  ├─ layout.tsx, error.tsx, not-found.tsx, sitemap.ts, robots.ts
-│  ├─ features/                 # one folder per domain; the ONLY place that talks to Supabase
-│  │  ├─ listings/  { queries.ts, actions.ts, schema.ts, components/ }
-│  │  ├─ inquiries/ ├─ basket/ ├─ saved/ ├─ partners/ ├─ profiles/ ├─ moderation/
-│  ├─ components/
-│  │  ├─ ui/                    # shadcn primitives (Button, Dialog, Input…)
-│  │  └─ layout/                # Header, Footer, MobileNav
-│  ├─ lib/
-│  │  ├─ supabase/ { server.ts, client.ts, admin.ts (service role, server-only) }
-│  │  ├─ env.ts                 # Zod-validated env vars; app fails fast if missing
-│  │  └─ utils/ (money formatting, slugify, dates)
-│  └─ proxy.ts                  # session refresh + route protection
-├─ supabase/
-│  ├─ migrations/               # every schema change is a versioned SQL file
-│  ├─ seed.sql                  # the 16 current sample listings
-│  └─ tests/                    # RLS policy tests
-├─ tests/e2e/                   # Playwright
-├─ public/                      # images (base64 photo from index.html extracted here)
+├─ frontend/                     # The website (Next.js), deployed to Vercel with Root Directory = frontend
+│  ├─ src/
+│  │  ├─ app/                    # routes only; thin, compose features
+│  │  │  ├─ listings/, impact/, how-it-works/, sell/        (built)
+│  │  │  ├─ (auth)/, account/, admin/                       (Phases 4–6)
+│  │  │  └─ layout.tsx, error.tsx, not-found.tsx, sitemap.ts, robots.ts
+│  │  ├─ features/               # one folder per domain; the ONLY code that fetches data
+│  │  │  └─ listings/ { model.ts, queries.ts, seed-data.ts, components/ }
+│  │  │     (inquiries/, basket/, saved/, partners/, moderation/ added per phase)
+│  │  ├─ components/ { ui/, layout/, marketing/, brand/ }
+│  │  └─ lib/ { env.ts, utils/, supabase/ (Phase 3) }
+│  ├─ public/                    # static images
+│  └─ tests/e2e/                 # Playwright browser tests (desktop + mobile)
+├─ backend/                      # The database, as code
+│  ├─ supabase/
+│  │  ├─ config.toml
+│  │  ├─ migrations/             # schema, triggers, RLS policies, storage bucket
+│  │  └─ seed.sql                # local sample data
+│  └─ tests/                     # runs migrations in PGlite and checks every security rule
 ├─ docs/ { architecture.md, engineering-standards.md, adr/ }
-└─ .env.example                 # names only, never values
+├─ legacy/index.html             # original prototype, reference only
+└─ package.json                  # workspace root: shared tooling (prettier, husky, commitlint)
 ```
 
-**Carried-over principle from today's `index.html`:** UI code never talks to the database directly. Reads go through `features/*/queries.ts` and writes go through `features/*/actions.ts` (Server Actions, Zod-validated). This is the same seam as today's `DATA LAYER` block.
+**Principle:** UI code never talks to the database directly. Reads go through `features/*/queries.ts` and writes go through `features/*/actions.ts` (Server Actions, Zod-validated). Security is enforced in `backend/` (RLS and triggers), so a UI bug cannot leak or publish data.
 
 ## 3. Users & roles
 
@@ -110,10 +107,10 @@ One login system. "Partner" is not a separate account type; it is a verified org
 
 ## 6. Design system
 
-- **Tokens:** port today's palette into semantic names. Today's `--purple` is actually blue, so rename it: `primary #1E6B9E`, `primary-strong #0F4C6E`, `accent #E8B83A`, `accent-strong #C99A1F`, `ink #2A2824`, `muted #6B6258`, `line #D9D0C0`, `bg #F8F5EB`, `surface #FEFCF7`, plus `danger`, `success`. Use one spacing scale, one radius scale and a type scale; Inter via `next/font`.
+- **Tokens** (in `frontend/src/app/globals.css`): brand blue scale (`brand-50…950`, main `brand-600 #1E6B9E`), gold accent (`gold-100…700`, main `gold-500 #E8B83A`), warm neutrals (`canvas`, `surface`, `sunken`, `line`, `ink`, `ink-soft`, `muted`), colour-coded condition badges (`condition-working`, `-tested`, `-repairable`, `-parts`, `-eol`) and category tints (`cat-devices` … `cat-recycling`). Fonts: Bricolage Grotesque for headings, Inter for text, both via `next/font`. Icons: lucide-react. Components use token names, never raw hex.
 - **Components:** shared components are built once and reused: ListingCard, ListingGrid, FilterBar, EmptyState, PhotoUploader, StatusBadge, ContactPanel, Dialog, Toast, FormField.
 - **Rules:** mobile-first; WCAG 2.2 AA (contrast, keyboard access, visible focus, labelled fields); honour `prefers-reduced-motion`; no autoplay media; motion is subtle and purposeful.
-- The current look (warm cream + blue + gold) is kept and refined, not replaced.
+- The brand colours (blue + gold on warm off-white) are kept; the layout and components were redesigned rather than copied from the prototype.
 
 ## 7. Engineering standards
 

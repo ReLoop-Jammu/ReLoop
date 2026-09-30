@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+ * ReLoop design tokens. Components use these semantic names
+ * (bg-surface, text-ink-soft, bg-condition-working-bg…), never raw hex.
+ */
+@theme {
+  /* Brand */
+  --color-brand-50: #eef6fb;
+  --color-brand-100: #d6e9f5;
+  --color-brand-200: #aed2ea;
+  --color-brand-500: #2a8bc9;
+  --color-brand-600: #1e6b9e;
+  --color-brand-700: #175680;
+  --color-brand-900: #0c2e45;
+  --color-brand-950: #081f30;
+  --color-gold-100: #fbf0d0;
+  --color-gold-400: #efc553;
+  --color-gold-500: #e8b83a;
+  --color-gold-700: #9a7414;
+
+  /* Neutrals */
+  --color-canvas: #faf8f3;
+  --color-surface: #ffffff;
+  --color-sunken: #f3f0e8;
+  --color-line: #e8e3d8;
+  --color-line-strong: #d6cfbf;
+  --color-ink: #16202a;
+  --color-ink-soft: #3d4852;
+  --color-muted: #66707a;
+
+  /* Condition badges */
+  --color-condition-working: #17693f;
+  --color-condition-working-bg: #e3f4ea;
+  --color-condition-tested: #17588a;
+  --color-condition-tested-bg: #e1eef8;
+  --color-condition-repairable: #8a5a00;
+  --color-condition-repairable-bg: #fdf1d3;
+  --color-condition-parts: #4a5561;
+  --color-condition-parts-bg: #edf0f3;
+  --color-condition-eol: #a3261b;
+  --color-condition-eol-bg: #fbe8e6;
+
+  /* Category tints */
+  --color-cat-devices: #1e6b9e;
+  --color-cat-devices-bg: #e4f0f8;
+  --color-cat-components: #5b3fc4;
+  --color-cat-components-bg: #ece8fb;
+  --color-cat-repairable: #9a6a00;
+  --color-cat-repairable-bg: #fbefd0;
+  --color-cat-bulk: #0f6f67;
+  --color-cat-bulk-bg: #dcf2ef;
+  --color-cat-recycling: #17693f;
+  --color-cat-recycling-bg: #e3f4ea;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+
+  --shadow-soft: 0 1px 2px rgb(22 32 42 / 0.04), 0 4px 16px rgb(22 32 42 / 0.05);
+  --shadow-lift: 0 2px 4px rgb(22 32 42 / 0.04), 0 18px 40px -8px rgb(12 46 69 / 0.18);
+  --shadow-float: 0 30px 60px -20px rgb(8 31 48 / 0.45);
+
+  --animate-rise: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-drift: drift 7s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translateY(0) rotate(var(--tilt, 0deg));
+    }
+    50% {
+      transform: translateY(-10px) rotate(var(--tilt, 0deg));
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display text-ink;
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+  ::selection {
+    @apply bg-gold-400/60;
+  }
+}
+
+@utility bg-dots {
+  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
