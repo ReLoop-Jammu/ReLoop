@@ -1,10 +1,17 @@
 # ReLoop
 
-Single-file e-waste marketplace prototype (`index.html`, plain HTML/CSS/JS, no build step).
+E-waste / used-electronics marketplace, starting in Jammu and selling across India.
 
-**Current phase: frontend-only.** There is no backend. Supabase, Vercel deployment and real authentication are deliberately deferred to a later phase — do not assume any of them exist, and do not add `.env` files or network code until that phase starts.
+## Read first, and follow
+- **[docs/architecture.md](docs/architecture.md)**: stack, repo structure, roles, data model, routes, design system and phased roadmap.
+- **[docs/engineering-standards.md](docs/engineering-standards.md)**: mandatory code, security, testing and workflow rules.
+- **[docs/adr/](docs/adr/)**: why the key decisions were made. Changing a decision means writing a new ADR.
 
-- All data (listings, basket, saved items, inquiries) lives in the browser's localStorage only, so nothing is shared between people.
-- Every read/write of that data goes through the `DATA LAYER` block at the top of the main `<script>` in `index.html` (`getListings`, `saveListing`, `getCart`, `saveCart`, `getSavedIds`, `addInquiry`, ...). When the backend arrives, swap only those functions.
-- Listing photos are preview-only and kept in memory for the session (not persisted).
-- Plan for this phase: `docs/frontend-improvements-plan.md`.
+## Current state
+- **Phase 0 (architecture sign-off).** No Next.js app exists yet, and there is no backend. Supabase, Vercel and auth are planned but not set up, so don't assume they exist.
+- The live site is still the single-file prototype `index.html` (plain HTML/CSS/JS). Its data lives in browser localStorage, and all reads and writes go through the `DATA LAYER` block at the top of its main `<script>`. Listing photos there are preview-only.
+- Earlier prototype plan: `docs/frontend-improvements-plan.md`.
+
+## Working rules
+- Build one roadmap phase at a time, on its own branch. The user reviews each phase before merging and before the next one starts.
+- Never commit secrets or `.env` files. Commit locally, and push only when the user asks.
