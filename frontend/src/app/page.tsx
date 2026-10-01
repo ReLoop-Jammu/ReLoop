@@ -1,4 +1,6 @@
 import { ArrowRight, BadgeCheck, Recycle, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
+import { env } from "@/lib/env";
+import { SITE } from "@/lib/site";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -34,8 +36,26 @@ export default async function HomePage() {
     getCategoryCounts(),
   ]);
 
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE.legalName ?? SITE.name,
+    url: env.NEXT_PUBLIC_SITE_URL,
+    logo: `${env.NEXT_PUBLIC_SITE_URL}/icon.svg`,
+    description: SITE.description,
+    areaServed: "IN",
+    ...(SITE.supportEmail && { email: SITE.supportEmail }),
+    ...(SITE.supportPhone && { telephone: SITE.supportPhone }),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div

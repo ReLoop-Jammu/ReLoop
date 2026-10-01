@@ -1,8 +1,11 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { env } from "@/lib/env";
+import { SITE } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -21,7 +24,8 @@ export const metadata: Metadata = {
   description:
     "Buy, sell and recover value from used electronics, repairable devices and reusable components. Collected in Jammu, connected to buyers across India.",
   applicationName: "ReLoop",
-  openGraph: { type: "website", siteName: "ReLoop Jammu", locale: "en_IN" },
+  openGraph: { type: "website", siteName: SITE.name, locale: "en_IN" },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
@@ -43,6 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <Footer />
+        {/* Cookie-free, anonymous; only active once deployed on Vercel. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
