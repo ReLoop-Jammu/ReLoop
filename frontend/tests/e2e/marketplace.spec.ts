@@ -76,6 +76,9 @@ test.describe("site", () => {
       "/impact",
       "/how-it-works",
       "/sell",
+      "/contact",
+      "/privacy",
+      "/terms",
       "/listings/lenovo-thinkpad-t480",
     ]) {
       await page.goto(path);

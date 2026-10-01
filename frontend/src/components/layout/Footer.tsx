@@ -7,6 +7,12 @@ const COMPANY_LINKS = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/impact", label: "Our impact" },
   { href: "/sell", label: "Sell with ReLoop" },
+  { href: "/contact", label: "Contact" },
+];
+
+const LEGAL_LINKS = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
 ];
 
 export function Footer() {
@@ -60,7 +66,17 @@ export function Footer() {
       <div className="border-t border-white/10">
         <Container className="flex flex-wrap justify-between gap-2 py-6 text-xs text-white/50">
           <span>© {new Date().getFullYear()} ReLoop Jammu</span>
-          <span>Reuse · Repair · Recover</span>
+          <nav aria-label="Legal">
+            <ul className="flex gap-5">
+              {LEGAL_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="transition hover:text-white">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </Container>
       </div>
     </footer>
