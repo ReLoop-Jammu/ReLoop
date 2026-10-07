@@ -22,6 +22,10 @@ npm install            # installs frontend and backend (npm workspaces)
 npm run dev            # website on http://localhost:3000
 ```
 
+## Editor
+
+Open the repo root in VS Code and install the recommended extensions when prompted (Tailwind CSS, ESLint, Prettier). The shared settings in `.vscode/` make the editor understand Tailwind's `@theme` / `@apply` rules and format on save.
+
 ## Commands (run from the repo root)
 
 | Command            | What it does                                                         |

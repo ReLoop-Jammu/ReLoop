@@ -1,0 +1,24 @@
+{
+  // Tailwind CSS v4 uses its own at-rules (@theme, @apply, @utility). Treat
+  // CSS files as Tailwind so the editor understands them instead of warning.
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  // Fallback if the Tailwind extension isn't installed yet.
+  "css.lint.unknownAtRules": "ignore",
+  "tailwindCSS.experimental.configFile": "frontend/src/app/globals.css",
+
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [{ "directory": "frontend", "changeProcessCWD": true }],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.exclude": {
+    "**/.next": true,
+    "**/test-results": true,
+    "**/playwright-report": true
+  }
+}

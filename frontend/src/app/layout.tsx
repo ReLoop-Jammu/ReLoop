@@ -34,9 +34,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en-IN" className={`${inter.variable} ${bricolage.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans">
         {children}
-        {/* Cookie-free, anonymous; only active once deployed on Vercel. */}
-        <Analytics />
-        <SpeedInsights />
+        {/* Cookie-free, anonymous. Switched on with VERCEL_ANALYTICS=on (see docs/team-setup.md). */}
+        {env.VERCEL_ANALYTICS === "on" && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );
