@@ -32,7 +32,7 @@ The repo is `ReLoop-Jammu/ReLoop`. Someone with **admin** rights should:
 3. **Invite developers:** Organization → Team → Invite (role **Developer**; **Owner** for the lead).
 4. **Authentication → URL Configuration:**
    - Site URL: the production URL (e.g. `https://reloop.in`), or the Vercel URL until a domain exists
-   - Redirect URLs: add `http://localhost:3000/**` and `https://*-reloop-jammu.vercel.app/**` (Vercel previews)
+   - Redirect URLs: add `http://localhost:3000/**` and `https://re-loop-*-re-loop-jammu.vercel.app/**` (Vercel previews)
 5. **Authentication → Providers:** keep **Email** on. Google is set up in step 5.
 6. **Copy keys** from Project Settings → API Keys into Vercel and `.env.local` (names below):
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
@@ -53,27 +53,30 @@ The repo is `ReLoop-Jammu/ReLoop`. Someone with **admin** rights should:
 
 > Optional: a second project, `reloop-staging`, for testing changes before production.
 
-## 3. Vercel: hosting (needed to see the site online)
+## 3. Vercel: hosting (already set up)
 
-1. Sign up at **vercel.com** with GitHub, create a **team** called "ReLoop", and invite developers.
-2. **Add New → Project →** import `ReLoop-Jammu/ReLoop`.
-   - **Root Directory: `frontend`** ← important
-   - Framework: Next.js (auto-detected). Leave the build settings as they are.
-3. **Environment Variables** (Settings → Environment Variables), for Production, Preview and Development:
+The project lives on one teammate's **Hobby** (free) Vercel account, as `re-loop` under `re-loop-jammu`. Hobby has a single member, so only that teammate can change settings. Everyone else works through GitHub:
 
-   | Name                                   | Value                                       | Needed from |
-   | -------------------------------------- | ------------------------------------------- | ----------- |
-   | `NEXT_PUBLIC_SITE_URL`                 | `https://<your-domain>` (or the Vercel URL) | now         |
-   | `NEXT_PUBLIC_SUPABASE_URL`             | from Supabase                               | Phase 3     |
-   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | from Supabase                               | Phase 3     |
-   | `SUPABASE_SECRET_KEY`                  | from Supabase (mark **Sensitive**)          | Phase 3     |
-   | `RESEND_API_KEY`                       | from Resend (Sensitive)                     | Phase 6     |
-   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`       | from Cloudflare                             | Phase 6     |
-   | `TURNSTILE_SECRET_KEY`                 | from Cloudflare (Sensitive)                 | Phase 6     |
-   | `SENTRY_DSN` / `SENTRY_AUTH_TOKEN`     | from Sentry                                 | Phase 7     |
+- every push to a branch builds a **preview** link, posted on the pull request by Vercel;
+- merging to `main` updates the **live** site.
 
-4. **Settings → Analytics:** enable **Web Analytics** and **Speed Insights** (the code is already in place).
-5. Every pull request then gets its own preview link automatically, and merging to `main` updates the live site.
+**Settings only the Vercel owner can change:**
+
+1. **Make preview links viewable** (needed to review pull requests): Project → **Settings → Deployment Protection** → **Vercel Authentication** → set to **Disabled**, then Save. Previews then open for anyone with the link. Previews are hidden from search engines, and the staff hub keeps its data on each device, so nothing private is exposed.
+2. **Root Directory** must be `frontend` (Settings → Build and Deployment). It already builds, so it's set.
+3. **Environment Variables** (Settings → Environment Variables), for Production and Preview:
+
+   | Name                                   | Value                                           | Needed from   |
+   | -------------------------------------- | ----------------------------------------------- | ------------- |
+   | `NEXT_PUBLIC_SITE_URL`                 | the production URL (Vercel → Project → Domains) | now           |
+   | `NEXT_PUBLIC_SUPABASE_URL`             | from Supabase                                   | Supabase step |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | from Supabase                                   | Supabase step |
+   | `SUPABASE_SECRET_KEY`                  | from Supabase (mark **Sensitive**)              | Supabase step |
+
+4. **Analytics:** Project → **Analytics** → enable **Web Analytics**, and **Speed Insights** → enable. The code is already in the site, and both are free on Hobby within limits.
+5. After any settings change, redeploy: Deployments → latest → **⋯ → Redeploy**.
+
+> **Before ReLoop starts selling:** Vercel's Hobby plan is for non-commercial use only. Once the shop takes real orders, the project should move to a **Pro** team (paid, per member), which also allows adding developers. Until then, previews and the early-preview site are fine on Hobby.
 
 ## 4. Domain (whenever ready)
 
@@ -131,6 +134,6 @@ Fill these in `frontend/src/lib/site.ts`. They appear in the footer, legal pages
 | ------------------------------------------------------- | -------------------------------- |
 | "Supabase project is created and keys are in Vercel"    | Any key, password or token       |
 | Supabase project ref (e.g. `abcd1234`); it's not secret | The database password            |
-| An invite to the Supabase org and Vercel team           | The Supabase secret key          |
+| An invite to the Supabase org                           | The Supabase secret key          |
 | The Vercel preview / production URL                     | Google / Resend / Sentry secrets |
 | Business details from the list above                    |                                  |

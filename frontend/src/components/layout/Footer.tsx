@@ -1,12 +1,26 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
-import { CATEGORIES } from "@/features/listings/model";
+import { SITE } from "@/lib/site";
+
+const SHOP_LINKS = [
+  { href: "/shop?grade=A", label: "Grade A: works, clean" },
+  { href: "/shop?grade=B", label: "Grade B: repaired" },
+  { href: "/shop?grade=C", label: "Grade C: tested parts" },
+  { href: "/warranty", label: "Warranty & delivery" },
+];
+
+const SELL_LINKS = [
+  { href: "/sell/shops", label: "Repair shops & retailers" },
+  { href: "/sell/institutions", label: "Institutions" },
+  { href: "/sell/home", label: "Households" },
+  { href: "/sell/consignment", label: "Consignment" },
+];
 
 const COMPANY_LINKS = [
   { href: "/how-it-works", label: "How it works" },
+  { href: "/where-scrap-goes", label: "Where scrap goes" },
   { href: "/impact", label: "Our impact" },
-  { href: "/sell", label: "Sell with ReLoop" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -15,53 +29,41 @@ const LEGAL_LINKS = [
   { href: "/terms", label: "Terms" },
 ];
 
+function LinkColumn({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+  return (
+    <nav aria-label={title}>
+      <h2 className="font-sans text-sm font-semibold tracking-normal text-white">{title}</h2>
+      <ul className="mt-4 space-y-2.5 text-sm">
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link href={l.href} className="transition hover:text-white">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="mt-auto bg-brand-950 text-white/70">
-      <Container className="grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr]">
+      <Container className="grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <Logo id="footer" inverted />
           <p className="mt-4 max-w-xs text-sm leading-relaxed">
-            A managed marketplace giving used electronics from Jammu a second life with buyers
-            across India.
+            We collect used electronics in Jammu, grade every item at one hub, resell what still
+            works and send the rest to an authorised recycler.
+          </p>
+          <p className="mt-4 max-w-xs text-xs leading-relaxed text-white/50">
+            Early preview: items shown in the shop are samples until the hub opens in{" "}
+            {SITE.hubOpens}.
           </p>
         </div>
-        <nav aria-label="Shop by category">
-          <h2 className="font-sans text-sm font-semibold tracking-normal text-white">Shop</h2>
-          <ul className="mt-4 space-y-2.5 text-sm">
-            {CATEGORIES.map((c) => (
-              <li key={c.value}>
-                <Link
-                  href={`/listings?category=${c.value}`}
-                  className="transition hover:text-white"
-                >
-                  {c.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <nav aria-label="Company">
-          <h2 className="font-sans text-sm font-semibold tracking-normal text-white">ReLoop</h2>
-          <ul className="mt-4 space-y-2.5 text-sm">
-            {COMPANY_LINKS.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className="transition hover:text-white">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div>
-          <h2 className="font-sans text-sm font-semibold tracking-normal text-white">
-            Early preview
-          </h2>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed">
-            Listings shown are sample data. No payments, pickups or recycling services are processed
-            yet.
-          </p>
-        </div>
+        <LinkColumn title="Shop" links={SHOP_LINKS} />
+        <LinkColumn title="Sell to us" links={SELL_LINKS} />
+        <LinkColumn title="ReLoop" links={COMPANY_LINKS} />
       </Container>
       <div className="border-t border-white/10">
         <Container className="flex flex-wrap justify-between gap-2 py-6 text-xs text-white/50">

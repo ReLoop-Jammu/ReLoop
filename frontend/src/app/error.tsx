@@ -19,7 +19,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <Container className="py-16 sm:py-24">
+    <Container className="flex-1 py-16 sm:py-24">
       <EmptyState
         icon={TriangleAlert}
         title="Something went wrong"

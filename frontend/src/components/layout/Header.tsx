@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { SITE, hasContactChannel } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 import { NavLinks } from "./NavLinks";
@@ -16,8 +17,10 @@ export function Header() {
           <span className="mx-2 text-white/30" aria-hidden="true">
             •
           </span>
-          Collecting in Jammu, J&amp;K
-          <span className="hidden sm:inline"> · Shipping to buyers across India</span>
+          Hub opening in Jammu, {SITE.hubOpens}
+          {hasContactChannel && (
+            <span className="hidden sm:inline"> · Seller sign-ups open now</span>
+          )}
         </Container>
       </div>
       <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
@@ -29,7 +32,7 @@ export function Header() {
           <HeaderSearch className="ml-auto hidden w-full max-w-xs md:block" />
           <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
             <Plus className="size-4" aria-hidden="true" />
-            Sell
+            Sell to us
           </ButtonLink>
           <div className="ml-auto md:ml-0 lg:hidden">
             <MobileNav />

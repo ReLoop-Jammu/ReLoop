@@ -1,6 +1,6 @@
 # ADR 0002: Hybrid moderation for listings
 
-- **Status:** Accepted (2026-09-30)
+- **Status:** Superseded by [ADR 0004](0004-reloop-owned-graded-inventory.md) on 2026-10-07. ReLoop buys and grades its own stock; it is not a hybrid marketplace.
 
 ## Context
 

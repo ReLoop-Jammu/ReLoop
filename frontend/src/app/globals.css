@@ -41,6 +41,18 @@
   --color-condition-eol: #a3261b;
   --color-condition-eol-bg: #fbe8e6;
 
+  --color-danger: #b3261e;
+
+  /* Grade badges (A–D) */
+  --color-grade-a: #17693f;
+  --color-grade-a-bg: #e3f4ea;
+  --color-grade-b: #17588a;
+  --color-grade-b-bg: #e1eef8;
+  --color-grade-c: #7a4f00;
+  --color-grade-c-bg: #fdf1d3;
+  --color-grade-d: #a3261b;
+  --color-grade-d-bg: #fbe8e6;
+
   /* Category tints */
   --color-cat-devices: #1e6b9e;
   --color-cat-devices-bg: #e4f0f8;
@@ -126,5 +138,21 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Printing a hub tag prints only the tag. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-tag,
+  .print-tag * {
+    visibility: visible;
+  }
+  .print-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 }

@@ -14,15 +14,19 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state
+## Current state (2026-10-07)
 
-- **Phases 1–2 are done** on branch `phase-1-foundation`: a redesigned site with home, listings (search, filters and sort in the URL), listing detail, impact, how-it-works and sell pages.
-- **Phase 3 (backend half) is done:** the schema, hybrid moderation trigger, RLS, storage policies and seed are in `backend/`, with 20 passing tests. It is **not yet connected to a live Supabase project**. The frontend still reads sample data from `frontend/src/features/listings/seed-data.ts` via `queries.ts`; swapping those query bodies to Supabase is the remaining Phase 3 work.
-- Inquiries, basket, saved items and selling are not built in the UI yet (Phases 4–6).
+- **The Business Plan is the source of truth** (ADR 0004). ReLoop buys stock, grades it A–D at one Jammu hub and resells it. Numbers come only from `frontend/src/config/business-rules.ts` (summarised in `docs/business-rules.md`). The gap analysis and open questions are in `docs/business-plan-alignment.md`.
+- **Public site:** home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions, households with an estimator, consignment, list-yourself), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
+- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish). It runs in the browser, so its data is per device.
+- **No backend yet.** All reads and writes go through `frontend/src/features/inventory/store` (browser storage today, Supabase later). The shop reads `frontend/src/data/shop-snapshot.json`, which the hub exports. Public forms hand off to WhatsApp or email (set `SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
+- `backend/` holds the Supabase schema for this model (16 PGlite tests). It is not yet applied to a live project; next steps are listed in `backend/README.md`.
+- Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
 ## Working rules
 
 - Run `npm run check` and `npm run test:e2e` from the repo root before calling work done.
 - Every DB change is a new file in `backend/supabase/migrations/` with a test in `backend/tests/`.
+- Never put unsupported claims on the public site (authorisations, certifications, India-wide shipping, internal financials); the e2e copy test enforces this.
 - Build one roadmap phase at a time, on its own branch. The user reviews each phase before merging and before the next one starts.
 - Never commit secrets or `.env` files. Commit locally, and push only when the user asks.

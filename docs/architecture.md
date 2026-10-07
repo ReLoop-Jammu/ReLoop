@@ -1,6 +1,6 @@
 # ReLoop — Architecture
 
-_Status: Phases 1–2 built, and the Phase 3 database schema is written and tested (on branch `phase-1-foundation`, awaiting review). Last updated 2026-09-30._
+_Status: Updated 2026-10-07 for the business plan ([ADR 0004](adr/0004-reloop-owned-graded-inventory.md)). Business numbers: [business-rules.md](business-rules.md). Gap analysis and open questions: [business-plan-alignment.md](business-plan-alignment.md)._
 
 ## Context
 
@@ -9,7 +9,7 @@ ReLoop is currently one ~200KB `index.html` (plain HTML/CSS/JS, localStorage "da
 **Decisions already made by the user**
 
 - Stack: **Next.js + TypeScript**, deployed on **Vercel**, **Supabase** for database/auth/storage.
-- Marketplace model: **Hybrid**. Verified business/collection partners publish directly; individual sellers' listings go to ReLoop admin review first.
+- Business model: **ReLoop buys and grades its own stock** at one Jammu hub ([ADR 0004](adr/0004-reloop-owned-graded-inventory.md), which replaced the earlier hybrid marketplace).
 - Buying: **inquiries now, online payments later**. Architecture leaves a clean slot for Razorpay.
 - Roles: left to me (see §3).
 
@@ -48,12 +48,17 @@ reloop/
 ├─ frontend/                     # The website (Next.js), deployed to Vercel with Root Directory = frontend
 │  ├─ src/
 │  │  ├─ app/                    # routes only; thin, compose features
-│  │  │  ├─ listings/, impact/, how-it-works/, sell/        (built)
-│  │  │  ├─ (auth)/, account/, admin/                       (Phases 4–6)
+│  │  │  ├─ (site)/ shop/, sell/, how-it-works/, where-scrap-goes/, warranty/, impact/, legal …
+│  │  │  ├─ hub/      staff tool: dashboard, intake, items, partners, handovers, data
+│  │  │  ├─ hub/login                                        (step 3, with Supabase)
 │  │  │  └─ layout.tsx, error.tsx, not-found.tsx, sitemap.ts, robots.ts
 │  │  ├─ features/               # one folder per domain; the ONLY code that fetches data
-│  │  │  └─ listings/ { model.ts, queries.ts, seed-data.ts, components/ }
-│  │  │     (inquiries/, basket/, saved/, partners/, moderation/ added per phase)
+│  │  │  ├─ inventory/ { model.ts, pricing.ts, rules.ts, stats.ts, store/ (the data layer) }
+│  │  │  ├─ shop/      { model.ts, queries.ts, components/ }
+│  │  │  ├─ sell/      { handoff.ts, components/ (forms, estimator) }
+│  │  │  └─ hub/       { components/, checklists.ts, useHubData.ts }
+│  │  ├─ config/business-rules.ts   # every number from the business plan
+│  │  ├─ data/shop-snapshot.json    # stock published from the hub (until Supabase)
 │  │  ├─ components/ { ui/, layout/, marketing/, brand/ }
 │  │  └─ lib/ { env.ts, utils/, supabase/ (Phase 3) }
 │  ├─ public/                    # static images
@@ -73,37 +78,37 @@ reloop/
 
 ## 3. Users & roles
 
-| Role        | Who                                                     | Can                                                                                                                              |
-| ----------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Visitor** | not logged in                                           | Browse, search, view listings, send an inquiry (with Turnstile)                                                                  |
-| **Member**  | any signed-up user                                      | Everything above, plus save listings, keep a basket, see their inquiry history, **list items as an individual** (goes to review) |
-| **Partner** | member whose business profile is **verified** by ReLoop | Everything above, plus listings **publish immediately**, a business profile page and bulk lots                                   |
-| **Admin**   | ReLoop staff                                            | Review queue, approve/reject listings, verify partners, manage inquiries, users and audit log                                    |
+| Role          | Who          | Can                                                                                                  |
+| ------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| **Visitor**   | anyone       | Browse the shop, reserve an item, use the price estimator, send a sell-to-us request                 |
+| **Hub staff** | ReLoop team  | Everything in `/hub`: intake, grading, listing, repairs, stripping, scrap cage, handovers, dashboard |
+| **Admin**     | ReLoop leads | Staff, plus adding or removing staff                                                                 |
 
-One login system. "Partner" is not a separate account type; it is a verified organization linked to a member. That keeps auth simple and lets a person be both a buyer and a seller.
+Sellers (shops, institutions, households) don't have accounts. They sell **to** ReLoop and are recorded by staff as partners, institutions or the item's source. Buyer accounts are not planned for the pilot.
 
-## 4. Data model (Postgres, all tables have RLS on)
+## 4. Data model
 
-- **profiles**: `id` (= auth user), `full_name`, `phone`, `is_admin`, timestamps
-- **organizations**: `id`, `owner_id`, `name`, `type` (business/college/collector/recycler), `gstin?`, `city`, `verification_status` (pending/verified/rejected), `verified_by`, `verified_at`
-- **listings**: `id`, `slug`, `seller_id`, `organization_id?`, `title`, `category` (enum: devices/components/repairable/bulk_lots/recycling), `condition` (enum: working/tested/repairable/parts_only/end_of_life), `price_paise` (bigint; `null` = request quote), `quantity`, `city`, `description`, **`status`** (draft/pending_review/published/rejected/sold/archived), `rejection_reason?`, `published_at`, `search` (tsvector for full-text search), timestamps
-- **listing_photos**: `listing_id`, `storage_path`, `position`, `width`, `height` (files in the Supabase Storage bucket `listing-photos`)
-- **saved_listings**: (`user_id`, `listing_id`)
-- **basket_items**: (`user_id`, `listing_id`, `qty`). Guests keep a localStorage basket that merges into this on login.
-- **inquiries**: `id`, `listing_id`, `buyer_id?`, `name`, `contact`, `message`, `status` (new/contacted/closed), `handled_by?`, timestamps
-- **audit_log**: `actor_id`, `action`, `entity`, `entity_id`, `details` (jsonb), `created_at`, written on every moderation/verification action
-- **Later (payments phase):** `orders`, `order_items`, `payments` (Razorpay ids, webhook-verified)
+Defined in `backend/supabase/migrations/` and described in `backend/README.md`:
 
-**Hybrid rule, enforced in the database** (not just the UI): a Postgres trigger on listing submit sets `status = 'published'` if the seller's organization is verified, otherwise `'pending_review'`. It can't be bypassed from the browser.
+- **Items:** RL-JMU tags, grade A–D, status, prices, wipe, source
+- **Item history**
+- **Partners and institutions**
+- **Repair jobs**
+- **Consignments**
+- **Recycler handovers**
+- **Public requests**
+- **Staff**
 
-**Key RLS rules:** anyone reads `published` listings; sellers read and write only their own listings; only admins change `status` to published/rejected; inquiries are visible only to the buyer who sent them and to admins; the service-role key is never exposed to the browser.
+Business rules (no selling without a wipe, the day-45/75 rules, public-only columns) are enforced in the database. The browser-storage version used until Supabase is connected has the same shape: `frontend/src/features/inventory/model.ts`.
 
 ## 5. Pages / routes
 
-- **Public:** `/`, `/listings` (search, filters and sort in the URL so results are shareable), `/listings/[slug]`, `/categories/[category]`, `/partners/[slug]`, `/impact`, `/how-it-works`, `/privacy`, `/terms`
-- **Auth:** `/login`, `/signup` (email magic link + Google), `/auth/callback`
-- **Account:** `/account` (profile), `/account/saved`, `/account/basket`, `/account/inquiries`, `/account/listings`, `/account/listings/new`, `/account/listings/[id]/edit`, `/account/partner` (apply for verification)
-- **Admin:** `/admin` (counts dashboard), `/admin/review` (listing queue), `/admin/inquiries`, `/admin/partners`, `/admin/users`, `/admin/audit`
+- **Public:**
+  - `/`, `/shop`, `/shop/[RL-JMU-id]`
+  - `/sell` (+ `/sell/shops`, `/sell/institutions`, `/sell/home`, `/sell/consignment`, `/sell/list-yourself`)
+  - `/how-it-works`, `/where-scrap-goes`, `/warranty`, `/impact`, `/contact`, `/privacy`, `/terms`
+- **Staff (noindex, not linked):** `/hub` (dashboard), `/hub/intake`, `/hub/items`, `/hub/items/[id]`, `/hub/partners`, `/hub/handovers`, `/hub/data`
+- **Later:** `/hub/login` once Supabase auth is connected
 
 ## 6. Design system
 
@@ -116,21 +121,19 @@ One login system. "Partner" is not a separate account type; it is a verified org
 
 Moved to [engineering-standards.md](engineering-standards.md). They are mandatory.
 
-## 8. Phased roadmap (each phase = one PR, reviewed before the next)
+## 8. Roadmap (each step = one PR, reviewed before merge)
 
-| #   | Phase                             | Delivers                                                                    | Done when                                              |
-| --- | --------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 0   | **Docs sign-off**                 | architecture, standards, ADRs, CLAUDE.md                                    | User approves docs                                     |
-| 1   | **Foundation**                    | Next.js scaffold, tooling, CI, design tokens, Header/Footer, Vercel preview | Empty branded shell deploys; CI green                  |
-| 2   | **Static pages port**             | Home, Impact, How-it-works ported from `index.html`, mobile-polished        | Visual parity + Lighthouse ≥ 90                        |
-| 3   | **Supabase + marketplace (read)** | Schema, RLS, seed data, listings grid, filters/search, detail pages         | Browse/search works from the real DB                   |
-| 4   | **Auth & accounts**               | Sign up/in, profile, saved listings, basket (with guest merge)              | E2E: sign up → save → basket                           |
-| 5   | **Selling**                       | Create/edit listing, photo upload, hybrid rule, "my listings"               | E2E: individual → pending; partner → live              |
-| 6   | **Inquiries + admin console**     | Inquiry flow, review queue, partner verification, audit log, emails         | E2E: submit → approve → visible; inquiry → admin inbox |
-| 7   | **Launch hardening**              | SEO, a11y audit, security headers, legal pages, analytics, custom domain    | Launch checklist passes                                |
-| 8   | **Payments (later)**              | Razorpay checkout, orders, webhooks                                         | Separate plan when we get there                        |
-
-`index.html` stays live as the current site until Phase 2 replaces it.
+| #   | Step                                                | Delivers                                                                                                                                                            | Status                                                |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 0   | Docs                                                | Architecture, standards, ADRs                                                                                                                                       | Done                                                  |
+| 1   | Foundation                                          | Next.js app, tooling, CI, design system                                                                                                                             | Done                                                  |
+| 2   | Public pages                                        | Redesigned site                                                                                                                                                     | Done                                                  |
+| 2b  | **Business-plan alignment**                         | Graded shop, Sell to us paths with estimator, warranty/scrap pages, staff hub on browser storage, Supabase schema rewritten                                         | In review (PR #11)                                    |
+| 3   | **Connect Supabase** (needs the teammate's project) | Supabase adapter for `features/inventory/store`, staff login for `/hub`, shop reads live stock, forms save to `submissions`, photos in storage, daily pg_cron rules | Next                                                  |
+| 4   | Launch prep                                         | Contact details, hub address, domain, legal review of privacy/terms, notify staff of new requests (email/WhatsApp)                                                  | Before go-live                                        |
+| 5   | Operations extras                                   | Consignment and repair dashboards, printable handover sheets, Instagram feed of new stock                                                                           | After the pilot starts                                |
+| 6   | Self-listing (8%)                                   | Seller accounts, moderation, payouts                                                                                                                                | Later, needs a decision (does it go through the hub?) |
+| 7   | Payments                                            | Razorpay, receipts, GST                                                                                                                                             | Later, separate plan                                  |
 
 ## 9. Things to confirm during Phase 0 review (have sensible defaults; not blockers)
 

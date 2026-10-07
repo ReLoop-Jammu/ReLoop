@@ -12,6 +12,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Old marketplace URLs (before the business-plan redesign) now point to the shop.
+  async redirects() {
+    return [
+      { source: "/listings", destination: "/shop", permanent: true },
+      { source: "/listings/:slug", destination: "/shop", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

@@ -18,14 +18,18 @@ export async function createTestDb() {
 }
 
 export const ADMIN_ID = "00000000-0000-4000-8000-000000000001";
-export const RELOOP_ORG_ID = "00000000-0000-4000-8000-0000000000a1";
 
-/** Creates an auth user (and, via trigger, a profile). */
-export async function createUser(db, name) {
+/** Creates an auth user. Pass staff: true to add them to the hub staff list. */
+export async function createUser(db, name, { staff = false } = {}) {
   const { rows } = await db.query(
     "insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id",
     [`${name}@test.local`, { full_name: name }],
   );
+  if (staff)
+    await db.query("insert into public.staff (user_id, full_name) values ($1, $2)", [
+      rows[0].id,
+      name,
+    ]);
   return rows[0].id;
 }
 

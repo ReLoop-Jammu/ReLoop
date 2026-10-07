@@ -1,29 +1,23 @@
 import assert from "node:assert/strict";
 import { before, describe, test } from "node:test";
-import { ADMIN_ID, as, createTestDb, createUser, RELOOP_ORG_ID } from "./db.mjs";
+import { ADMIN_ID, as, createTestDb, createUser } from "./db.mjs";
 
 let db;
-let alice; // individual seller
-let bob; // another member
-let partner; // owner of a verified organization
-let partnerOrg;
+let staff; // hub staff member
+let member; // signed-in, but not staff
 
-const newListing = (overrides = {}) => ({
-  title: "Test laptop",
-  category: "devices",
-  condition: "working",
-  price_paise: 100000,
-  city: "Jammu, J&K",
-  status: "pending_review",
-  ...overrides,
-});
-
-async function insertListing(tx, sellerId, fields) {
-  const f = { seller_id: sellerId, ...fields };
+async function intake(tx, fields = {}) {
+  const f = {
+    source_type: "repair_shop",
+    category: "phone",
+    buy_mode: "cash",
+    brand: "Samsung",
+    model: "M31",
+    ...fields,
+  };
   const cols = Object.keys(f);
   const { rows } = await tx.query(
-    `insert into public.listings (${cols.join(", ")}) values (${cols.map((_, i) => `$${i + 1}`).join(", ")})
-     returning id, slug, status, published_at`,
+    `insert into public.items (${cols.join(", ")}) values (${cols.map((_, i) => `$${i + 1}`).join(", ")}) returning *`,
     Object.values(f),
   );
   return rows[0];
@@ -31,280 +25,252 @@ async function insertListing(tx, sellerId, fields) {
 
 before(async () => {
   db = await createTestDb();
-  alice = await createUser(db, "alice");
-  bob = await createUser(db, "bob");
-  partner = await createUser(db, "partner");
-  // Partner applies, then an admin verifies them.
-  partnerOrg = await as(db, partner, async (tx) => {
-    const { rows } = await tx.query(
-      `insert into public.organizations (owner_id, name, slug, type, city, verification_status)
-       values ($1, 'Jammu Collectors', 'jammu-collectors', 'collector', 'Jammu', 'verified') returning id, verification_status`,
-      [partner],
-    );
-    assert.equal(rows[0].verification_status, "pending", "members cannot self-verify");
-    return rows[0].id;
-  });
-  await as(db, ADMIN_ID, (tx) =>
-    tx.query("update public.organizations set verification_status = 'verified' where id = $1", [
-      partnerOrg,
-    ]),
-  );
+  staff = await createUser(db, "Hub Staff", { staff: true });
+  member = await createUser(db, "Member");
 });
 
 describe("seed", () => {
-  test("loads 16 published listings under the verified ReLoop organization", async () => {
+  test("loads the 12 sample items on sale and continues tags after them", async () => {
     const { rows } = await db.query(
-      "select count(*)::int as n from public.listings where status = 'published' and organization_id = $1",
-      [RELOOP_ORG_ID],
+      "select count(*)::int as n from public.items where status = 'listed'",
     );
-    assert.equal(rows[0].n, 16);
+    assert.equal(rows[0].n, 12);
+    const item = await as(db, staff, (tx) => intake(tx));
+    assert.equal(item.id, "RL-JMU-0013");
+  });
+});
+
+describe("intake", () => {
+  test("assigns sequential RL-JMU tags and flags data wipes", async () => {
+    const [a, b] = await as(db, staff, async (tx) => [
+      await intake(tx),
+      await intake(tx, { category: "monitor" }),
+    ]);
+    assert.match(a.id, /^RL-JMU-\d{4}$/);
+    assert.equal(Number(b.id.slice(-4)), Number(a.id.slice(-4)) + 1);
+    assert.equal(a.wipe_required, true, "phones need a wipe");
+    assert.equal(b.wipe_required, false, "monitors don't");
   });
 
-  test("full-text search finds listings by title words", async () => {
-    const { rows } = await db.query(
-      "select slug from public.listings where search @@ websearch_to_tsquery('simple', 'thinkpad')",
+  test("grading at intake moves the item to graded and logs it", async () => {
+    const item = await as(db, staff, (tx) => intake(tx, { grade: "B" }));
+    assert.equal(item.status, "graded");
+    assert.ok(item.graded_at);
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query("select type from public.item_events where item_id = $1", [item.id]),
     );
     assert.deepEqual(
-      rows.map((r) => r.slug),
-      ["lenovo-thinkpad-t480"],
+      rows.map((r) => r.type),
+      ["received"],
+    );
+  });
+
+  test("parts must say what kind of part they are", async () => {
+    await assert.rejects(
+      as(db, staff, (tx) => intake(tx, { category: "part" })),
+      /part_needs_type/,
     );
   });
 });
 
-describe("hybrid moderation (ADR 0002)", () => {
-  test("an individual's listing goes to review, even if they ask to publish", async () => {
-    const listing = await as(db, alice, (tx) =>
-      insertListing(tx, alice, newListing({ status: "published" })),
-    );
-    assert.equal(listing.status, "pending_review");
-    assert.equal(listing.published_at, null);
-    assert.match(listing.slug, /^test-laptop-[a-f0-9]{6}$/);
-  });
-
-  test("a verified partner's listing publishes immediately", async () => {
-    const listing = await as(db, partner, (tx) =>
-      insertListing(
-        tx,
-        partner,
-        newListing({ organization_id: partnerOrg, title: "Bulk RAM lot" }),
-      ),
-    );
-    assert.equal(listing.status, "published");
-    assert.ok(listing.published_at);
-  });
-
-  test("a member cannot list under someone else's organization", async () => {
+describe("business rules on sale", () => {
+  test("a phone can't be listed before its data is wiped", async () => {
+    const item = await as(db, staff, (tx) => intake(tx, { grade: "A" }));
     await assert.rejects(
-      as(db, alice, (tx) => insertListing(tx, alice, newListing({ organization_id: partnerOrg }))),
-      /your own organization/,
-    );
-  });
-
-  test("editing a published individual listing sends it back to review", async () => {
-    const id = (await as(db, alice, (tx) => insertListing(tx, alice, newListing()))).id;
-    await as(db, ADMIN_ID, (tx) =>
-      tx.query("update public.listings set status = 'published' where id = $1", [id]),
-    );
-    const { rows } = await as(db, alice, (tx) =>
-      tx.query("update public.listings set price_paise = 1 where id = $1 returning status", [id]),
-    );
-    assert.equal(rows[0].status, "pending_review");
-  });
-
-  test("members cannot reject listings; admins can, with a reason, and it is audited", async () => {
-    const id = (await as(db, alice, (tx) => insertListing(tx, alice, newListing()))).id;
-    await assert.rejects(
-      as(db, alice, (tx) =>
+      as(db, staff, (tx) =>
         tx.query(
-          "update public.listings set status = 'rejected', rejection_reason = 'x' where id = $1",
-          [id],
+          "update public.items set status = 'listed', list_paise = 500000, current_paise = 500000 where id = $1",
+          [item.id],
         ),
       ),
-      /Only ReLoop admins/,
+      /wiped_before_listing/,
     );
-    await as(db, ADMIN_ID, (tx) =>
+    await as(db, staff, (tx) =>
       tx.query(
-        "update public.listings set status = 'rejected', rejection_reason = 'Blurry photos' where id = $1",
-        [id],
+        "update public.items set wiped_at = now(), wipe_method = 'reset_overwrite', status = 'listed', list_paise = 500000, current_paise = 500000 where id = $1",
+        [item.id],
       ),
     );
-    const { rows } = await as(db, ADMIN_ID, (tx) =>
-      tx.query("select action, actor_id, details from public.audit_log where entity_id = $1", [id]),
-    );
-    assert.equal(rows.length, 1);
-    assert.equal(rows[0].action, "listing.rejected");
-    assert.equal(rows[0].actor_id, ADMIN_ID);
-    assert.equal(rows[0].details.reason, "Blurry photos");
+    const { rows } = await db.query("select status, listed_at from public.items where id = $1", [
+      item.id,
+    ]);
+    assert.equal(rows[0].status, "listed");
+    assert.ok(rows[0].listed_at, "listing date set automatically");
   });
 
-  test("partner verification is audited", async () => {
-    const { rows } = await db.query("select action from public.audit_log where entity_id = $1", [
-      partnerOrg,
-    ]);
-    assert.deepEqual(
-      rows.map((r) => r.action),
-      ["organization.verified"],
+  test("grade C devices are stripped, not sold whole", async () => {
+    const item = await as(db, staff, (tx) => intake(tx, { category: "monitor", grade: "C" }));
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.items set status = 'listed', current_paise = 10000 where id = $1", [
+          item.id,
+        ]),
+      ),
+      /grade_c_sold_as_parts/,
+    );
+  });
+
+  test("nothing ungraded or unpriced can go on sale", async () => {
+    const item = await as(db, staff, (tx) => intake(tx, { category: "monitor" }));
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.items set status = 'listed' where id = $1", [item.id]),
+      ),
+      /graded_after_intake|listed_items_are_sellable/,
     );
   });
 });
 
-describe("row level security", () => {
-  test("visitors see only published listings", async () => {
-    const { rows } = await as(db, null, (tx) =>
-      tx.query("select distinct status from public.listings order by status"),
+describe("unsold-stock rules", () => {
+  test("day 45 cuts the price 20% once; day 75 downgrades to C for stripping", async () => {
+    const item = await as(db, staff, (tx) =>
+      intake(tx, {
+        category: "monitor",
+        grade: "A",
+        status: "listed",
+        list_paise: 320000,
+        current_paise: 320000,
+        listed_at: "2026-11-01T00:00:00Z",
+      }),
     );
-    assert.deepEqual(
-      rows.map((r) => r.status),
-      ["published"],
+    const run = (when) => db.query("select public.apply_stock_rules($1) as n", [when]);
+    await run("2026-12-15T00:00:00Z"); // day 44
+    let { rows } = await db.query(
+      "select current_paise, grade, status from public.items where id = $1",
+      [item.id],
     );
+    assert.equal(Number(rows[0].current_paise), 320000);
+
+    await run("2026-12-16T00:00:00Z"); // day 45
+    await run("2026-12-20T00:00:00Z"); // still only one cut
+    ({ rows } = await db.query(
+      "select current_paise, price_cut_at from public.items where id = $1",
+      [item.id],
+    ));
+    assert.equal(Number(rows[0].current_paise), 256000);
+    assert.ok(rows[0].price_cut_at);
+
+    await run("2027-01-15T00:00:00Z"); // day 75
+    ({ rows } = await db.query("select grade, status from public.items where id = $1", [item.id]));
+    assert.deepEqual(rows[0], { grade: "C", status: "stripping" });
   });
 
-  test("sellers see their own unpublished listings; others do not", async () => {
-    const id = (
-      await as(db, alice, (tx) =>
-        insertListing(tx, alice, newListing({ title: "Private draft", status: "draft" })),
-      )
-    ).id;
-    const mine = await as(db, alice, (tx) =>
-      tx.query("select id from public.listings where id = $1", [id]),
+  test("only trusted server jobs can run the rules", async () => {
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("select public.apply_stock_rules()")),
+      /permission denied/,
     );
-    const theirs = await as(db, bob, (tx) =>
-      tx.query("select id from public.listings where id = $1", [id]),
-    );
-    assert.equal(mine.rows.length, 1);
-    assert.equal(theirs.rows.length, 0);
   });
+});
 
-  test("members cannot change other people's listings", async () => {
-    const { affectedRows } = await as(db, bob, (tx) =>
-      tx.query("update public.listings set title = 'Hacked' where organization_id = $1", [
-        RELOOP_ORG_ID,
+describe("recycler handovers", () => {
+  test("recording a handover moves the scrap-cage items out", async () => {
+    const item = await as(db, staff, (tx) =>
+      intake(tx, { category: "tv", grade: "D", buy_mode: "free" }),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'in_scrap_cage', weight_kg = 14 where id = $1", [
+        item.id,
       ]),
+    );
+    await as(db, staff, (tx) =>
+      tx.query(
+        "insert into public.handovers (recycler, receipt_no, kg_by_category, item_ids) values ('Authorised recycler', 'R-1', '{\"tv\": 14}', $1)",
+        [[item.id]],
+      ),
+    );
+    const { rows } = await db.query("select status, handover_id from public.items where id = $1", [
+      item.id,
+    ]);
+    assert.equal(rows[0].status, "handed_over");
+    assert.ok(rows[0].handover_id);
+  });
+});
+
+describe("who can see and change what", () => {
+  test("visitors see stock on sale, but never buy prices or sources", async () => {
+    const { rows } = await as(db, null, (tx) =>
+      tx.query("select distinct status from public.items"),
+    );
+    assert.deepEqual(rows.map((r) => r.status).sort(), ["listed"]);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select buy_paise from public.items")),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select source_name from public.items")),
+      /permission denied/,
+    );
+  });
+
+  test("visitors and non-staff members can't change stock", async () => {
+    await assert.rejects(
+      as(db, null, (tx) => intake(tx)),
+      /permission denied|row-level security/,
+    );
+    await assert.rejects(
+      as(db, member, (tx) => intake(tx)),
+      /row-level security/,
+    );
+    const { affectedRows } = await as(db, member, (tx) =>
+      tx.query("update public.items set current_paise = 100"),
     );
     assert.equal(affectedRows, 0);
   });
 
-  test("members cannot create listings for someone else", async () => {
+  test("non-staff can't see partners, handovers or staff", async () => {
+    for (const table of ["partners", "institutions", "handovers", "staff", "item_events"]) {
+      const { rows } = await as(db, member, (tx) => tx.query(`select * from public.${table}`));
+      assert.equal(rows.length, 0, table);
+    }
+  });
+
+  test("staff can't make themselves admin; admins can add staff", async () => {
     await assert.rejects(
-      as(db, bob, (tx) => insertListing(tx, alice, newListing())),
-      /row-level security/,
+      as(db, staff, (tx) =>
+        tx.query("update public.staff set role = 'admin' where user_id = $1", [staff]),
+      ).then(async () => {
+        const { rows } = await db.query("select role from public.staff where user_id = $1", [
+          staff,
+        ]);
+        if (rows[0].role !== "staff") throw new Error("escalated");
+        throw new Error("no change (expected)");
+      }),
+      /no change/,
     );
+    await as(db, ADMIN_ID, (tx) =>
+      tx.query("insert into public.staff (user_id, full_name) values ($1, 'Member')", [member]),
+    );
+    const { rows } = await db.query("select count(*)::int as n from public.staff");
+    assert.equal(rows[0].n, 3);
+    await db.query("delete from public.staff where user_id = $1", [member]);
   });
 
-  test("members cannot make themselves admin", async () => {
-    await as(db, bob, (tx) =>
-      tx.query("update public.profiles set is_admin = true, full_name = 'Bob B' where id = $1", [
-        bob,
-      ]),
-    );
-    const { rows } = await db.query(
-      "select is_admin, full_name from public.profiles where id = $1",
-      [bob],
-    );
-    assert.equal(rows[0].is_admin, false);
-    assert.equal(rows[0].full_name, "Bob B");
-  });
-
-  test("members cannot read other members' profiles", async () => {
-    const { rows } = await as(db, bob, (tx) => tx.query("select id from public.profiles"));
-    assert.deepEqual(
-      rows.map((r) => r.id),
-      [bob],
-    );
-  });
-
-  test("saved listings and baskets are private", async () => {
-    const listingId = (
-      await db.query("select id from public.listings where slug = 'dell-22-inch-monitor'")
-    ).rows[0].id;
-    await as(db, alice, (tx) =>
-      tx.query("insert into public.saved_listings (user_id, listing_id) values ($1, $2)", [
-        alice,
-        listingId,
-      ]),
-    );
-    await assert.rejects(
-      as(db, bob, (tx) =>
-        tx.query("insert into public.basket_items (user_id, listing_id) values ($1, $2)", [
-          alice,
-          listingId,
-        ]),
-      ),
-      /row-level security/,
-    );
-    const { rows } = await as(db, bob, (tx) => tx.query("select * from public.saved_listings"));
-    assert.equal(rows.length, 0);
-  });
-});
-
-describe("inquiries", () => {
-  test("visitors can inquire about published listings but cannot read inquiries", async () => {
-    const listingId = (
-      await db.query("select id from public.listings where slug = 'lenovo-thinkpad-t480'")
-    ).rows[0].id;
+  test("anyone can send a request; only staff read it, and status can't be faked", async () => {
     await as(db, null, (tx) =>
       tx.query(
-        "insert into public.inquiries (listing_id, name, contact, message, status) values ($1, 'Sam', '9876543210', 'Still available?', 'closed')",
-        [listingId],
+        "insert into public.submissions (kind, fields, status) values ('shop_partner', '{\"shop\":\"Sharma Mobiles\"}', 'done')",
       ),
     );
-    const visible = await as(db, null, (tx) => tx.query("select * from public.inquiries"));
-    assert.equal(visible.rows.length, 0);
-    const { rows } = await as(db, ADMIN_ID, (tx) =>
-      tx.query("select status, buyer_id from public.inquiries"),
-    );
-    assert.deepEqual(rows, [{ status: "new", buyer_id: null }], "status is forced to new");
-  });
-
-  test("nobody can inquire about an unpublished listing", async () => {
-    const id = (await as(db, alice, (tx) => insertListing(tx, alice, newListing()))).id;
     await assert.rejects(
-      as(db, bob, (tx) =>
-        tx.query(
-          "insert into public.inquiries (listing_id, name, contact) values ($1, 'Bob', 'bob@test.local')",
-          [id],
-        ),
-      ),
-      /row-level security/,
+      as(db, null, (tx) => tx.query("select * from public.submissions")),
+      /permission denied/,
     );
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query("select kind, status from public.submissions"),
+    );
+    assert.deepEqual(rows, [{ kind: "shop_partner", status: "new" }]);
   });
 
-  test("a signed-in buyer sees only their own inquiries, stamped with their id", async () => {
-    const listingId = (
-      await db.query("select id from public.listings where slug = 'printer-for-parts'")
-    ).rows[0].id;
-    await as(db, bob, (tx) =>
+  test("only staff upload item photos", async () => {
+    await as(db, staff, (tx) =>
       tx.query(
-        "insert into public.inquiries (listing_id, name, contact, buyer_id) values ($1, 'Bob', 'bob@test.local', $2)",
-        [listingId, alice],
+        "insert into storage.objects (bucket_id, name) values ('item-photos', 'RL-JMU-0001/0.jpg')",
       ),
     );
-    const bobs = await as(db, bob, (tx) => tx.query("select buyer_id from public.inquiries"));
-    assert.deepEqual(bobs.rows, [{ buyer_id: bob }], "buyer_id cannot be spoofed");
-    const alices = await as(db, alice, (tx) => tx.query("select * from public.inquiries"));
-    assert.equal(alices.rows.length, 0);
-  });
-
-  test("only admins can update inquiries", async () => {
-    const { affectedRows } = await as(db, bob, (tx) =>
-      tx.query("update public.inquiries set status = 'closed'"),
-    );
-    assert.equal(affectedRows, 0);
-  });
-});
-
-describe("photo storage", () => {
-  test("members can upload only into their own folder", async () => {
-    await as(db, alice, (tx) =>
-      tx.query("insert into storage.objects (bucket_id, name) values ('listing-photos', $1)", [
-        `${alice}/l1/front.jpg`,
-      ]),
-    );
     await assert.rejects(
-      as(db, bob, (tx) =>
-        tx.query("insert into storage.objects (bucket_id, name) values ('listing-photos', $1)", [
-          `${alice}/l1/evil.jpg`,
-        ]),
+      as(db, member, (tx) =>
+        tx.query("insert into storage.objects (bucket_id, name) values ('item-photos', 'x.jpg')"),
       ),
       /row-level security/,
     );
