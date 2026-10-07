@@ -18,6 +18,6 @@ The Business Plan became the source of truth for what ReLoop is. ReLoop **buys**
 
 ## Consequences
 
-- `backend/` (designed for the hybrid model) must be **rewritten before it is applied** to a real Supabase project: `items`, `partners`, `institutions`, `handovers`, `repair_jobs`, `consignments`, `submissions`, with staff-only writes and public reads of listed items' public fields.
+- `backend/` was rewritten for this model: `items` (tags assigned by the database), `item_events`, `partners`, `institutions`, `repair_jobs`, `consignments`, `handovers`, `submissions` and `staff`. Staff-only writes; the public reads only the public columns of items on sale.
 - Only the data layer (`frontend/src/features/inventory/store`) and `features/shop/queries.ts` change when Supabase arrives.
 - Browser storage is per device: one hub laptop, with daily backups, until then.

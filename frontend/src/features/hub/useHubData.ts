@@ -1,21 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type {
-  Handover,
-  Institution,
-  Item,
-  Partner,
-  RepairJob,
-  Submission,
-} from "@/features/inventory/model";
+import type { Handover, Institution, Item, Partner, RepairJob } from "@/features/inventory/model";
 import {
   getHandovers,
   getInstitutions,
   getItems,
   getPartners,
   getRepairJobs,
-  getSubmissions,
 } from "@/features/inventory/store";
 
 export type HubData = {
@@ -24,7 +16,6 @@ export type HubData = {
   institutions: Institution[];
   handovers: Handover[];
   repairJobs: RepairJob[];
-  submissions: Submission[];
 };
 
 const EMPTY: HubData = {
@@ -33,7 +24,6 @@ const EMPTY: HubData = {
   institutions: [],
   handovers: [],
   repairJobs: [],
-  submissions: [],
 };
 
 /** Loads everything the hub screens need from the data layer, with a refresh(). */
@@ -42,15 +32,14 @@ export function useHubData() {
   const [loaded, setLoaded] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [items, partners, institutions, handovers, repairJobs, submissions] = await Promise.all([
+    const [items, partners, institutions, handovers, repairJobs] = await Promise.all([
       getItems(),
       getPartners(),
       getInstitutions(),
       getHandovers(),
       getRepairJobs(),
-      getSubmissions(),
     ]);
-    setData({ items, partners, institutions, handovers, repairJobs, submissions });
+    setData({ items, partners, institutions, handovers, repairJobs });
     setLoaded(true);
   }, []);
 

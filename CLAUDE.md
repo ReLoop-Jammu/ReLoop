@@ -20,7 +20,7 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - **Public site:** home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions, households with an estimator, consignment, list-yourself), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
 - **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish). It runs in the browser, so its data is per device.
 - **No backend yet.** All reads and writes go through `frontend/src/features/inventory/store` (browser storage today, Supabase later). The shop reads `frontend/src/data/shop-snapshot.json`, which the hub exports. Public forms hand off to WhatsApp or email (set `SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
-- `backend/` still models the old hybrid marketplace and must be rewritten before it is applied.
+- `backend/` holds the Supabase schema for this model (16 PGlite tests). It is not yet applied to a live project; next steps are listed in `backend/README.md`.
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
 ## Working rules

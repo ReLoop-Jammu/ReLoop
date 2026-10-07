@@ -19,7 +19,7 @@ See also: [architecture.md](architecture.md) · [adr/](adr/)
 
 ## Performance & SEO
 
-`next/image` for all photos; cache published listing pages and revalidate on change; target Lighthouse ≥ 90 on mobile for Performance, Accessibility, Best Practices and SEO; metadata, Open Graph images, `sitemap.xml` and structured data for listings.
+`next/image` for all photos; cache shop item pages and revalidate on change; target Lighthouse ≥ 90 on mobile for Performance, Accessibility, Best Practices and SEO; metadata, Open Graph images, `sitemap.xml` and structured data for shop items.
 
 ## Testing (definition of "tested")
 
@@ -37,7 +37,8 @@ See also: [architecture.md](architecture.md) · [adr/](adr/)
 ## Compliance (India)
 
 - Privacy policy and consent in line with the DPDP Act 2023: collect minimal personal data and let users delete their account.
-- E-Waste (Management) Rules 2022: the "Recycling" category routes only to authorised recyclers, with a disclaimer on listings.
+- E-Waste (Management) Rules 2022: grade-D items and batteries go only to an authorised recycler, with a weight receipt. The site never claims an authorisation ReLoop does not hold (enforced by an e2e copy test).
+- Business numbers come only from `frontend/src/config/business-rules.ts`; internal financials never appear on the public site.
 
 ## Design rules
 

@@ -27,7 +27,6 @@ const C = {
   handovers: "handovers",
   repairJobs: "repair_jobs",
   consignments: "consignments",
-  submissions: "submissions",
 } as const;
 
 const nowIso = () => new Date().toISOString();
@@ -52,7 +51,9 @@ function remove(name: string, id: string): void {
 
 export type ItemFilter = { status?: ItemStatus | ItemStatus[]; grade?: Item["grade"]; q?: string };
 
+/** Reads always see up-to-date prices: the day-45/75 rules run first. */
 export async function getItems(filter: ItemFilter = {}): Promise<Item[]> {
+  await applyAutomaticRules();
   const statuses = filter.status ? ([] as ItemStatus[]).concat(filter.status) : null;
   const q = filter.q?.trim().toLowerCase();
   return readCollection<Item>(C.items)
@@ -66,6 +67,7 @@ export async function getItems(filter: ItemFilter = {}): Promise<Item[]> {
 }
 
 export async function getItem(id: string): Promise<Item | null> {
+  await applyAutomaticRules();
   return readCollection<Item>(C.items).find((i) => i.id === id) ?? null;
 }
 
@@ -203,22 +205,17 @@ export async function saveConsignment(
 
 // ---------------------------------------------------------------- public form submissions
 
+/**
+ * Records a public form request. Until a shared database exists, requests
+ * reach ReLoop by WhatsApp or email only, so nothing is kept on the
+ * visitor's device (which may be shared, e.g. a cyber café). The Supabase
+ * adapter will insert into a `submissions` table here.
+ */
 export async function addSubmission(
   kind: Submission["kind"],
   fields: Record<string, string>,
 ): Promise<Submission> {
-  return upsert<Submission>(C.submissions, {
-    id: randomId("sub"),
-    kind,
-    createdAt: nowIso(),
-    fields,
-    status: "new",
-  });
-}
-export async function getSubmissions(): Promise<Submission[]> {
-  return readCollection<Submission>(C.submissions).sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  );
+  return { id: randomId("sub"), kind, createdAt: nowIso(), fields, status: "new" };
 }
 
 // ---------------------------------------------------------------- backup & publishing

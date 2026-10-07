@@ -12,9 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { LogoMark } from "@/components/brand/Logo";
-import { applyAutomaticRules } from "@/features/inventory/store";
 import { cn } from "@/lib/utils/cn";
 
 const NAV: { href: string; label: string; icon: LucideIcon }[] = [
@@ -28,12 +27,6 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
 
 export function HubShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [autoChanges, setAutoChanges] = useState(0);
-
-  useEffect(() => {
-    // Apply the day-45 / day-75 rules every time the hub is opened.
-    void applyAutomaticRules().then((changed) => setAutoChanges(changed.length));
-  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas lg:flex-row">
@@ -82,7 +75,7 @@ export function HubShell({ children }: { children: ReactNode }) {
           <Link href="/hub/data" className="underline">
             Backup &amp; publish
           </Link>
-          .{autoChanges > 0 && ` · ${autoChanges} item(s) updated by the 45/75-day rules.`}
+          .
         </p>
         <main id="main" className="px-4 py-6 sm:px-8 sm:py-8">
           {children}

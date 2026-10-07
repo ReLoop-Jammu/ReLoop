@@ -566,17 +566,18 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
                     parentId: item.id,
                   });
                 }
+                const kept = parts.filter((x) => x.title.trim()).length;
+                // The item stays grade C (it was reused as parts); only its shell goes to scrap.
                 await saveItem({
                   ...item,
                   status: "in_scrap_cage",
-                  grade: "D",
                   weightKg: kg ? Number(kg) : item.weightKg,
                   events: [
                     ...item.events,
                     {
                       at: at(),
                       type: "stripped",
-                      note: `${parts.length} part(s) removed; shell to scrap cage`,
+                      note: `${kept} part(s) removed; shell to scrap cage`,
                     },
                   ],
                 });
@@ -678,6 +679,36 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
               </Button>
             )}
           </div>
+          {status === "listed" && (
+            <div className="grid gap-2 border-t border-line pt-3 sm:grid-cols-[1fr_auto_auto]">
+              <Input
+                aria-label="New price (₹)"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={!rupeesToPaiseOrNull(price)}
+                onClick={async () => {
+                  const p = rupeesToPaiseOrNull(price);
+                  if (!p) return;
+                  // Keeps the listing date, so the 45/75-day clock is not reset by a price change.
+                  await saveItem(
+                    withEvent({ ...item, currentPaise: p }, "price_changed", formatPrice(p)),
+                  );
+                  setMsg(`Price changed to ${formatPrice(p)}.`);
+                  await reload();
+                }}
+              >
+                Change price
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => void go("graded", "Taken off sale")}>
+                Take off sale
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

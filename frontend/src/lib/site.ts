@@ -30,3 +30,6 @@ export const SITE = {
   /** Date the legal pages were last updated (YYYY-MM-DD). */
   legalUpdated: "2026-10-02",
 } as const;
+
+/** True once at least one channel exists for sell-to-us requests to reach ReLoop. */
+export const hasContactChannel = Boolean(SITE.whatsapp || SITE.supportEmail);

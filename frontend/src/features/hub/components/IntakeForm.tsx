@@ -181,7 +181,14 @@ export function IntakeForm() {
               <Select
                 id={`${id}-src`}
                 value={d.sourceType}
-                onChange={(e) => set("sourceType", e.target.value as SourceType)}
+                onChange={(e) =>
+                  setD((x) => ({
+                    ...x,
+                    sourceType: e.target.value as SourceType,
+                    partnerId: "",
+                    institutionId: "",
+                  }))
+                }
               >
                 {SOURCE_TYPES.filter((s) => s.value !== "stripped").map((s) => (
                   <option key={s.value} value={s.value}>

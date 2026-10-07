@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { SITE } from "@/lib/site";
+import { SITE, hasContactChannel } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 import { NavLinks } from "./NavLinks";
@@ -18,7 +18,9 @@ export function Header() {
             •
           </span>
           Hub opening in Jammu, {SITE.hubOpens}
-          <span className="hidden sm:inline"> · Seller sign-ups open now</span>
+          {hasContactChannel && (
+            <span className="hidden sm:inline"> · Seller sign-ups open now</span>
+          )}
         </Container>
       </div>
       <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">

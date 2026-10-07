@@ -13,7 +13,7 @@ import { PageTitle, Panel } from "./ui";
 const STORAGE_BUDGET = 5 * 1024 * 1024; // typical browser limit per site
 
 export function DataPage() {
-  const { items, submissions, refresh } = useHubData();
+  const { items, refresh } = useHubData();
   const [usage, setUsage] = useState(0);
   const [msg, setMsg] = useState("");
 
@@ -65,8 +65,8 @@ export function DataPage() {
       <div className="grid gap-6 xl:grid-cols-3">
         <Panel title="Daily backup">
           <p className="text-sm leading-relaxed text-ink-soft">
-            Download everything (items, photos, shops, handovers) as one file. Do this at the end of
-            every day.
+            Download everything (items, photos, shops, institutions, handovers, repairs) as one
+            file. Do this at the end of every day.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => void backup()}>
@@ -105,33 +105,6 @@ export function DataPage() {
           <Button size="sm" className="mt-4" onClick={() => void publish()}>
             <UploadCloud className="size-4" aria-hidden="true" /> Download shop file
           </Button>
-        </Panel>
-
-        <Panel title={`Requests on this device (${submissions.length})`} className="xl:col-span-3">
-          <p className="mb-3 text-xs text-muted">
-            Sign-ups and bookings arrive by WhatsApp or email. This list only shows requests made
-            from this browser (useful when filling a form for a walk-in seller).
-          </p>
-          {submissions.length === 0 ? (
-            <p className="text-sm text-muted">None.</p>
-          ) : (
-            <ul className="divide-y divide-line text-sm">
-              {submissions.map((s) => (
-                <li key={s.id} className="py-2">
-                  <span className="font-medium">{s.kind.replace(/_/g, " ")}</span>
-                  <span className="ml-2 text-xs text-muted">
-                    {new Date(s.createdAt).toLocaleString("en-IN")}
-                  </span>
-                  <span className="block text-xs text-ink-soft">
-                    {Object.entries(s.fields)
-                      .filter(([, v]) => v)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(" · ")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
         </Panel>
       </div>
     </>

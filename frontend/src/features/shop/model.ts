@@ -34,6 +34,42 @@ export type ShopItem = {
 
 export type ShopSnapshot = { publishedAt: string; items: ShopItem[] };
 
+const itemIdPattern = /^RL-[A-Z]{3}-\d{4,}$/;
+
+/**
+ * Schema for the stock file exported from the hub. Parsed at build time so a
+ * damaged or hand-edited file fails the build instead of breaking the shop.
+ */
+export const shopSnapshotSchema = z.object({
+  publishedAt: z.iso.datetime(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().regex(itemIdPattern),
+        title: z.string().min(1).max(120),
+        category: z.enum(CATEGORIES.map((c) => c.value) as [Category, ...Category[]]),
+        partType: z
+          .enum(["screen", "board", "ram", "storage", "battery", "charger", "motor", "other"])
+          .optional(),
+        grade: z.enum(["A", "B", "C"]),
+        pricePaise: z.number().int().positive(),
+        wasPaise: z.number().int().positive().optional(),
+        description: z.string().max(2000),
+        photo: z.string().startsWith("data:image/").or(z.string().startsWith("/")).optional(),
+        checks: z.array(z.string().max(60)),
+        dataWiped: z.boolean(),
+        warrantyDays: z.number().int().positive().nullable(),
+        shipsIndia: z.boolean(),
+        listedAt: z.iso.datetime(),
+        sample: z.boolean().optional(),
+      }),
+    )
+    .refine(
+      (items) => new Set(items.map((i) => i.id)).size === items.length,
+      "Duplicate item IDs in stock file",
+    ),
+}) satisfies z.ZodType<ShopSnapshot>;
+
 export function toShopItem(item: Item): ShopItem | null {
   if (item.status !== "listed" || !item.currentPaise || !item.listedAt) return null;
   if (item.grade !== "A" && item.grade !== "B" && item.grade !== "C") return null;

@@ -17,13 +17,20 @@ export class StorageFullError extends Error {
 
 export function readCollection<T>(name: string): T[] {
   const key = PREFIX + name;
+  let raw: string | null;
   try {
-    const raw = window.localStorage.getItem(key);
-    if (raw !== null) return JSON.parse(raw) as T[];
+    raw = window.localStorage.getItem(key);
   } catch {
-    // Private mode or corrupted value: fall back to memory.
+    // Storage blocked (e.g. private mode): use this session's in-memory copy.
+    return (memory.get(key) as T[] | undefined) ?? [];
   }
-  return (memory.get(key) as T[] | undefined) ?? [];
+  // Storage works: it is the only source of truth, so cleared data stays cleared.
+  if (raw === null) return [];
+  try {
+    return JSON.parse(raw) as T[];
+  } catch {
+    return [];
+  }
 }
 
 export function writeCollection<T>(name: string, rows: T[]): void {

@@ -76,3 +76,40 @@ test.describe("hub (staff tool)", () => {
     await expect(page.getByText("The cage is empty.")).toBeVisible();
   });
 });
+
+test.describe("hub item lifecycle", () => {
+  test("a C device is stripped into tagged parts and stays grade C", async ({ page }) => {
+    await page.goto("/hub/intake");
+    await page.getByLabel("Category").selectOption("laptop");
+    await page.getByLabel("Name").fill("Walk-in shop");
+    await page.getByLabel("Brand").fill("Acer");
+    await page.getByLabel("Grade (if tested now)").selectOption("C");
+    await page.getByLabel("We paid (₹)").fill("150");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await page.getByRole("link", { name: "Open item" }).click();
+    await page.getByRole("button", { name: "Add part" }).click();
+    await page.getByLabel("Part type").selectOption("ram");
+    await page.getByLabel("Part description").fill("8 GB DDR4");
+    await page.getByLabel("Price (₹)").fill("900");
+    await page.getByRole("button", { name: "Save parts, shell to scrap" }).click();
+    await expect(page.getByText("Parts tagged. Shell moved to the scrap cage.")).toBeVisible();
+    await expect(page.locator("[data-grade]").first()).toHaveAttribute("data-grade", "C");
+
+    await page.goto("/hub/items");
+    await expect(page.getByRole("cell", { name: /8 GB DDR4/ })).toBeVisible();
+  });
+
+  test("switching the source clears a previously chosen shop", async ({ page }) => {
+    await page.goto("/hub/partners");
+    await page.getByLabel("Shop name").fill("Gupta Electronics");
+    await page.getByLabel("Phone").first().fill("9876500000");
+    await page.getByRole("button", { name: "Add shop" }).click();
+    await page.goto("/hub/intake");
+    await page
+      .getByLabel("Partner shop")
+      .selectOption({ label: "Gupta Electronics (Raghunath Bazaar)" });
+    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await expect(page.getByLabel("Partner shop")).toHaveValue("");
+  });
+});

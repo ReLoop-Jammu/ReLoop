@@ -1,6 +1,6 @@
 import "server-only";
 import snapshot from "@/data/shop-snapshot.json";
-import type { ShopFilters, ShopItem, ShopSnapshot } from "./model";
+import { shopSnapshotSchema, type ShopFilters, type ShopItem } from "./model";
 
 /*
  * Read side of the public shop. Pages call ONLY these functions.
@@ -8,7 +8,7 @@ import type { ShopFilters, ShopItem, ShopSnapshot } from "./model";
  * (src/data/shop-snapshot.json); with Supabase they will query listed items.
  */
 
-const data = snapshot as ShopSnapshot;
+const data = shopSnapshotSchema.parse(snapshot);
 
 export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): ShopItem[] {
   const terms = f.q?.toLowerCase().split(/\s+/).filter(Boolean) ?? [];

@@ -59,8 +59,8 @@ export function HandoffPanel({ subject, text, onReset }: Props) {
       </div>
       {channels.length === 0 && (
         <p className="mt-4 text-sm text-ink-soft">
-          Our WhatsApp number and email will appear here before onboarding opens on 14 October.
-          Until then, copy your request and keep it handy.
+          Our WhatsApp number and email will be added here shortly. Meanwhile, copy your request and
+          keep it handy.
         </p>
       )}
     </div>
