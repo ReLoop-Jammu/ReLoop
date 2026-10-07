@@ -73,7 +73,7 @@ The project lives on one teammate's **Hobby** (free) Vercel account, as `re-loop
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | from Supabase                                   | Supabase step |
    | `SUPABASE_SECRET_KEY`                  | from Supabase (mark **Sensitive**)              | Supabase step |
 
-4. **Analytics:** Project → **Analytics** → enable **Web Analytics**, and **Speed Insights** → enable. The code is already in the site, and both are free on Hobby within limits.
+4. **Analytics:** Project → **Analytics** → enable **Web Analytics**, and **Speed Insights** → enable (free on Hobby). Then add the environment variable `VERCEL_ANALYTICS` = `on` (Production) and redeploy. The site only loads the analytics scripts when this is `on`, so visitors never see errors before Analytics is enabled.
 5. After any settings change, redeploy: Deployments → latest → **⋯ → Redeploy**.
 
 > **Before ReLoop starts selling:** Vercel's Hobby plan is for non-commercial use only. Once the shop takes real orders, the project should move to a **Pro** team (paid, per member), which also allows adding developers. Until then, previews and the early-preview site are fine on Hobby.
