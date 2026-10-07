@@ -1,5 +1,6 @@
 export const NAV_LINKS = [
-  { href: "/listings", label: "Marketplace" },
+  { href: "/shop", label: "Shop" },
+  { href: "/sell", label: "Sell to us" },
   { href: "/how-it-works", label: "How it works" },
-  { href: "/impact", label: "Our impact" },
+  { href: "/where-scrap-goes", label: "Where scrap goes" },
 ] as const;

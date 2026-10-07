@@ -69,7 +69,7 @@ export function MobileNav() {
             className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-600 font-semibold text-white md:hidden"
           >
             <Plus className="size-4" aria-hidden="true" />
-            Sell with ReLoop
+            Sell to us
           </Link>
         </div>
       </div>

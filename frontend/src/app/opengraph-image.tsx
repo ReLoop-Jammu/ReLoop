@@ -40,7 +40,7 @@ export default function OpengraphImage() {
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ fontSize: 84, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
-          Old tech.
+          Collect. Grade.
         </div>
         <div
           style={{
@@ -51,10 +51,10 @@ export default function OpengraphImage() {
             color: "#efc553",
           }}
         >
-          New possibilities.
+          Resell what still works.
         </div>
         <div style={{ marginTop: 28, fontSize: 30, color: "rgba(255,255,255,0.8)" }}>
-          Used electronics, components and bulk lots · Jammu → India
+          Tested and graded A–D at our Jammu hub
         </div>
       </div>
     </div>,

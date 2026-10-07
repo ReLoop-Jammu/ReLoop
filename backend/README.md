@@ -1,5 +1,7 @@
 # ReLoop backend
 
+> **Needs a rewrite before use.** This schema models the earlier hybrid marketplace. ADR 0004 replaced it with ReLoop-owned, graded inventory. Do not apply these migrations to a real project until the schema is rewritten around `items`, `partners`, `institutions` and `handovers`.
+
 Everything that runs on the server side of the database lives here, managed as code:
 
 ```

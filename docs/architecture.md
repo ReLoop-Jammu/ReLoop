@@ -1,6 +1,6 @@
 # ReLoop — Architecture
 
-_Status: Phases 1–2 built, and the Phase 3 database schema is written and tested (on branch `phase-1-foundation`, awaiting review). Last updated 2026-09-30._
+_Status: Updated 2026-10-07. The business model changed per [ADR 0004](adr/0004-reloop-owned-graded-inventory.md); see [business-plan-alignment.md](business-plan-alignment.md) and [business-rules.md](business-rules.md). Sections 3–5 below describe the earlier hybrid model and are kept for history until the backend rewrite._
 
 ## Context
 
