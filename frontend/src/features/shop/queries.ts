@@ -160,7 +160,7 @@ function toShopItem(
       [listing.brand, listing.model].filter(Boolean).join(" ") ||
       "Electronics item",
     category: categoryFromDatabase(listing.category_id, categories),
-    grade: listing.grade,
+    grade: listing.grade as "A" | "B" | "C",
     pricePaise: Math.round(Number(listing.price) * 100),
     description: listing.description ?? "",
     ...(listing.image_url ? { photo: listing.image_url } : {}),
