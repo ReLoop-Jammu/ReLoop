@@ -30,6 +30,7 @@ export function Header() {
           </Link>
           <NavLinks className="hidden lg:flex" />
           <HeaderSearch className="ml-auto hidden w-full max-w-xs md:block" />
+          <ButtonLink href="/login" variant="secondary" size="sm" className="hidden md:inline-flex">Account</ButtonLink>
           <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
             <Plus className="size-4" aria-hidden="true" />
             Sell to us

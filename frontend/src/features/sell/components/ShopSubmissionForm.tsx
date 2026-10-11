@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Plus, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "./RequestForm";
+import Link from "next/link";
+import { getSession } from "@/lib/auth-client";
 
 type ItemDraft = {
   itemName: string;
@@ -32,6 +34,8 @@ const emptyItem = (): ItemDraft => ({
 const categories = ["Phones & tablets", "Laptops", "Desktops", "Monitors", "Printers", "Accessories & parts", "Other electronics"];
 
 export function ShopSubmissionForm() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => { setLoggedIn(Boolean(getSession()?.access_token)); }, []);
   const [shopName, setShopName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -57,9 +61,11 @@ export function ShopSubmissionForm() {
     }
     setBusy(true);
     try {
+      const session = getSession();
+      if (!session?.access_token) throw new Error("Please log in to submit items.");
       const response = await fetch("/api/shop-submissions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ shopName, ownerName, phone, email, address, city, items, website }),
       });
       const result = (await response.json()) as { ok?: boolean; count?: number; error?: string };
@@ -72,6 +78,10 @@ export function ShopSubmissionForm() {
       setBusy(false);
     }
   };
+
+  if (!loggedIn) {
+    return <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8"><h3 className="text-xl font-bold text-ink">Log in to submit items</h3><p className="mt-2 text-sm leading-relaxed text-muted">Shop submissions are available to registered shop owners after ReLoop verifies their business and GSTIN.</p><div className="mt-5 flex flex-wrap gap-3"><Link className="inline-flex min-h-11 items-center rounded-full bg-brand-600 px-5 font-semibold text-white" href="/login">Log in</Link><Link className="inline-flex min-h-11 items-center rounded-full border border-line px-5 font-semibold" href="/register">Register as a shop owner</Link></div></div>;
+  }
 
   if (successCount !== null) {
     return (
