@@ -13,6 +13,7 @@ BEGIN
   END IF;
 END $$;
 
+
 CREATE TABLE IF NOT EXISTS public.profiles (
   user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text NOT NULL CHECK (char_length(full_name) BETWEEN 2 AND 100),
