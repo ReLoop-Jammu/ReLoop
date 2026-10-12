@@ -34,16 +34,12 @@ export default function TermsPage() {
         <ul>
           <li>Only sell items you own or have the right to sell.</li>
           <li>
-            Prices shown on this site are estimates. The final price is set after we test the item,
+            Prices shown on this site are rough estimates only. ReLoop inspects each item and confirms an outright purchase offer before the seller accepts. If accepted, the agreed amount is paid directly; no consignment share or commission is deducted. The final price is set after we test the item,
             and you may decline it.
           </li>
           <li>
             Remove personal data where you can. We also wipe phones, laptops and drives before
             resale.
-          </li>
-          <li>
-            Consignment items are sold on terms we agree with you in writing before you hand them
-            over.
           </li>
         </ul>
       </section>

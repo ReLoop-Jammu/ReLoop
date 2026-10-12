@@ -14,7 +14,6 @@ const SELL_LINKS = [
   { href: "/sell/shops", label: "Repair shops & retailers" },
   { href: "/sell/institutions", label: "Institutions" },
   { href: "/sell/home", label: "Households" },
-  { href: "/sell/consignment", label: "Consignment" },
 ];
 
 const COMPANY_LINKS = [

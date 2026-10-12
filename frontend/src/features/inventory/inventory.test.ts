@@ -45,17 +45,9 @@ describe("buy-price estimate (plan §04)", () => {
     expect(estimateBuyPrice("A", null)).toEqual({
       kind: "rule_only",
       grade: "A",
-      consignmentEligible: false,
     });
   });
 
-  it("offers consignment (70%) only above ₹10,000", () => {
-    expect(estimateBuyPrice("A", 1_000_000)).toMatchObject({ consignmentEligible: false });
-    expect(estimateBuyPrice("A", 2_000_000)).toMatchObject({
-      consignmentEligible: true,
-      consignmentPaise: 1_400_000,
-    });
-  });
 
   it("guesses a likely grade from the seller's answers", () => {
     expect(likelyGrade({ powersOn: "yes", allWorking: "yes", hazard: false })).toBe("A");
@@ -186,7 +178,6 @@ describe("item rules", () => {
   });
 
   it("keeps the plan's numbers in one place", () => {
-    expect(BUSINESS_RULES.consignment).toEqual({ thresholdPaise: 1_000_000, sellerShare: 0.7 });
     expect(BUSINESS_RULES.jammuDeliveryPaise).toBe(5_000);
     expect(BUSINESS_RULES.warrantyDays).toBe(30);
   });

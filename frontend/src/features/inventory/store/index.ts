@@ -7,7 +7,6 @@
  */
 
 import type {
-  Consignment,
   Handover,
   Institution,
   Item,
@@ -26,7 +25,6 @@ const C = {
   institutions: "institutions",
   handovers: "handovers",
   repairJobs: "repair_jobs",
-  consignments: "consignments",
 } as const;
 
 const nowIso = () => new Date().toISOString();
@@ -154,7 +152,7 @@ export async function saveInstitution(
   return upsert(C.institutions, { ...i, id: i.id ?? randomId("inst") });
 }
 
-// ---------------------------------------------------------------- handovers, repairs, consignments
+// ---------------------------------------------------------------- handovers and repairs
 
 export async function getHandovers(): Promise<Handover[]> {
   return readCollection<Handover>(C.handovers).sort((a, b) => b.date.localeCompare(a.date));
@@ -192,16 +190,7 @@ export async function saveRepairJob(
   return upsert(C.repairJobs, { ...j, id: j.id ?? randomId("rep") });
 }
 
-export async function getConsignments(): Promise<Consignment[]> {
-  return readCollection<Consignment>(C.consignments).sort((a, b) =>
-    b.startedAt.localeCompare(a.startedAt),
-  );
-}
-export async function saveConsignment(
-  c: Omit<Consignment, "id"> & { id?: string },
-): Promise<Consignment> {
-  return upsert(C.consignments, { ...c, id: c.id ?? randomId("con") });
-}
+
 
 // ---------------------------------------------------------------- public form submissions
 

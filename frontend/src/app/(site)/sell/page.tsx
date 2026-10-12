@@ -1,9 +1,8 @@
-import { ArrowRight, Building2, HandCoins, House, Store, Tag, type LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, House, Store, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { BUSINESS_RULES } from "@/config/business-rules";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { GRADE_INFO, GRADES } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
@@ -43,12 +42,11 @@ const PATHS: {
     icon: House,
     title: "Households",
     who: "Old phones, laptops, chargers, small appliances",
-    body: "Get an instant estimate, then drop it at our hub or a partner shop. Working items are paid for; the rest is disposed of safely.",
+    body: "Get a rough estimate, then bring the item for inspection. We make an outright purchase offer and pay the agreed amount directly if you accept. Items that cannot be purchased may be directed to safe disposal.",
     cta: "Get an estimate",
   },
 ];
 
-const pct = (n: number) => `${Math.round(n * 100)}%`;
 const BUY_RULE: Record<(typeof GRADES)[number], string> = {
   A: `About ${pct(BUSINESS_RULES.buy.A.shareOfResale)} of what we expect to resell it for`,
   B: `About ${pct(BUSINESS_RULES.buy.B.shareOfResale)} of expected resale; we pay for the repair`,
@@ -67,9 +65,7 @@ export default function SellPage() {
               We buy what still has a life in it.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-muted">
-              Working, broken or dead: we test every item at our Jammu hub, pay for what can be
-              reused or repaired, and send the rest to an authorised recycler. Choose the path that
-              fits you.
+              Working or broken: we inspect each item at our Jammu hub and make an outright purchase offer for items we can buy. If you accept, we pay the agreed amount directly. Items we cannot purchase are directed to an authorised recycler where appropriate.
             </p>
           </div>
           <ul className="mt-12 grid gap-4 lg:grid-cols-3" role="list">
@@ -142,46 +138,6 @@ export default function SellPage() {
           </div>
         </section>
 
-        <section className="mt-16 grid gap-4 md:grid-cols-2" aria-label="Other ways to sell">
-          <Link
-            href="/sell/consignment"
-            className="group rounded-panel bg-brand-950 p-7 text-white transition hover:-translate-y-1 hover:shadow-float sm:p-9"
-          >
-            <HandCoins className="size-7 text-gold-400" aria-hidden="true" />
-            <h2 className="mt-4 text-2xl font-bold text-white">
-              Consignment for items over {formatPrice(BUSINESS_RULES.consignment.thresholdPaise)}
-            </h2>
-            <p className="mt-2 leading-relaxed text-white/75">
-              Higher-value items? We test, list and sell them for you, and you receive{" "}
-              {pct(BUSINESS_RULES.consignment.sellerShare)} of the sale price when it sells.
-            </p>
-            <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-gold-400">
-              How consignment works{" "}
-              <ArrowRight
-                className="size-4 transition group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </span>
-          </Link>
-          <Link
-            href="/sell/list-yourself"
-            className="group rounded-panel border border-line bg-surface p-7 transition hover:-translate-y-1 hover:shadow-lift sm:p-9"
-          >
-            <Tag className="size-7 text-brand-600" aria-hidden="true" />
-            <h2 className="mt-4 text-2xl font-bold">List it yourself</h2>
-            <p className="mt-2 leading-relaxed text-muted">
-              Prefer to set your own price? Self-listing with an{" "}
-              {pct(BUSINESS_RULES.selfListingCommission)} commission is coming later.
-            </p>
-            <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-brand-600">
-              Learn more{" "}
-              <ArrowRight
-                className="size-4 transition group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </span>
-          </Link>
-        </section>
       </Container>
     </>
   );

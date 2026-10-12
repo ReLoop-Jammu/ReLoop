@@ -20,12 +20,6 @@ export const BUSINESS_RULES = {
     D: { paise: 0 },
   },
 
-  /** Items worth more than ₹10,000 can be sold on consignment; seller gets 70% on sale. */
-  consignment: { thresholdPaise: 1_000_000, sellerShare: 0.7 },
-
-  /** Commission when sellers list items themselves (not yet offered on the site). */
-  selfListingCommission: 0.08,
-
   /** Delivery inside Jammu. Hub pickup is free. */
   jammuDeliveryPaise: 5_000,
 

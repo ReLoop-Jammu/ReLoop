@@ -2,10 +2,10 @@
 
 import { ArrowRight, Calculator, Recycle } from "lucide-react";
 import { useId, useState } from "react";
-import { BUSINESS_RULES } from "@/config/business-rules";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { CATEGORIES, GRADE_INFO } from "@/features/inventory/model";
 import { estimateBuyPrice, likelyGrade, type ConditionAnswers } from "@/features/inventory/pricing";
+import { BUSINESS_RULES } from "@/config/business-rules";
 import { formatPrice, rupeesToPaise } from "@/lib/utils/money";
 import { cn } from "@/lib/utils/cn";
 import { inputClass } from "./RequestForm";
@@ -58,8 +58,8 @@ function Choices<T extends string>({
 export type EstimateResult = { category: string; model: string; summary: string };
 
 /**
- * Indicative buy price from the plan's rules: A ≈45% and B ≈25% of expected
- * resale, C ₹100–200, D free disposal. The final price is set after testing.
+ * Indicative purchase estimate only. ReLoop purchases accepted items outright after inspection;
+ * there is no consignment, delayed seller share, or commission deduction.
  */
 export function BuyEstimator({ onBook }: { onBook?: (r: EstimateResult) => void }) {
   const id = useId();
@@ -79,9 +79,9 @@ export function BuyEstimator({ onBook }: { onBook?: (r: EstimateResult) => void 
 
   let summary: string;
   if (estimate.kind === "free_disposal")
-    summary = "Free, safe disposal through an authorised recycler";
+    summary = "Likely free, safe disposal through an authorised recycler";
   else if (estimate.kind === "rule_only")
-    summary = `About ${Math.round(BUSINESS_RULES.buy[estimate.grade as "A" | "B"].shareOfResale * 100)}% of its resale value`;
+    summary = `Approximately ${Math.round(BUSINESS_RULES.buy[estimate.grade as "A" | "B"].shareOfResale * 100)}% of its expected resale value`;
   else summary = `${formatPrice(estimate.minPaise)} – ${formatPrice(estimate.maxPaise)}`;
 
   return (
@@ -191,23 +191,13 @@ export function BuyEstimator({ onBook }: { onBook?: (r: EstimateResult) => void 
           Likely: {GRADE_INFO[grade].outcome.toLowerCase()}
         </p>
         <p className="mt-5 font-display text-3xl font-bold text-white">{summary}</p>
-        {estimate.kind === "range" && estimate.consignmentEligible && estimate.consignmentPaise && (
-          <p className="mt-3 rounded-xl bg-white/10 p-3 text-sm leading-relaxed text-white/85">
-            Worth more than {formatPrice(BUSINESS_RULES.consignment.thresholdPaise)}? You can also
-            sell on <strong className="text-gold-400">consignment</strong> and receive{" "}
-            {Math.round(BUSINESS_RULES.consignment.sellerShare * 100)}% (about{" "}
-            {formatPrice(estimate.consignmentPaise)}) when it sells.
-          </p>
-        )}
         {grade === "D" && (
           <p className="mt-3 flex gap-2 text-sm text-white/80">
-            <Recycle className="mt-0.5 size-4 shrink-0" aria-hidden="true" /> We take it for free so
-            it doesn&apos;t end up in ordinary waste.
+            <Recycle className="mt-0.5 size-4 shrink-0" aria-hidden="true" /> It may be eligible for safe disposal rather than purchase. We confirm this after inspection.
           </p>
         )}
         <p className="mt-auto pt-6 text-xs leading-relaxed text-white/60">
-          Indicative only. The final price is set after we test the item at the hub, and you&apos;re
-          free to say no.
+          This is a rough estimate, not a guaranteed offer. We inspect the item and confirm our outright purchase price before you decide. If you accept, ReLoop pays the agreed amount directly; there is no consignment or later deduction.
         </p>
         {onBook && (
           <button

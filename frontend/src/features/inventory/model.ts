@@ -90,7 +90,7 @@ export const STATUSES = [
 ] as const;
 export type ItemStatus = (typeof STATUSES)[number]["value"];
 
-export type BuyMode = "cash" | "consignment" | "free";
+export type BuyMode = "cash" | "free";
 export type Fulfilment = "pickup" | "delivery_jammu" | "ship_india";
 export type WipeMethod = "reset_overwrite" | "drive_wipe" | "drilled";
 
@@ -99,7 +99,7 @@ export type ItemEvent = { at: string; type: string; note?: string };
 export type Item = {
   id: string;
   receivedAt: string;
-  source: { type: SourceType; partnerId?: string; institutionId?: string; name?: string };
+  source: { type: SourceType; partnerId?: string; institutionId?: string; name?: string; contactName?: string; phone?: string };
   category: Category;
   partType?: PartType;
   brand: string;
@@ -117,6 +117,9 @@ export type Item = {
   rack: string;
   buyMode: BuyMode;
   buyPaise: number;
+  purchasePaymentMethod?: "cash" | "upi" | "bank_transfer" | "other" | "not_paid";
+  purchaseReference?: string;
+  purchasePaidAt?: string;
   expectedResalePaise: number | null;
   listPaise: number | null;
   currentPaise: number | null;
@@ -127,7 +130,6 @@ export type Item = {
   soldPaise?: number;
   fulfilment?: Fulfilment;
   parentId?: string;
-  consignmentId?: string;
   handoverId?: string;
   events: ItemEvent[];
 };
@@ -183,22 +185,12 @@ export type RepairJob = {
   outcome?: "fixed" | "not_fixable";
 };
 
-export type Consignment = {
-  id: string;
-  itemId: string;
-  consignorName: string;
-  phone: string;
-  agreedPaise: number;
-  sellerShare: number;
-  startedAt: string;
-  status: "active" | "sold" | "payout_due" | "paid" | "returned";
-  payoutPaise?: number;
-};
+
 
 /** Requests sent through the public "Sell to us" forms. */
 export type Submission = {
   id: string;
-  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "consignment" | "reservation";
+  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "reservation";
   createdAt: string;
   fields: Record<string, string>;
   status: "new" | "contacted" | "done";

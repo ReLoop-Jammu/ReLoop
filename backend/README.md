@@ -22,7 +22,7 @@ backend/
 | `items`                       | Every tagged item: source, category, grade, test checklist, data wipe, buy price, list/current price, status, dates. |
 | `item_events`                 | Automatic history of every grade, status and price change.                                                           |
 | `item_photos`                 | Photo paths in the `item-photos` storage bucket.                                                                     |
-| `repair_jobs`, `consignments` | B-grade repairs by partner shops; consignment deals (> ₹10,000, 70% to seller).                                      |
+| `repair_jobs` | B-grade repairs by partner shops. Accepted items are purchased outright by ReLoop.                                      |
 | `handovers`                   | Recycler pickups: kg by category, batteries, items included, receipt number, amount.                                 |
 | `submissions`                 | Public "Sell to us" and reservation requests.                                                                        |
 

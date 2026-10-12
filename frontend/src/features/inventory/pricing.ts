@@ -28,10 +28,8 @@ export type BuyEstimate =
       grade: Grade;
       minPaise: number;
       maxPaise: number;
-      consignmentEligible: boolean;
-      consignmentPaise?: number;
     }
-  | { kind: "rule_only"; grade: Grade; consignmentEligible: false }
+  | { kind: "rule_only"; grade: Grade }
   | { kind: "free_disposal"; grade: "D" };
 
 const roundTo = (paise: number, step = 5_000) => Math.round(paise / step) * step; // nearest ₹50
@@ -51,23 +49,17 @@ export function estimateBuyPrice(grade: Grade, expectedResalePaise: number | nul
       grade,
       minPaise: rules.buy.C.minPaise,
       maxPaise: rules.buy.C.maxPaise,
-      consignmentEligible: false,
     };
   }
   if (expectedResalePaise === null || expectedResalePaise <= 0) {
-    return { kind: "rule_only", grade, consignmentEligible: false };
+    return { kind: "rule_only", grade };
   }
   const centre = expectedResalePaise * rules.buy[grade].shareOfResale;
-  const consignmentEligible = expectedResalePaise > rules.consignment.thresholdPaise;
   return {
     kind: "range",
     grade,
     minPaise: roundTo(centre * 0.9),
     maxPaise: roundTo(centre * 1.1),
-    consignmentEligible,
-    ...(consignmentEligible && {
-      consignmentPaise: Math.round(expectedResalePaise * rules.consignment.sellerShare),
-    }),
   };
 }
 

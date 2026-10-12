@@ -4,7 +4,6 @@ import { Camera, Printer, X } from "lucide-react";
 import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
-import { BUSINESS_RULES } from "@/config/business-rules";
 import {
   CATEGORIES,
   GRADES,
@@ -31,6 +30,10 @@ type Draft = {
   partnerId: string;
   institutionId: string;
   sourceName: string;
+  contactName: string;
+  phone: string;
+  paymentMethod: "cash" | "upi" | "bank_transfer" | "other" | "not_paid";
+  paymentReference: string;
   category: Category;
   partType: PartType | "";
   brand: string;
@@ -50,6 +53,10 @@ const BLANK: Draft = {
   partnerId: "",
   institutionId: "",
   sourceName: "",
+  contactName: "",
+  phone: "",
+  paymentMethod: "cash",
+  paymentReference: "",
   category: "phone",
   partType: "",
   brand: "",
@@ -74,8 +81,6 @@ export function IntakeForm() {
 
   const resalePaise = rupeesToPaiseOrNull(d.resale);
   const suggestion = d.grade ? estimateBuyPrice(d.grade, resalePaise) : null;
-  const consignable =
-    resalePaise !== null && resalePaise > BUSINESS_RULES.consignment.thresholdPaise;
 
   const addPhotos = async (files: FileList | null) => {
     if (!files) return;
@@ -111,6 +116,8 @@ export function IntakeForm() {
           ...(partner && { partnerId: partner.id, name: partner.name }),
           ...(inst && { institutionId: inst.id, name: inst.name }),
           ...(!partner && !inst && d.sourceName.trim() && { name: d.sourceName.trim() }),
+          ...(d.contactName.trim() && { contactName: d.contactName.trim() }),
+          ...(d.phone.trim() && { phone: d.phone.trim() }),
         },
         category: d.category,
         ...(d.category === "part" && d.partType && { partType: d.partType }),
@@ -128,6 +135,9 @@ export function IntakeForm() {
         rack: "",
         buyMode: d.buyMode,
         buyPaise,
+        purchasePaymentMethod: d.buyMode === "free" ? "not_paid" : d.paymentMethod,
+        ...(d.paymentReference.trim() && { purchaseReference: d.paymentReference.trim() }),
+        ...(d.buyMode !== "free" && d.paymentMethod !== "not_paid" && { purchasePaidAt: new Date().toISOString() }),
         expectedResalePaise: resalePaise,
       });
       setSaved(item);
@@ -247,6 +257,12 @@ export function IntakeForm() {
                 />
               </Field>
             )}
+            <Field label="Supplier contact name" htmlFor={`${id}-contact-name`}>
+              <Input id={`${id}-contact-name`} value={d.contactName} onChange={(e) => set("contactName", e.target.value)} />
+            </Field>
+            <Field label="Supplier phone / WhatsApp" htmlFor={`${id}-supplier-phone`}>
+              <Input id={`${id}-supplier-phone`} inputMode="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} />
+            </Field>
           </div>
         </Panel>
 
@@ -372,7 +388,6 @@ export function IntakeForm() {
                 onChange={(e) => set("buyMode", e.target.value as BuyMode)}
               >
                 <option value="cash">Cash on pickup</option>
-                <option value="consignment">Consignment (seller gets 70% on sale)</option>
                 <option value="free">Free (scrap / disposal)</option>
               </Select>
             </Field>
@@ -385,6 +400,18 @@ export function IntakeForm() {
                 onChange={(e) => set("buy", e.target.value)}
               />
             </Field>
+            <Field label="Payment method" htmlFor={`${id}-payment-method`}>
+              <Select id={`${id}-payment-method`} value={d.buyMode === "free" ? "not_paid" : d.paymentMethod} onChange={(e) => set("paymentMethod", e.target.value as Draft["paymentMethod"])} disabled={d.buyMode === "free"}>
+                <option value="cash">Cash</option>
+                <option value="upi">UPI</option>
+                <option value="bank_transfer">Bank transfer</option>
+                <option value="other">Other</option>
+                <option value="not_paid">Not paid yet</option>
+              </Select>
+            </Field>
+            <Field label="Payment / receipt reference (optional)" htmlFor={`${id}-payment-reference`}>
+              <Input id={`${id}-payment-reference`} value={d.paymentReference} onChange={(e) => set("paymentReference", e.target.value)} placeholder="UPI reference or receipt number" />
+            </Field>
           </div>
           {suggestion && (
             <p className="mt-4 rounded-lg bg-sunken p-3 text-sm text-ink-soft">
@@ -396,9 +423,6 @@ export function IntakeForm() {
                     ? "free pickup, pay nothing"
                     : "enter the expected resale to see a price"}
               </strong>
-              {consignable &&
-                d.buyMode !== "consignment" &&
-                " · Worth more than ₹10,000: offer consignment."}
             </p>
           )}
         </Panel>
