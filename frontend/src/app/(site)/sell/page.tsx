@@ -6,6 +6,12 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { GRADE_INFO, GRADES } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
+import { BUSINESS_RULES } from "@/config/business-rules";
+
+
+function pct(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
 
 export const metadata: Metadata = {
   title: "Sell to us",
