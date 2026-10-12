@@ -84,7 +84,7 @@ reloop/
 | **Hub staff** | ReLoop team  | Everything in `/hub`: intake, grading, listing, repairs, stripping, scrap cage, handovers, dashboard |
 | **Admin**     | ReLoop leads | Staff, plus adding or removing staff                                                                 |
 
-Sellers (shops and institutions) don't have accounts. They sell **to** ReLoop and are recorded by staff as partners, institutions or the item's source. Buyer accounts are not planned for the pilot.
+Sellers (shops, institutions, households) don't have accounts. They sell **to** ReLoop and are recorded by staff as partners, institutions or the item's source. Buyer accounts are not planned for the pilot.
 
 ## 4. Data model
 

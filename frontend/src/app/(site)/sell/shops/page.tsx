@@ -47,6 +47,10 @@ export default function ShopsPage() {
               title: "Dead stock handled properly",
               body: "What can't be reused goes to an authorised recycler, not the street.",
             },
+            {
+              title: "A drop-off point",
+              body: "Partner shops can also accept household drop-offs on our behalf.",
+            },
           ]}
         />
       </div>

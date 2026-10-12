@@ -88,8 +88,8 @@ describe("hub data layer (browser storage)", () => {
   });
 
   it("never stores public form requests on the visitor's device", async () => {
-    await addSubmission("shop_partner", { name: "Partner shop", phone: "9876543210" });
-    expect(JSON.stringify({ ...localStorage })).not.toContain("Partner shop");
+    await addSubmission("household_dropoff", { name: "Asha", phone: "9876543210" });
+    expect(JSON.stringify({ ...localStorage })).not.toContain("Asha");
   });
 
   it("round-trips a backup", async () => {

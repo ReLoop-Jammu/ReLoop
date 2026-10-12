@@ -56,7 +56,7 @@ test.describe("hub (staff tool)", () => {
 
   test("grade D goes to the scrap cage and out with a handover", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("institution");
+    await page.getByLabel("Source").selectOption("household");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Old CRT");
     await page.getByLabel("Grade (if tested now)").selectOption("D");
@@ -108,7 +108,7 @@ test.describe("hub item lifecycle", () => {
     await page
       .getByLabel("Partner shop")
       .selectOption({ label: "Gupta Electronics (Raghunath Bazaar)" });
-    await page.getByLabel("Source").selectOption("institution");
+    await page.getByLabel("Source").selectOption("household");
     await page.getByLabel("Source").selectOption("repair_shop");
     await expect(page.getByLabel("Partner shop")).toHaveValue("");
   });

@@ -4,12 +4,12 @@
 
 ## Context
 
-The Business Plan became the source of truth for what ReLoop is. ReLoop **buys** used and broken electronics from repair shops, retailers and institutions. It grades every item A–D at one hub in Jammu, then resells A, repairs B, strips C for parts and hands D to an authorised recycler. The earlier hybrid marketplace (members list items; verified partners publish directly) does not match that model.
+The Business Plan became the source of truth for what ReLoop is. ReLoop **buys** used and broken electronics from repair shops, retailers, institutions and households. It grades every item A–D at one hub in Jammu, then resells A, repairs B, strips C for parts and hands D to an authorised recycler. The earlier hybrid marketplace (members list items; verified partners publish directly) does not match that model.
 
 ## Decision
 
 - The public site sells **ReLoop's own graded stock**. Every item has an `RL-JMU-0001` tag and a grade.
-- Sellers don't list items. They **sell to ReLoop** through one of three paths (partner shops and institution pickups), plus consignment over ₹10,000. Self-listing at 8% is deferred.
+- Sellers don't list items. They **sell to ReLoop** through one of three paths (partner shops, institution pickups, household drop-offs), plus consignment over ₹10,000. Self-listing at 8% is deferred.
 - A staff **hub tool** (`/hub`) handles intake, grading, data wipe, listing, repair, stripping, the scrap cage, recycler handovers and the pilot dashboard.
 - Until the shared database exists:
   - hub data lives in the hub laptop's browser storage;

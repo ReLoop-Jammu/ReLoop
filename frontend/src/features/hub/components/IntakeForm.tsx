@@ -245,7 +245,7 @@ export function IntakeForm() {
             )}
             {!d.partnerId && !d.institutionId && (
               <Field
-                label="Name"
+                label={d.sourceType === "household" ? "Seller name (optional)" : "Name"}
                 htmlFor={`${id}-sname`}
                 className="sm:col-span-2"
               >

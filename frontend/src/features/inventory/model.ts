@@ -71,6 +71,7 @@ export const SOURCE_TYPES = [
   { value: "repair_shop", label: "Repair shop" },
   { value: "retailer", label: "Electronics retailer" },
   { value: "institution", label: "Institution" },
+  { value: "household", label: "Household" },
   { value: "stripped", label: "Stripped from a C item" },
 ] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number]["value"];
@@ -189,7 +190,7 @@ export type RepairJob = {
 /** Requests sent through the public "Sell to us" forms. */
 export type Submission = {
   id: string;
-  kind: "shop_partner" | "institution_pickup" | "reservation";
+  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "reservation";
   createdAt: string;
   fields: Record<string, string>;
   status: "new" | "contacted" | "done";

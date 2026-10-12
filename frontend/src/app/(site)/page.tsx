@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Building2,
+  House,
   Recycle,
   ShieldCheck,
   Store,
@@ -60,6 +61,12 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
     title: "Institutions",
     body: "Booked pickups with a handover record.",
   },
+  {
+    href: "/sell/home",
+    icon: House,
+    title: "Households",
+    body: "Instant estimate, then drop it off.",
+  },
 ];
 
 export default async function HomePage() {
@@ -108,8 +115,9 @@ export default async function HomePage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers and
-              institutions, grades every item at one hub, and gives it its next useful life. Only what is truly dead goes to an authorised recycler.
+              ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers,
+              institutions and homes, grades every item at one hub, and gives it its next useful
+              life. Only what is truly dead goes to an authorised recycler.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/shop" size="lg">
@@ -218,7 +226,7 @@ export default async function HomePage() {
               </ButtonLink>
             }
           />
-          <ul className="grid gap-4 md:grid-cols-2" role="list">
+          <ul className="grid gap-4 md:grid-cols-3" role="list">
             {SELL_PATHS.map(({ href, icon: Icon, title, body }) => (
               <li key={href}>
                 <Link
