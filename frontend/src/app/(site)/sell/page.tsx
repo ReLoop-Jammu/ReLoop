@@ -1,3 +1,4 @@
+
 import { ArrowRight, Building2, Store, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { GRADE_INFO, GRADES } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
 import { BUSINESS_RULES } from "@/config/business-rules";
-
 
 function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -32,18 +32,17 @@ const PATHS: {
     icon: Store,
     title: "Repair shops & retailers",
     who: "Raghunath Bazaar, Residency Road, Gandhi Nagar",
-    body: "Unclaimed devices, dead units, old spares, trade-ins. Cash on pickup on our Tuesday and Friday route.",
+    body: "Unclaimed devices, dead units, old spares and trade-ins. Contact us to arrange a collection.",
     cta: "Become a partner shop",
   },
   {
     href: "/sell/institutions",
     icon: Building2,
     title: "Colleges, schools & offices",
-    who: "Bulk lots of desktops, monitors, printers, UPS",
-    body: "We pick up, sort and give you a handover record. Dead e-waste goes straight to an authorised recycler in your name.",
+    who: "Bulk lots of desktops, monitors, printers and UPS units",
+    body: "Arrange a bulk pickup. We inspect and sort the items, provide a handover record, and direct unsuitable e-waste to an authorised recycler where appropriate.",
     cta: "Book a pickup",
   },
-  {
 ];
 
 const BUY_RULE: Record<(typeof GRADES)[number], string> = {
@@ -60,14 +59,23 @@ export default function SellPage() {
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
             <Eyebrow>Sell to us</Eyebrow>
+
             <h1 className="mt-4 text-4xl font-bold sm:text-6xl">
               We buy what still has a life in it.
             </h1>
+
             <p className="mt-5 text-lg leading-relaxed text-muted">
-              Working or broken: we inspect each item at our Jammu hub and make an outright purchase offer for items we can buy. If you accept, we pay the agreed amount directly. Items we cannot purchase are directed to an authorised recycler where appropriate.
+              Working or broken, we inspect eligible electronics at our
+              Jammu hub and make an outright purchase offer. If you accept,
+              we pay the agreed amount directly. Items we cannot purchase
+              may be directed to an authorised recycler where appropriate.
             </p>
           </div>
-          <ul className="mt-12 grid gap-4 lg:grid-cols-2" role="list">
+
+          <ul
+            className="mt-12 grid gap-4 lg:grid-cols-2"
+            role="list"
+          >
             {PATHS.map(({ href, icon: Icon, title, who, body, cta }) => (
               <li key={href}>
                 <Link
@@ -77,9 +85,19 @@ export default function SellPage() {
                   <span className="grid size-12 place-items-center rounded-2xl bg-brand-600 text-white">
                     <Icon className="size-6" aria-hidden="true" />
                   </span>
-                  <h2 className="mt-5 text-2xl font-bold">{title}</h2>
-                  <p className="mt-1 text-sm font-medium text-gold-700">{who}</p>
-                  <p className="mt-3 leading-relaxed text-ink-soft">{body}</p>
+
+                  <h2 className="mt-5 text-2xl font-bold">
+                    {title}
+                  </h2>
+
+                  <p className="mt-1 text-sm font-medium text-gold-700">
+                    {who}
+                  </p>
+
+                  <p className="mt-3 leading-relaxed text-ink-soft">
+                    {body}
+                  </p>
+
                   <span className="mt-auto inline-flex items-center gap-1.5 pt-6 font-semibold text-brand-600">
                     {cta}
                     <ArrowRight
@@ -97,46 +115,65 @@ export default function SellPage() {
       <Container className="py-16 sm:py-20">
         <section aria-labelledby="pay-heading">
           <Eyebrow>How we price</Eyebrow>
-          <h2 id="pay-heading" className="mt-3 text-3xl font-bold sm:text-4xl">
+
+          <h2
+            id="pay-heading"
+            className="mt-3 text-3xl font-bold sm:text-4xl"
+          >
             What we pay depends on the grade
           </h2>
+
           <p className="mt-3 max-w-2xl text-muted">
-            We test every item and give it a grade. Our price follows simple rules, so if resale
-            prices fall, so does our offer, and you always know why.
+            We test every item and assign it a grade. The purchase offer
+            depends on its condition and expected resale value. The final
+            amount is confirmed after inspection, before you accept the offer.
           </p>
+
           <div className="mt-8 overflow-hidden rounded-card border border-line bg-surface shadow-soft">
             <table className="w-full text-left text-sm">
-              <caption className="sr-only">What ReLoop pays for each grade</caption>
+              <caption className="sr-only">
+                What ReLoop pays for each grade
+              </caption>
+
               <thead className="bg-sunken text-xs tracking-wider text-muted uppercase">
                 <tr>
                   <th scope="col" className="px-5 py-3 font-semibold">
                     Grade
                   </th>
-                  <th scope="col" className="hidden px-5 py-3 font-semibold sm:table-cell">
+
+                  <th
+                    scope="col"
+                    className="hidden px-5 py-3 font-semibold sm:table-cell"
+                  >
                     What it means
                   </th>
+
                   <th scope="col" className="px-5 py-3 font-semibold">
                     What we pay
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-line">
                 {GRADES.map((g) => (
                   <tr key={g}>
                     <td className="px-5 py-4 align-top">
                       <GradeBadge grade={g} />
                     </td>
+
                     <td className="hidden px-5 py-4 align-top text-ink-soft sm:table-cell">
                       {GRADE_INFO[g].description}
                     </td>
-                    <td className="px-5 py-4 align-top font-medium text-ink">{BUY_RULE[g]}</td>
+
+                    <td className="px-5 py-4 align-top font-medium text-ink">
+                      {BUY_RULE[g]}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
-
       </Container>
     </>
   );
