@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const item = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
     const quantity = Number(item.quantity); const askingPrice = item.askingPrice === "" || item.askingPrice == null ? null : Number(item.askingPrice);
     const imageUrl = text(item.imageUrl, 1000) || null;
-    return { item_name: text(item.itemName, 120), category: text(item.category, 80), brand: text(item.brand, 100), model: text(item.model, 100), condition: text(item.condition, 40), quantity, asking_price: askingPrice, image_url: imageUrl, description: text(item.description, 800) };
+    return { item_name: text(item.itemName, 120), category: text(item.category, 80), brand: text(item.brand, 100), model: text(item.model, 100), condition: text(item.condition, 40) === "Working" ? "Good" : text(item.condition, 40), quantity, asking_price: askingPrice, image_url: imageUrl, description: text(item.description, 800) };
   });
   if (cleanedItems.some((item) => !item.item_name || !item.condition || !Number.isInteger(item.quantity) || item.quantity < 1 || (item.asking_price !== null && (!Number.isFinite(item.asking_price) || item.asking_price < 0)) || (item.image_url && !/^https:\/\//i.test(item.image_url)))) return NextResponse.json({ error: "Each item needs a name, condition and positive whole-number quantity. Image links must use HTTPS." }, { status: 400 });
   const base = SUPABASE_URL.replace(/\/$/, "");
