@@ -37,7 +37,6 @@ const PAGES = [
   "/sell",
   "/sell/shops",
   "/sell/institutions",
-  "/sell/home",
   "/sell/consignment",
   "/sell/list-yourself",
   "/how-it-works",
@@ -70,12 +69,13 @@ test("every page loads without console errors, hydration warnings or failed requ
 test("main interactions run without console errors", async ({ page }) => {
   const problems = watch(page);
 
-  await page.goto("/sell/home");
-  await page.getByLabel("Roughly what do working used ones sell for? (optional)").fill("12000");
-  await page.getByRole("button", { name: "Book a drop-off" }).click();
+  await page.goto("/sell/shops");
+  await page.getByLabel("Shop name").fill("Sharma Mobiles");
+  await page.getByLabel("Type of shop").selectOption("Repair shop");
   await page.getByLabel("Your name").fill("Asha");
   await page.getByLabel("Phone / WhatsApp").fill("9876543210");
-  await page.getByRole("button", { name: "Prepare my request" }).click();
+  await page.getByLabel("Market").selectOption("Raghunath Bazaar");
+  await page.getByRole("button", { name: "Prepare my sign-up" }).click();
   await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
 
   await page.goto("/shop/RL-JMU-0001");

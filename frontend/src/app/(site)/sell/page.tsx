@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, House, Store, type LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, Store, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
@@ -16,7 +16,7 @@ function pct(value: number): string {
 export const metadata: Metadata = {
   title: "Sell to us",
   description:
-    "Sell used and broken electronics to ReLoop in Jammu: repair shops, retailers, institutions and households. We test, grade and pay.",
+    "Sell used and broken electronics to ReLoop in Jammu: repair shops, retailers and institutions. We test, grade and pay.",
 };
 
 const PATHS: {
@@ -42,14 +42,6 @@ const PATHS: {
     who: "Bulk lots of desktops, monitors, printers, UPS",
     body: "We pick up, sort and give you a handover record. Dead e-waste goes straight to an authorised recycler in your name.",
     cta: "Book a pickup",
-  },
-  {
-    href: "/sell/home",
-    icon: House,
-    title: "Households",
-    who: "Old phones, laptops, chargers, small appliances",
-    body: "Get a rough estimate, then bring the item for inspection. We make an outright purchase offer and pay the agreed amount directly if you accept. Items that cannot be purchased may be directed to safe disposal.",
-    cta: "Get an estimate",
   },
 ];
 

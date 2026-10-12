@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   Building2,
-  House,
   Recycle,
   ShieldCheck,
   Store,
@@ -60,12 +59,6 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
     icon: Building2,
     title: "Institutions",
     body: "Booked pickups with a handover record.",
-  },
-  {
-    href: "/sell/home",
-    icon: House,
-    title: "Households",
-    body: "Instant estimate, then drop it off.",
   },
 ];
 

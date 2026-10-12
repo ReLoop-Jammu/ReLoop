@@ -13,7 +13,6 @@ const SHOP_LINKS = [
 const SELL_LINKS = [
   { href: "/sell/shops", label: "Repair shops & retailers" },
   { href: "/sell/institutions", label: "Institutions" },
-  { href: "/sell/home", label: "Households" },
 ];
 
 const COMPANY_LINKS = [

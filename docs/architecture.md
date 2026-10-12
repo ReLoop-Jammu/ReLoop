@@ -105,7 +105,7 @@ Business rules (no selling without a wipe, the day-45/75 rules, public-only colu
 
 - **Public:**
   - `/`, `/shop`, `/shop/[RL-JMU-id]`
-  - `/sell` (+ `/sell/shops`, `/sell/institutions`, `/sell/home`, `/sell/consignment`, `/sell/list-yourself`)
+  - `/sell` (+ `/sell/shops`, `/sell/institutions`, `/sell/consignment`, `/sell/list-yourself`)
   - `/how-it-works`, `/where-scrap-goes`, `/warranty`, `/impact`, `/contact`, `/privacy`, `/terms`
 - **Staff (noindex, not linked):** `/hub` (dashboard), `/hub/intake`, `/hub/items`, `/hub/items/[id]`, `/hub/partners`, `/hub/handovers`, `/hub/data`
 - **Later:** `/hub/login` once Supabase auth is connected

@@ -58,25 +58,6 @@ test.describe("public shop", () => {
 });
 
 test.describe("sell to us", () => {
-  test("estimator follows the plan's buy rules", async ({ page }) => {
-    await page.goto("/sell/home");
-    await page.getByLabel("Roughly what do working used ones sell for? (optional)").fill("8000");
-    // Grade A at ₹8,000 resale: about 45% → ₹3,250 – ₹3,950.
-    await expect(page.getByText("₹3,250 – ₹3,950")).toBeVisible();
-    await page.getByText("One problem").click();
-    // Grade B: about 25% → ₹1,800 – ₹2,200.
-    await expect(page.getByText("₹1,800 – ₹2,200")).toBeVisible();
-    await page.getByText("Several problems").click();
-    await expect(page.getByText("₹100 – ₹200")).toBeVisible();
-  });
-
-  test("estimator offers consignment above ₹10,000", async ({ page }) => {
-    await page.goto("/sell/home");
-    await page.getByLabel("Roughly what do working used ones sell for? (optional)").fill("40000");
-    await expect(page.getByText(/consignment/)).toBeVisible();
-    await expect(page.getByText(/about ₹28,000/)).toBeVisible();
-  });
-
   test("partner sign-up validates, then prepares the request", async ({ page }) => {
     await page.goto("/sell/shops");
     await page.getByRole("button", { name: "Prepare my sign-up" }).click();
@@ -96,7 +77,7 @@ test.describe("sell to us", () => {
 
   test("every sell path is reachable from /sell", async ({ page }) => {
     await page.goto("/sell");
-    for (const name of ["Become a partner shop", "Book a pickup", "Get an estimate"]) {
+    for (const name of ["Become a partner shop", "Book a pickup"]) {
       await expect(
         page.getByRole("main").getByRole("link", { name: new RegExp(name) }),
       ).toBeVisible();
@@ -112,7 +93,6 @@ test.describe("site", () => {
       "/shop",
       "/shop/RL-JMU-0001",
       "/sell",
-      "/sell/home",
       "/sell/shops",
       "/sell/institutions",
       "/how-it-works",
@@ -159,7 +139,6 @@ test.describe("site", () => {
       "/sell",
       "/sell/shops",
       "/sell/institutions",
-      "/sell/home",
       "/sell/consignment",
       "/how-it-works",
       "/where-scrap-goes",
