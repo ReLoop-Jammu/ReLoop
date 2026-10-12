@@ -100,7 +100,7 @@ export function RequestForm({
       fields.map((f) => [f.label, values[f.name] ?? ""]),
     );
 
-    if (kind === "institution") {
+    if (kind === "institution_pickup") {
       setSaving(true);
 
       try {
