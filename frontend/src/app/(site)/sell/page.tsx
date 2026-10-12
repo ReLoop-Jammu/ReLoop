@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, House, Store, type LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, Store, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
@@ -16,7 +16,7 @@ function pct(value: number): string {
 export const metadata: Metadata = {
   title: "Sell to us",
   description:
-    "Sell used and broken electronics to ReLoop in Jammu: repair shops, retailers, institutions and households. We test, grade and pay.",
+    "Sell used and broken electronics to ReLoop in Jammu: repair shops, retailers and institutions. We test, grade and pay.",
 };
 
 const PATHS: {
@@ -44,13 +44,6 @@ const PATHS: {
     cta: "Book a pickup",
   },
   {
-    href: "/sell/home",
-    icon: House,
-    title: "Households",
-    who: "Old phones, laptops, chargers, small appliances",
-    body: "Get a rough estimate, then bring the item for inspection. We make an outright purchase offer and pay the agreed amount directly if you accept. Items that cannot be purchased may be directed to safe disposal.",
-    cta: "Get an estimate",
-  },
 ];
 
 const BUY_RULE: Record<(typeof GRADES)[number], string> = {
@@ -74,7 +67,7 @@ export default function SellPage() {
               Working or broken: we inspect each item at our Jammu hub and make an outright purchase offer for items we can buy. If you accept, we pay the agreed amount directly. Items we cannot purchase are directed to an authorised recycler where appropriate.
             </p>
           </div>
-          <ul className="mt-12 grid gap-4 lg:grid-cols-3" role="list">
+          <ul className="mt-12 grid gap-4 lg:grid-cols-2" role="list">
             {PATHS.map(({ href, icon: Icon, title, who, body, cta }) => (
               <li key={href}>
                 <Link

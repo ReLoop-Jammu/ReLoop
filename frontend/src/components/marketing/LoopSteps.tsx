@@ -5,7 +5,7 @@ const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: PackageOpen,
     title: "Collect",
-    body: "From repair shops and retailers on a weekly route, booked institution pickups, and household drop-offs.",
+    body: "From repair shops and retailers on a weekly route, plus booked institution pickups.",
   },
   {
     icon: ScanSearch,

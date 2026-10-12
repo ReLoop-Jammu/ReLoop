@@ -107,7 +107,7 @@ export default function HowItWorksPage() {
             id="hub-heading"
             eyebrow={<Eyebrow>At the hub</Eyebrow>}
             title="Six steps for every item"
-            description="Whether it came from a shop counter, a college lab or a kitchen drawer."
+            description="Whether it came from a repair shop, retailer or institution."
           />
           <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
             {HUB_STEPS.map(({ icon: Icon, title, body }, i) => (

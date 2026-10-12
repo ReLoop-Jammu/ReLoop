@@ -1,7 +1,7 @@
 import { BUSINESS_RULES } from "@/config/business-rules";
 import type { Grade } from "./model";
 
-/** Answers from the household estimator. */
+/** Device-condition answers used to suggest an internal purchase grade. */
 export type ConditionAnswers = {
   powersOn: "yes" | "no" | "unsure";
   allWorking: "yes" | "one_fault" | "several_faults" | "unsure";
@@ -10,7 +10,7 @@ export type ConditionAnswers = {
 };
 
 /**
- * Likely grade from a seller's own answers. Indicative only: the real grade
+ * Likely grade from condition answers. Indicative only: the real grade
  * is decided by testing at the hub.
  */
 export function likelyGrade(a: ConditionAnswers): Grade {
