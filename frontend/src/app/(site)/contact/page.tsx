@@ -63,8 +63,20 @@ export default function ContactPage() {
       <div className="mt-4 flex gap-3 rounded-card border border-line bg-sunken p-5 text-sm leading-relaxed text-ink-soft">
         <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <p>
-          Privacy or data concerns go to our grievance officer:{" "}
+          Complaints, privacy or data concerns go to our{" "}
+          {SITE.grievanceOfficer?.designation.toLowerCase() ?? "grievance officer"}
+          {SITE.grievanceOfficer && <>, {SITE.grievanceOfficer.name}</>}:{" "}
           <ContactDetail value={SITE.grievanceOfficer?.email ?? null} href={(v) => `mailto:${v}`} />
+          {SITE.grievanceOfficer && (
+            <>
+              {" "}
+              or{" "}
+              <ContactDetail
+                value={SITE.grievanceOfficer.phone}
+                href={(v) => `tel:${v.replace(/\s/g, "")}`}
+              />
+            </>
+          )}
           . See the privacy policy for details.
         </p>
       </div>

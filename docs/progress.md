@@ -24,8 +24,8 @@ Run order: 0 → A → B → C → E+F → G → D, then update G after D. The f
 | 0     | `chore/batch0-cleanup`   | done        | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.                 |
 | A     | `feat/admin-verify`      | done        | PR #19 merged (`ba7f2e8`); live: `/hub/shops` asks visitors to log in.                                      |
 | B     | `feat/account-recovery`  | done        | PR #20 merged (`10981a7`). Auth redirect URLs set by the team; **Gmail SMTP still to set up**.              |
-| C     | `feat/locations`         | in progress | `/locations` map (`src/config/locations.ts`), `/locations/qr`, `/go/drive` counts scans (`qr_scans`, live). |
-| E+F   | `feat/launch-content`    | not started | Contact details, grievance officer (Harsh Raj), consistency audit.                                          |
+| C     | `feat/locations`         | done        | PR #21 merged (`0a12c71`); live: map, QR page, `/go/drive` redirects and counts (tested, test row removed). |
+| E+F   | `feat/launch-content`    | in progress | Phone, hours, hub area, grievance officer (Harsh Raj); shipping only for laptops/boards; terms wording.     |
 | G     | `docs/known-limitations` | not started | Runs before D, and is updated after D.                                                                      |
 | D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV.              |
 

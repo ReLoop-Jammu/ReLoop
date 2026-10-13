@@ -179,6 +179,11 @@ test.describe("site", () => {
       /₹73/,
       /margin/i,
       /break-?even/i,
+      /\b(reloop|we) (is|are) (a |an )?(registered|licensed|authori[sz]ed)\b/i,
+      /cpcb[- ]registered/i,
+      /purchase cost|processing cost|internal notes/i,
+      /\bprofit\b/i,
+      /to be published/i,
     ];
     for (const path of [
       "/",
@@ -193,10 +198,37 @@ test.describe("site", () => {
       "/contact",
       "/privacy",
       "/terms",
+      "/locations",
+      "/register",
+      "/login",
     ]) {
       await page.goto(path);
       const text = await page.locator("body").innerText();
       for (const re of banned) expect(text, `${re} found on ${path}`).not.toMatch(re);
     }
+  });
+});
+
+test.describe("contact details", () => {
+  test("the contact page names the grievance officer with an email and phone", async ({ page }) => {
+    await page.goto("/contact");
+    const main = page.getByRole("main");
+    await expect(main.getByText(/grievance officer, Harsh Raj/)).toBeVisible();
+    await expect(main.getByRole("link", { name: "+91 98712 76179" }).first()).toHaveAttribute(
+      "href",
+      "tel:+919871276179",
+    );
+    await expect(main.getByText("Mon–Sat, 10:00–18:00 IST from November 2026")).toBeVisible();
+    await expect(main.getByText(/Old-city market belt, between Raghunath Bazaar/)).toBeVisible();
+  });
+
+  test("the privacy policy lists the grievance officer's name, designation and contacts", async ({
+    page,
+  }) => {
+    await page.goto("/privacy");
+    await expect(page.getByText("Grievance officer: Harsh Raj (Grievance Officer)")).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("link", { name: "+91 98712 76179" }),
+    ).toBeVisible();
   });
 });

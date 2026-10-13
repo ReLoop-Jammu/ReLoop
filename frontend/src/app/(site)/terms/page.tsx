@@ -59,8 +59,8 @@ export default function TermsPage() {
         <h2>E-waste and recycling</h2>
         <p>
           End-of-life electronics must be handled only through channels authorised under the E-Waste
-          (Management) Rules, 2022. Items in the Recycling category are routed to authorised
-          recyclers; they are not resold for reuse.
+          (Management) Rules, 2022. Items we can&apos;t reuse (grade D, dead or hazardous) go only
+          to an authorised recycler; they are not resold for reuse.
         </p>
       </section>
 

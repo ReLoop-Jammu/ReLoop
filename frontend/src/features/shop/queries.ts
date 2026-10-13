@@ -1,6 +1,7 @@
 import "server-only";
 
 import snapshot from "@/data/shop-snapshot.json";
+import { shipsAcrossIndia } from "@/features/inventory/model";
 import { shopSnapshotSchema, type ShopFilters, type ShopItem } from "./model";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -16,7 +17,7 @@ const SUPABASE_KEY =
 const USE_SAMPLE_STOCK =
   (!SUPABASE_URL || !SUPABASE_KEY) && process.env.CI === "true" && !process.env.VERCEL;
 
-type SupabaseListing = {
+export type SupabaseListing = {
   id: number;
   title: string;
   description: string | null;
@@ -34,7 +35,7 @@ type SupabaseListing = {
   is_sample: boolean;
 };
 
-type SupabaseCategory = {
+export type SupabaseCategory = {
   id: number;
   name: string;
 };
@@ -134,7 +135,11 @@ function categoryFromDatabase(
   return "accessory";
 }
 
-function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): ShopItem | null {
+/** A live listing as the shop shows it (exported for tests). */
+export function listingToShopItem(
+  listing: SupabaseListing,
+  categories: SupabaseCategory[],
+): ShopItem | null {
   // Only A/B/C items can appear in the public shop.
   if (
     listing.status !== "Active" ||
@@ -145,13 +150,14 @@ function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): S
     return null;
   }
 
+  const category = categoryFromDatabase(listing.category_id, categories);
   return {
     id: `RL-JMU-${String(listing.id).padStart(4, "0")}`,
     title:
       listing.title ||
       [listing.brand, listing.model].filter(Boolean).join(" ") ||
       "Electronics item",
-    category: categoryFromDatabase(listing.category_id, categories),
+    category,
     grade: listing.grade as "A" | "B" | "C",
     pricePaise: Math.round(Number(listing.price) * 100),
     description: listing.description ?? "",
@@ -159,7 +165,8 @@ function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): S
     checks: [],
     dataWiped: false,
     warrantyDays: null,
-    shipsIndia: true,
+    // Only laptops and boards ship outside Jammu (business plan; /warranty).
+    shipsIndia: shipsAcrossIndia({ category, partType: undefined }),
     listedAt: listing.created_at,
     sample: listing.is_sample === true,
   };
@@ -171,7 +178,7 @@ async function getAllPublicShopItems(): Promise<ShopItem[]> {
   const { listings, categories } = await getShopData();
 
   return listings
-    .map((listing) => toShopItem(listing, categories))
+    .map((listing) => listingToShopItem(listing, categories))
     .filter((item): item is ShopItem => item !== null);
 }
 
