@@ -19,15 +19,38 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 Run order: 0 → A → B → C → E+F → G → D, then update G after D. The full plan is in the approved plan file; this table is the resume point.
 
-| Batch | Branch                   | Status      | Note                                                                                                        |
-| ----- | ------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------- |
-| 0     | `chore/batch0-cleanup`   | done        | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.                 |
-| A     | `feat/admin-verify`      | done        | PR #19 merged (`ba7f2e8`); live: `/hub/shops` asks visitors to log in.                                      |
-| B     | `feat/account-recovery`  | done        | PR #20 merged (`10981a7`). Auth redirect URLs set by the team; **Gmail SMTP still to set up**.              |
-| C     | `feat/locations`         | done        | PR #21 merged (`0a12c71`); live: map, QR page, `/go/drive` redirects and counts (tested, test row removed). |
-| E+F   | `feat/launch-content`    | done        | PR #22 merged (`4924557`); live: contact names Harsh Raj; monitors no longer "ship across India".           |
-| G     | `docs/known-limitations` | done        | PR #23 merged (`bfc0eb4`); updated again in Batch D.                                                        |
-| D     | `feat/hub-supabase`      | in progress | Live: migration `20261018000001` applied, daily rules job scheduled, checks 24/24, counter 5. PR pending.   |
+| Batch | Branch                   | Status | Note                                                                                                        |
+| ----- | ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------- |
+| 0     | `chore/batch0-cleanup`   | done   | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.                 |
+| A     | `feat/admin-verify`      | done   | PR #19 merged (`ba7f2e8`); live: `/hub/shops` asks visitors to log in.                                      |
+| B     | `feat/account-recovery`  | done   | PR #20 merged (`10981a7`). Auth redirect URLs set by the team; **Gmail SMTP still to set up**.              |
+| C     | `feat/locations`         | done   | PR #21 merged (`0a12c71`); live: map, QR page, `/go/drive` redirects and counts (tested, test row removed). |
+| E+F   | `feat/launch-content`    | done   | PR #22 merged (`4924557`); live: contact names Harsh Raj; monitors no longer "ship across India".           |
+| G     | `docs/known-limitations` | done   | PR #23 merged (`bfc0eb4`); updated again in Batch D.                                                        |
+| D     | `feat/hub-supabase`      | done   | PR #25 merged (`4558089`); live end-to-end test passed (11/11), test data removed, counter reset to 5.      |
+
+All batches are done (2026-10-13). PR #24 was closed unmerged: it was opened from an already-merged branch, and was replaced by #25.
+
+### Left for the team
+
+1. **Gmail SMTP** (Batch B pause: the redirect URLs are set, SMTP isn't yet). Until it's set, reset and confirmation emails reach only team addresses.
+2. **The old screenshot:** delete it in Supabase → Storage → Images.
+3. **Email confirmation:** switch it on once SMTP works. Every current account is confirmed, so no one gets locked out.
+4. **Try the hub yourself:** log in at `/hub` with the shared admin account and log a real item. The first real item will get `RL-JMU-0006`.
+5. **Accounts per person:** give each team member their own staff or admin account instead of the shared one.
+6. **Before launch:** a separate Preview database, and legal review of the privacy and terms pages. See `docs/known-limitations.md`.
+
+### Batch D live changes (2026-10-13)
+
+- Backup `~/ReLoop-backups/backup-2026-10-13-204118.sql`.
+- Migration `20261018000001` applied; daily `pg_cron` job `reloop-stock-rules` active (06:00 IST).
+- **Live test** with a temporary staff account (`example.com` address), 11 of 11 passed:
+  - staff check and rules run;
+  - intake created `RL-JMU-0006`;
+  - photo upload, photo row and note;
+  - read back the item;
+  - visitors couldn't see the unlisted item, buy prices or supplier phones.
+- **Removed afterwards:** the test item, its photo file, history, staff row and account. The counter was reset to 5, confirmed by query (next tag `RL-JMU-0006`). Checks are 24 of 24 true.
 
 ### Batch 0 live changes (2026-10-13)
 
