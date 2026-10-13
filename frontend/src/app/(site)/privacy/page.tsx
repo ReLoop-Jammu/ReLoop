@@ -99,10 +99,18 @@ export default function PrivacyPage() {
       <section>
         <h2>Contact and grievances</h2>
         <p>
-          Grievance officer: {officer ? officer.name : <ContactDetail value={null} />}
+          Grievance officer:{" "}
+          {officer ? `${officer.name} (${officer.designation})` : <ContactDetail value={null} />}
           <br />
           Email:{" "}
           <ContactDetail value={officer?.email ?? SITE.supportEmail} href={(v) => `mailto:${v}`} />
+          {officer && (
+            <>
+              <br />
+              Phone:{" "}
+              <ContactDetail value={officer.phone} href={(v) => `tel:${v.replace(/\s/g, "")}`} />
+            </>
+          )}
           {SITE.address && (
             <>
               <br />
