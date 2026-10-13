@@ -137,7 +137,8 @@ export function IntakeForm() {
         buyPaise,
         purchasePaymentMethod: d.buyMode === "free" ? "not_paid" : d.paymentMethod,
         ...(d.paymentReference.trim() && { purchaseReference: d.paymentReference.trim() }),
-        ...(d.buyMode !== "free" && d.paymentMethod !== "not_paid" && { purchasePaidAt: new Date().toISOString() }),
+        ...(d.buyMode !== "free" &&
+          d.paymentMethod !== "not_paid" && { purchasePaidAt: new Date().toISOString() }),
         expectedResalePaise: resalePaise,
       });
       setSaved(item);
@@ -245,7 +246,7 @@ export function IntakeForm() {
             )}
             {!d.partnerId && !d.institutionId && (
               <Field
-                label={d.sourceType === "household" ? "Seller name (optional)" : "Name"}
+                label={d.sourceType === "household" ? "Seller name (optional)" : "Seller name"}
                 htmlFor={`${id}-sname`}
                 className="sm:col-span-2"
               >
@@ -258,10 +259,19 @@ export function IntakeForm() {
               </Field>
             )}
             <Field label="Supplier contact name" htmlFor={`${id}-contact-name`}>
-              <Input id={`${id}-contact-name`} value={d.contactName} onChange={(e) => set("contactName", e.target.value)} />
+              <Input
+                id={`${id}-contact-name`}
+                value={d.contactName}
+                onChange={(e) => set("contactName", e.target.value)}
+              />
             </Field>
             <Field label="Supplier phone / WhatsApp" htmlFor={`${id}-supplier-phone`}>
-              <Input id={`${id}-supplier-phone`} inputMode="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} />
+              <Input
+                id={`${id}-supplier-phone`}
+                inputMode="tel"
+                value={d.phone}
+                onChange={(e) => set("phone", e.target.value)}
+              />
             </Field>
           </div>
         </Panel>
@@ -401,7 +411,12 @@ export function IntakeForm() {
               />
             </Field>
             <Field label="Payment method" htmlFor={`${id}-payment-method`}>
-              <Select id={`${id}-payment-method`} value={d.buyMode === "free" ? "not_paid" : d.paymentMethod} onChange={(e) => set("paymentMethod", e.target.value as Draft["paymentMethod"])} disabled={d.buyMode === "free"}>
+              <Select
+                id={`${id}-payment-method`}
+                value={d.buyMode === "free" ? "not_paid" : d.paymentMethod}
+                onChange={(e) => set("paymentMethod", e.target.value as Draft["paymentMethod"])}
+                disabled={d.buyMode === "free"}
+              >
                 <option value="cash">Cash</option>
                 <option value="upi">UPI</option>
                 <option value="bank_transfer">Bank transfer</option>
@@ -409,8 +424,16 @@ export function IntakeForm() {
                 <option value="not_paid">Not paid yet</option>
               </Select>
             </Field>
-            <Field label="Payment / receipt reference (optional)" htmlFor={`${id}-payment-reference`}>
-              <Input id={`${id}-payment-reference`} value={d.paymentReference} onChange={(e) => set("paymentReference", e.target.value)} placeholder="UPI reference or receipt number" />
+            <Field
+              label="Payment / receipt reference (optional)"
+              htmlFor={`${id}-payment-reference`}
+            >
+              <Input
+                id={`${id}-payment-reference`}
+                value={d.paymentReference}
+                onChange={(e) => set("paymentReference", e.target.value)}
+                placeholder="UPI reference or receipt number"
+              />
             </Field>
           </div>
           {suggestion && (

@@ -14,13 +14,43 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state (2026-10-07)
+## Current state (2026-10-14)
 
-- **The Business Plan is the source of truth** (ADR 0004). ReLoop buys stock, grades it A–D at one Jammu hub and resells it. Numbers come only from `frontend/src/config/business-rules.ts` (summarised in `docs/business-rules.md`). The gap analysis and open questions are in `docs/business-plan-alignment.md`.
-- **Public site:** home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions, households with an estimator, consignment, list-yourself), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
-- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish). It runs in the browser, so its data is per device.
-- **No backend yet.** All reads and writes go through `frontend/src/features/inventory/store` (browser storage today, Supabase later). The shop reads `frontend/src/data/shop-snapshot.json`, which the hub exports. Public forms hand off to WhatsApp or email (set `SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
-- `backend/` holds the Supabase schema for this model (16 PGlite tests). It is not yet applied to a live project; next steps are listed in `backend/README.md`.
+Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
+
+- **The Business Plan is the source of truth** (ADR 0004).
+  - ReLoop buys stock outright (purchase-only: no consignment, no self-listing), grades it A–D at one Jammu hub and resells it.
+  - Numbers come only from `frontend/src/config/business-rules.ts`, summarised in `docs/business-rules.md`.
+- **Stack:** Next.js 16 on Vercel, with a **live Supabase project (Postgres 17) connected through the Vercel Marketplace integration**.
+  - **Region:** the database is in AWS `ap-south-1` (Mumbai). `frontend/vercel.json` pins server functions to `bom1` (Mumbai) as well; they ran in `iad1` (US East) until that is deployed.
+  - Every Vercel variable is marked Sensitive, so the CLI can't read values back.
+  - The code reads `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, the last server-only.
+- **Preview deployments share the production database.** Preview has the same Supabase and Postgres credentials as Production.
+  - Never run e2e tests, seeds or migrations against a preview or production.
+  - **e2e tests need a separate test database.** Until one exists, they run only in CI (`CI=true`, not on Vercel), where the shop falls back to the sample stock file `frontend/src/data/shop-snapshot.json`. Anywhere else, missing Supabase variables fail the build on purpose.
+- **Public site:**
+  - Pages: home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
+  - Accounts: `/register`, `/login`, `/account`.
+  - The shop reads the live `listings` and `categories` tables (`frontend/src/features/shop/queries.ts`).
+  - Institution forms hand off to WhatsApp or email (`SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
+- **Accounts and verification:**
+  - Sign-up is Supabase Auth with the role `buyer` or `shop_owner`; the browser session is kept in `localStorage`.
+  - **Email confirmation is off** (`mailer_autoconfirm: true`). Switch it on in the Supabase dashboard.
+  - GSTIN: live, the sign-up trigger requires a 15-character GSTIN. After the fix script runs, it is optional: empty is allowed, the format is checked when one is given, and the form has a "Not GST-registered" option. Nothing checks a GSTIN is real.
+  - New shop owners are `pending`. A shop owner can't change their own `verification_status`: RLS allows owners only to read, and after the fixes a trigger also blocks it. Only admins (`is_admin()`: an active `admin_users` row, or a hub staff admin) or the dashboard can verify, and there is no admin screen.
+  - `/api/shop-submissions` checks the session and verification on the server before using the service-role key.
+  - The form's conditions (Working, Broken, …) are mapped in `frontend/src/features/sell/conditions.ts` to the values `shop_submissions.condition` allows. On `main`, every condition but "Working" is rejected by the database.
+  - To make someone an admin, use `supabase-fixes/make-admin.sql`.
+- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish) stores its data **in each browser only**. It has no login and is not connected to Supabase.
+- **Database:**
+  - Live tables: `admin_users`, `categories`, `enquiries`, `institution_submissions`, `listings`, `orders`, `processing_records`, `profiles`, `shop_owners`, `shop_submissions`. All have RLS on.
+  - They were made by hand; `20261010000001_live_baseline.sql` now describes them, and is guarded so it changes nothing live.
+  - The repo's hub tables (`items`, `item_events` and the rest) **do not exist live yet**.
+  - **Open security holes live** (security report): listing costs and internal notes are readable by anyone (High); unverified shop owners can insert submissions directly, and anyone can create orders and enquiries (Medium).
+  - `supabase-fixes/2026-10-14.sql` fixes all of this and adds the hub tables. It is **written, tested in PGlite, and not yet run**. Repo migration `20261014000001` makes the same security and GSTIN changes.
+    - It ends with read-only checks (also in `supabase-fixes/2026-10-14-checks.sql`) and refuses to commit if any fails.
+    - **Order:** back up (`scripts/backup-live-data.sh`, to `~/ReLoop-backups`, outside git), run the fix, check it, then merge PR #15. The code on `main` works before and after the fix; this branch's "Not GST-registered" option only works after it.
+  - `backend/tests/live.test.mjs` replays every query the site makes, on the live schema before and after the fix. Add new queries there.
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
 ## Working rules
@@ -30,3 +60,4 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - Never put unsupported claims on the public site (authorisations, certifications, India-wide shipping, internal financials); the e2e copy test enforces this.
 - Build one roadmap phase at a time, on its own branch. The user reviews each phase before merging and before the next one starts.
 - Never commit secrets or `.env` files. Commit locally, and push only when the user asks.
+- At the end of every task, update docs/progress.md.

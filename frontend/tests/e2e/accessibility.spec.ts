@@ -10,8 +10,6 @@ const PAGES = [
   "/sell",
   "/sell/shops",
   "/sell/institutions",
-  "/sell/consignment",
-  "/sell/list-yourself",
   "/how-it-works",
   "/where-scrap-goes",
   "/warranty",

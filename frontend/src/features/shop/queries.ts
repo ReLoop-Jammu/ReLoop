@@ -1,15 +1,20 @@
 import "server-only";
 
-import {
-  shopSnapshotSchema,
-  type ShopFilters,
-  type ShopItem,
-} from "./model";
+import snapshot from "@/data/shop-snapshot.json";
+import { shopSnapshotSchema, type ShopFilters, type ShopItem } from "./model";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+/*
+ * GitHub Actions (CI=true) builds and runs the browser tests without Supabase,
+ * so there the shop shows the sample stock file instead. Everywhere else
+ * (production, preview, local) missing variables still fail loudly. Vercel's
+ * own builds set CI=1 and VERCEL=1, so they never take this path.
+ */
+const USE_SAMPLE_STOCK =
+  (!SUPABASE_URL || !SUPABASE_KEY) && process.env.CI === "true" && !process.env.VERCEL;
 
 type SupabaseListing = {
   id: number;
@@ -57,9 +62,7 @@ async function supabaseFetch<T>(path: string): Promise<T> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `Supabase request failed (${response.status}): ${errorText}`,
-    );
+    throw new Error(`Supabase request failed (${response.status}): ${errorText}`);
   }
 
   return response.json() as Promise<T>;
@@ -70,9 +73,7 @@ async function getShopData(): Promise<ShopData> {
     supabaseFetch<SupabaseListing[]>(
       "listings?select=id,title,description,category_id,brand,model,condition,price,stock,image_url,status,featured,grade,created_at&status=eq.Active&stock=gt.0&order=created_at.desc",
     ),
-    supabaseFetch<SupabaseCategory[]>(
-      "categories?select=id,name&order=name.asc",
-    ),
+    supabaseFetch<SupabaseCategory[]>("categories?select=id,name&order=name.asc"),
   ]);
 
   return { listings, categories };
@@ -83,8 +84,7 @@ function categoryFromDatabase(
   categories: SupabaseCategory[],
 ): ShopItem["category"] {
   const categoryName =
-    categories.find((category) => category.id === categoryId)?.name.toLowerCase() ??
-    "";
+    categories.find((category) => category.id === categoryId)?.name.toLowerCase() ?? "";
 
   if (categoryName.includes("mobile") || categoryName.includes("phone")) {
     return "phone";
@@ -118,17 +118,11 @@ function categoryFromDatabase(
     return "accessory";
   }
 
-  if (
-    categoryName.includes("component") ||
-    categoryName.includes("part")
-  ) {
+  if (categoryName.includes("component") || categoryName.includes("part")) {
     return "part";
   }
 
-  if (
-    categoryName.includes("appliance") ||
-    categoryName.includes("electronics")
-  ) {
+  if (categoryName.includes("appliance") || categoryName.includes("electronics")) {
     return "small_appliance";
   }
 
@@ -139,10 +133,7 @@ function categoryFromDatabase(
   return "accessory";
 }
 
-function toShopItem(
-  listing: SupabaseListing,
-  categories: SupabaseCategory[],
-): ShopItem | null {
+function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): ShopItem | null {
   // Only A/B/C items can appear in the public shop.
   if (
     listing.status !== "Active" ||
@@ -174,6 +165,8 @@ function toShopItem(
 }
 
 async function getAllPublicShopItems(): Promise<ShopItem[]> {
+  if (USE_SAMPLE_STOCK) return shopSnapshotSchema.parse(snapshot).items;
+
   const { listings, categories } = await getShopData();
 
   return listings
@@ -181,17 +174,13 @@ async function getAllPublicShopItems(): Promise<ShopItem[]> {
     .filter((item): item is ShopItem => item !== null);
 }
 
-export function filterShopItems(
-  items: readonly ShopItem[],
-  f: ShopFilters,
-): ShopItem[] {
+export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): ShopItem[] {
   const terms = f.q?.toLowerCase().split(/\s+/).filter(Boolean) ?? [];
 
   const list = items.filter((item) => {
-    const hay =
-      `${item.id} ${item.title} ${item.description} ${item.category} ${
-        item.partType ?? ""
-      }`.toLowerCase();
+    const hay = `${item.id} ${item.title} ${item.description} ${item.category} ${
+      item.partType ?? ""
+    }`.toLowerCase();
 
     return (
       terms.every((term) => hay.includes(term)) &&
@@ -208,9 +197,7 @@ export function filterShopItems(
       return list.sort((a, b) => b.pricePaise - a.pricePaise);
 
     default:
-      return list.sort(
-        (a, b) => b.listedAt.localeCompare(a.listedAt),
-      );
+      return list.sort((a, b) => b.listedAt.localeCompare(a.listedAt));
   }
 }
 
@@ -226,40 +213,26 @@ export async function getShopItems(
   };
 }
 
-export async function getShopItem(
-  id: string,
-): Promise<ShopItem | null> {
+export async function getShopItem(id: string): Promise<ShopItem | null> {
   const items = await getAllPublicShopItems();
 
   return (
-    items.find(
-      (item) =>
-        item.id === id ||
-        item.id === `RL-JMU-${String(id).padStart(4, "0")}`,
-    ) ?? null
+    items.find((item) => item.id === id || item.id === `RL-JMU-${String(id).padStart(4, "0")}`) ??
+    null
   );
 }
 
-export async function getLatestShopItems(
-  limit = 8,
-): Promise<ShopItem[]> {
+export async function getLatestShopItems(limit = 8): Promise<ShopItem[]> {
   const items = await getAllPublicShopItems();
 
   return filterShopItems(items, {}).slice(0, limit);
 }
 
-export async function getRelatedShopItems(
-  item: ShopItem,
-  limit = 4,
-): Promise<ShopItem[]> {
+export async function getRelatedShopItems(item: ShopItem, limit = 4): Promise<ShopItem[]> {
   const items = await getAllPublicShopItems();
 
   return items
-    .filter(
-      (candidate) =>
-        candidate.id !== item.id &&
-        candidate.category === item.category,
-    )
+    .filter((candidate) => candidate.id !== item.id && candidate.category === item.category)
     .slice(0, limit);
 }
 
@@ -270,6 +243,6 @@ export async function getAllShopIds(): Promise<string[]> {
 }
 
 export async function isSampleStock(): Promise<boolean> {
-  // Real Supabase inventory is never sample inventory.
-  return false;
+  // Real Supabase inventory is never sample inventory; only CI shows the sample file.
+  return USE_SAMPLE_STOCK;
 }

@@ -99,7 +99,14 @@ export type ItemEvent = { at: string; type: string; note?: string };
 export type Item = {
   id: string;
   receivedAt: string;
-  source: { type: SourceType; partnerId?: string; institutionId?: string; name?: string; contactName?: string; phone?: string };
+  source: {
+    type: SourceType;
+    partnerId?: string;
+    institutionId?: string;
+    name?: string;
+    contactName?: string;
+    phone?: string;
+  };
   category: Category;
   partType?: PartType;
   brand: string;
@@ -184,8 +191,6 @@ export type RepairJob = {
   returnedAt?: string;
   outcome?: "fixed" | "not_fixable";
 };
-
-
 
 /** Requests sent through the public "Sell to us" forms. */
 export type Submission = {

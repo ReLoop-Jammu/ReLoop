@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
 test.describe("public shop", () => {
   test("home explains the loop and shows graded stock", async ({ page }) => {
@@ -58,21 +59,53 @@ test.describe("public shop", () => {
 });
 
 test.describe("sell to us", () => {
-  test("partner sign-up validates, then prepares the request", async ({ page }) => {
+  test("shop submissions ask visitors to log in or register first", async ({ page }) => {
     await page.goto("/sell/shops");
-    await page.getByRole("button", { name: "Prepare my sign-up" }).click();
-    await expect(page.getByText("Please fill in shop name.")).toBeVisible();
-    await page.getByLabel("Shop name").fill("Sharma Mobiles");
-    await page.getByLabel("Type of shop").selectOption("Repair shop");
-    await page.getByLabel("Your name").fill("Ravi Sharma");
-    await page.getByLabel("Phone / WhatsApp").fill("12");
-    await page.getByLabel("Market").selectOption("Raghunath Bazaar");
-    await page.getByRole("button", { name: "Prepare my sign-up" }).click();
-    await expect(page.getByText("Enter a phone number with at least 10 digits.")).toBeVisible();
-    await page.getByLabel("Phone / WhatsApp").fill("98765 43210");
-    await page.getByRole("button", { name: "Prepare my sign-up" }).click();
-    await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
-    await expect(page.getByText("Shop name: Sharma Mobiles")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log in to submit items" })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: "Log in" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    await expect(page.getByRole("link", { name: "Register as a shop owner" })).toHaveAttribute(
+      "href",
+      "/register",
+    );
+    await expect(page.getByLabel("Item name")).toHaveCount(0);
+  });
+
+  test("a signed-in shop owner submits several items with their session", async ({ page }) => {
+    await signInAsShopOwner(page);
+    const requests = await mockShopSubmissions(page);
+    await page.goto("/sell/shops");
+    await fillShopSubmission(page, ["Redmi 9 boards", "Dead chargers"]);
+    await page.getByRole("button", { name: "Submit items to ReLoop" }).click();
+
+    await expect(page.getByRole("status")).toContainText("Your items have been submitted");
+    await expect(page.getByRole("status")).toContainText("received 2 item entries");
+    expect(requests).toHaveLength(1);
+    expect(requests[0].headers()["authorization"]).toBe("Bearer e2e-access-token");
+    const sent = requests[0].postDataJSON();
+    expect(sent.shopName).toBe("Sharma Mobiles");
+    expect(sent.items.map((i: { itemName: string }) => i.itemName)).toEqual([
+      "Redmi 9 boards",
+      "Dead chargers",
+    ]);
+    expect(sent.items[1]).toMatchObject({ condition: "Broken", quantity: "2" });
+  });
+
+  test("an unverified shop sees why its submission was refused", async ({ page }) => {
+    await signInAsShopOwner(page);
+    await mockShopSubmissions(page, {
+      status: 403,
+      body: { error: "Your shop must be verified by ReLoop before you can submit items." },
+    });
+    await page.goto("/sell/shops");
+    await fillShopSubmission(page, ["Old monitors"]);
+    await page.getByRole("button", { name: "Submit items to ReLoop" }).click();
+    await expect(
+      page.getByText("Your shop must be verified by ReLoop before you can submit items."),
+    ).toBeVisible();
+    await expect(page.getByLabel("Item name")).toHaveValue("Old monitors");
   });
 
   test("every sell path is reachable from /sell", async ({ page }) => {
@@ -82,7 +115,6 @@ test.describe("sell to us", () => {
         page.getByRole("main").getByRole("link", { name: new RegExp(name) }),
       ).toBeVisible();
     }
-    await expect(page.getByRole("main").getByRole("link", { name: /Consignment/ })).toBeVisible();
   });
 });
 
@@ -139,7 +171,6 @@ test.describe("site", () => {
       "/sell",
       "/sell/shops",
       "/sell/institutions",
-      "/sell/consignment",
       "/how-it-works",
       "/where-scrap-goes",
       "/warranty",

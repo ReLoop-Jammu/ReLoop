@@ -3,6 +3,7 @@
 This patch adds frontend validation for profile name/phone and a Supabase migration that validates the same fields before inserting a profile. It does not weaken or remove the database constraints.
 
 ## Required: apply the SQL to the live Supabase project
+
 1. Open Supabase Dashboard for the ReLoop project.
 2. Open **SQL Editor** → **New query**.
 3. Open `backend/supabase/migrations/20261013000001_fix_signup_phone_validation.sql` in VS Code / Notepad.
@@ -12,6 +13,7 @@ This patch adds frontend validation for profile name/phone and a Supabase migrat
 Do not paste TypeScript/JavaScript into the SQL Editor. Only the migration SQL goes there.
 
 ## Deploy the frontend
+
 1. Replace the project files with this patched project (or copy the two changed frontend files into your existing repo):
    - `frontend/src/lib/auth-client.ts`
    - `frontend/src/app/(site)/register/page.tsx`

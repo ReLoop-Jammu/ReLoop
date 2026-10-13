@@ -27,3 +27,7 @@ npm-debug.log*
 .vercel
 backend/supabase/.temp/
 backend/supabase/.branches/
+
+# Live data backups (scripts/backup-live-data.sh writes them to ~/ReLoop-backups, outside the repo).
+ReLoop-backups/
+backup-*.sql

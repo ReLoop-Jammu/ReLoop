@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
 /**
  * Opens every page and the main interactions, failing on any browser console
@@ -37,8 +38,6 @@ const PAGES = [
   "/sell",
   "/sell/shops",
   "/sell/institutions",
-  "/sell/consignment",
-  "/sell/list-yourself",
   "/how-it-works",
   "/where-scrap-goes",
   "/warranty",
@@ -69,14 +68,12 @@ test("every page loads without console errors, hydration warnings or failed requ
 test("main interactions run without console errors", async ({ page }) => {
   const problems = watch(page);
 
+  await signInAsShopOwner(page);
+  await mockShopSubmissions(page);
   await page.goto("/sell/shops");
-  await page.getByLabel("Shop name").fill("Sharma Mobiles");
-  await page.getByLabel("Type of shop").selectOption("Repair shop");
-  await page.getByLabel("Your name").fill("Asha");
-  await page.getByLabel("Phone / WhatsApp").fill("9876543210");
-  await page.getByLabel("Market").selectOption("Raghunath Bazaar");
-  await page.getByRole("button", { name: "Prepare my sign-up" }).click();
-  await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
+  await fillShopSubmission(page, ["Redmi 9 boards", "Dead chargers"]);
+  await page.getByRole("button", { name: "Submit items to ReLoop" }).click();
+  await expect(page.getByRole("status")).toContainText("Your items have been submitted");
 
   await page.goto("/shop/RL-JMU-0001");
   await page.goto("/shop");
@@ -84,7 +81,7 @@ test("main interactions run without console errors", async ({ page }) => {
   await expect(page).toHaveURL(/sort=price_desc/);
 
   await page.goto("/hub/intake");
-  await page.getByLabel("Name").fill("Walk-in");
+  await page.getByLabel("Seller name", { exact: true }).fill("Walk-in");
   await page.getByLabel("Brand").fill("Nokia");
   await page.getByLabel("Grade (if tested now)").selectOption("A");
   await page.getByLabel("We paid (₹)").fill("500");

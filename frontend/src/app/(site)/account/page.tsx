@@ -7,10 +7,110 @@ import { Button } from "@/components/ui/Button";
 import { authenticatedFetch, getSession, logoutAccount } from "@/lib/auth-client";
 
 type Profile = { full_name: string; role: "buyer" | "shop_owner" };
-type ShopProfile = { shop_name: string; gstin: string; verification_status: "pending" | "verified" | "rejected" };
+type ShopProfile = {
+  shop_name: string;
+  gstin: string;
+  verification_status: "pending" | "verified" | "rejected";
+};
 export default function AccountPage() {
-  const [profile, setProfile] = useState<Profile | null>(null); const [shop, setShop] = useState<ShopProfile | null>(null); const [error, setError] = useState(""); const [loading, setLoading] = useState(true);
-  useEffect(() => { let alive = true; (async () => { try { if (!getSession()) { window.location.replace("/login"); return; } const [p, s] = await Promise.all([authenticatedFetch("/rest/v1/profiles?select=full_name,role&limit=1"), authenticatedFetch("/rest/v1/shop_owners?select=shop_name,gstin,verification_status&limit=1")]); if (!p.ok) throw new Error("Could not load your profile. Ensure the account migration has been applied in Supabase."); const profiles = await p.json() as Profile[]; const shops = s.ok ? await s.json() as ShopProfile[] : []; if (alive) { setProfile(profiles[0] ?? null); setShop(shops[0] ?? null); } } catch (e) { if (alive) setError(e instanceof Error ? e.message : "Could not load account."); } finally { if (alive) setLoading(false); } })(); return () => { alive = false; }; }, []);
-  async function signOut() { await logoutAccount(); window.location.replace("/"); }
-  return <Container className="py-12 sm:py-16"><div className="mx-auto max-w-3xl"><p className="text-sm font-semibold text-brand-600">MY RELOOP</p><h1 className="mt-2 text-3xl font-bold sm:text-4xl">Your account</h1>{loading ? <p className="mt-6 text-muted">Loading account…</p> : error ? <p role="alert" className="mt-6 rounded-xl bg-danger/5 p-4 text-danger">{error}</p> : profile ? <div className="mt-8 rounded-2xl border border-line bg-surface p-6"><h2 className="text-xl font-bold">Welcome, {profile.full_name}</h2><p className="mt-2 text-muted">Account type: {profile.role === "shop_owner" ? "Shop owner" : "Buyer"}</p>{profile.role === "shop_owner" && <div className="mt-5 rounded-xl bg-sunken p-4"><p className="font-semibold">Shop verification</p><p className="mt-1 text-sm text-muted">{shop?.shop_name || "Business details"} · GSTIN: {shop?.gstin || "Not available"}</p><p className="mt-2 text-sm">Status: <strong>{shop?.verification_status ?? "Pending"}</strong></p>{shop?.verification_status === "verified" ? <Link className="mt-3 inline-block font-semibold text-brand-600 underline" href="/sell/shops">Submit items to ReLoop</Link> : <p className="mt-2 text-sm text-muted">Your business must be verified before you can submit stock.</p>}</div>}<div className="mt-6 flex flex-wrap gap-3"><Button variant="secondary" onClick={signOut}>Log out</Button><Link className="inline-flex min-h-11 items-center rounded-full px-4 font-semibold text-brand-600 underline" href="/shop">Browse marketplace</Link></div></div> : <p className="mt-6 text-muted">No profile was found. Please contact ReLoop support.</p>}</div></Container>;
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [shop, setShop] = useState<ShopProfile | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        if (!getSession()) {
+          window.location.replace("/login");
+          return;
+        }
+        const [p, s] = await Promise.all([
+          authenticatedFetch("/rest/v1/profiles?select=full_name,role&limit=1"),
+          authenticatedFetch(
+            "/rest/v1/shop_owners?select=shop_name,gstin,verification_status&limit=1",
+          ),
+        ]);
+        if (!p.ok)
+          throw new Error(
+            "Could not load your profile. Ensure the account migration has been applied in Supabase.",
+          );
+        const profiles = (await p.json()) as Profile[];
+        const shops = s.ok ? ((await s.json()) as ShopProfile[]) : [];
+        if (alive) {
+          setProfile(profiles[0] ?? null);
+          setShop(shops[0] ?? null);
+        }
+      } catch (e) {
+        if (alive) setError(e instanceof Error ? e.message : "Could not load account.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  async function signOut() {
+    await logoutAccount();
+    window.location.replace("/");
+  }
+  return (
+    <Container className="py-12 sm:py-16">
+      <div className="mx-auto max-w-3xl">
+        <p className="text-sm font-semibold text-brand-600">MY RELOOP</p>
+        <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Your account</h1>
+        {loading ? (
+          <p className="mt-6 text-muted">Loading account…</p>
+        ) : error ? (
+          <p role="alert" className="mt-6 rounded-xl bg-danger/5 p-4 text-danger">
+            {error}
+          </p>
+        ) : profile ? (
+          <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
+            <h2 className="text-xl font-bold">Welcome, {profile.full_name}</h2>
+            <p className="mt-2 text-muted">
+              Account type: {profile.role === "shop_owner" ? "Shop owner" : "Buyer"}
+            </p>
+            {profile.role === "shop_owner" && (
+              <div className="mt-5 rounded-xl bg-sunken p-4">
+                <p className="font-semibold">Shop verification</p>
+                <p className="mt-1 text-sm text-muted">
+                  {shop?.shop_name || "Business details"} · GSTIN: {shop?.gstin || "Not available"}
+                </p>
+                <p className="mt-2 text-sm">
+                  Status: <strong>{shop?.verification_status ?? "Pending"}</strong>
+                </p>
+                {shop?.verification_status === "verified" ? (
+                  <Link
+                    className="mt-3 inline-block font-semibold text-brand-600 underline"
+                    href="/sell/shops"
+                  >
+                    Submit items to ReLoop
+                  </Link>
+                ) : (
+                  <p className="mt-2 text-sm text-muted">
+                    Your business must be verified before you can submit stock.
+                  </p>
+                )}
+              </div>
+            )}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button variant="secondary" onClick={signOut}>
+                Log out
+              </Button>
+              <Link
+                className="inline-flex min-h-11 items-center rounded-full px-4 font-semibold text-brand-600 underline"
+                href="/shop"
+              >
+                Browse marketplace
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-6 text-muted">No profile was found. Please contact ReLoop support.</p>
+        )}
+      </div>
+    </Container>
+  );
 }

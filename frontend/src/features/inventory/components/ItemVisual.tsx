@@ -16,6 +16,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 import type { Category, PartType } from "../model";
 
@@ -57,6 +58,7 @@ type Props = {
   className?: string;
 };
 
+/** The item's photo, or a grade-tinted illustration until a photo exists. */
 export function ItemVisual({
   category,
   partType,
@@ -69,11 +71,16 @@ export function ItemVisual({
   if (photo) {
     return (
       <div className={cn("relative overflow-hidden bg-sunken", className)}>
-        <img
+        <Image
           src={photo}
           alt={alt}
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          // Listing photos can be any HTTPS URL, so only same-origin files go through the optimiser.
+          unoptimized={!photo.startsWith("/")}
+          sizes={
+            size === "card" ? "(min-width: 1024px) 25vw, 50vw" : "(min-width: 1024px) 50vw, 100vw"
+          }
+          className="object-cover"
         />
       </div>
     );
@@ -84,11 +91,7 @@ export function ItemVisual({
   return (
     <div
       aria-hidden="true"
-      className={cn(
-        "relative grid place-items-center overflow-hidden",
-        TINT[grade],
-        className,
-      )}
+      className={cn("relative grid place-items-center overflow-hidden", TINT[grade], className)}
     >
       <div className="absolute -top-10 -right-10 size-40 rounded-full bg-white/40" />
       <div className="absolute -bottom-12 -left-8 size-36 rounded-full bg-white/30" />

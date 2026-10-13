@@ -81,7 +81,7 @@ test.describe("hub item lifecycle", () => {
   test("a C device is stripped into tagged parts and stays grade C", async ({ page }) => {
     await page.goto("/hub/intake");
     await page.getByLabel("Category").selectOption("laptop");
-    await page.getByLabel("Name").fill("Walk-in shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Brand").fill("Acer");
     await page.getByLabel("Grade (if tested now)").selectOption("C");
     await page.getByLabel("We paid (₹)").fill("150");

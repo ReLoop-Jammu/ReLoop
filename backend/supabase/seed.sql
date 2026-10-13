@@ -4,7 +4,7 @@
 
 insert into auth.users (id, email, aud, role, raw_user_meta_data)
 values ('00000000-0000-4000-8000-000000000001', 'hub@reloop.local', 'authenticated', 'authenticated',
-        '{"full_name": "Hub Admin"}');
+        '{"full_name": "Hub Admin", "phone": "9000000000"}');
 
 insert into public.staff (user_id, full_name, role)
 values ('00000000-0000-4000-8000-000000000001', 'Hub Admin', 'admin');

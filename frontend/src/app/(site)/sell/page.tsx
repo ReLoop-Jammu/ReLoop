@@ -8,7 +8,6 @@ import { GRADE_INFO, GRADES } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
 import { BUSINESS_RULES } from "@/config/business-rules";
 
-
 function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
@@ -63,7 +62,9 @@ export default function SellPage() {
               We buy what still has a life in it.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-muted">
-              Working or broken: we inspect each item at our Jammu hub and make an outright purchase offer for items we can buy. If you accept, we pay the agreed amount directly. Items we cannot purchase are directed to an authorised recycler where appropriate.
+              Working or broken: we inspect each item at our Jammu hub and make an outright purchase
+              offer for items we can buy. If you accept, we pay the agreed amount directly. Items we
+              cannot purchase are directed to an authorised recycler where appropriate.
             </p>
           </div>
           <ul className="mt-12 grid gap-4 lg:grid-cols-3" role="list">
@@ -135,7 +136,6 @@ export default function SellPage() {
             </table>
           </div>
         </section>
-
       </Container>
     </>
   );

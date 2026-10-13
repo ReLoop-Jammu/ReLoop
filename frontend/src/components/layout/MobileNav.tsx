@@ -4,6 +4,7 @@ import { Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
+import { hasContactChannel } from "@/lib/site";
 import { cn } from "@/lib/utils/cn";
 import { HeaderSearch } from "./HeaderSearch";
 import { NAV_LINKS } from "./nav-links";
@@ -62,6 +63,17 @@ export function MobileNav() {
                   </Link>
                 </li>
               ))}
+              {hasContactChannel && (
+                <li>
+                  <Link
+                    href="/contact"
+                    aria-current={pathname.startsWith("/contact") ? "page" : undefined}
+                    className="block py-3.5 text-base font-medium text-ink aria-[current=page]:text-brand-600"
+                  >
+                    Contact
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
           <Link
