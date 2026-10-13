@@ -133,9 +133,12 @@ describe("supabase-fixes/2026-10-14.sql on a live-shaped database", () => {
     assert.deepEqual(await catalog(db), first);
   });
 
-  test("ends up with the same schema as the repo migrations", async () => {
+  test("plus the later migrations, ends up with the same schema as the repo", async () => {
+    const live = await createTestDb({ migrations: LIVE, seed: false });
+    await live.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await live.exec(readSql(m));
     const repo = await createTestDb({ seed: false });
-    assert.deepEqual(await catalog(db), await catalog(repo));
+    assert.deepEqual(await catalog(live), await catalog(repo));
   });
 
   test("adds the hub tables with RLS on", async () => {
@@ -557,5 +560,26 @@ describe("the admin account role", () => {
     await failing(db, /looks real \(status verified, 0 submissions\)/);
     await leftoverAdmin(db, "second");
     await failing(db, /expected exactly one active admin, found 2/);
+  });
+});
+
+describe("sample listings (20261016000001)", () => {
+  test("visitors read is_sample with the shop's columns, but still no costs", async () => {
+    const db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    await db.exec(readSql("20261016000001_listing_samples.sql"));
+    await db.query(
+      "insert into public.listings (title, price, grade, is_sample) values ('Sample – laptop', 18000, 'A', true)",
+    );
+    const { rows } = await as(db, null, (tx) =>
+      tx.query(`select id, title, description, category_id, brand, model, condition, price, stock, image_url,
+                       status, featured, grade, created_at, is_sample
+                  from public.listings where status = 'Active' and stock > 0 order by created_at desc`),
+    );
+    assert.equal(rows[0].is_sample, true);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select purchase_cost from public.listings")),
+      /permission denied/,
+    );
   });
 });

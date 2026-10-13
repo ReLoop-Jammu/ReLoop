@@ -34,7 +34,9 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
         <p className="font-mono text-[11px] tracking-wide text-muted">
           {item.id}
           {item.sample && (
-            <span className="ml-1.5 rounded bg-sunken px-1 py-px font-sans">Sample</span>
+            <span className="ml-1.5 rounded bg-sunken px-1 py-px font-sans">
+              Sample · not for sale
+            </span>
           )}
         </p>
         <h3 className="mt-1 line-clamp-2 font-sans text-sm leading-snug font-semibold tracking-normal sm:text-[15px]">

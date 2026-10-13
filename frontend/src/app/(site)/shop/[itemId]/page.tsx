@@ -101,7 +101,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             <span className="font-mono text-sm text-muted">{item.id}</span>
             {item.sample && (
               <span className="rounded bg-sunken px-2 py-0.5 text-xs font-medium text-muted">
-                Sample item
+                Sample · not for sale
               </span>
             )}
           </div>

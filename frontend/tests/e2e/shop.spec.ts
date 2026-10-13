@@ -58,6 +58,21 @@ test.describe("public shop", () => {
   });
 });
 
+test.describe("sample stock", () => {
+  test("samples are labelled not for sale and can't be reserved", async ({ page }) => {
+    await page.goto("/shop");
+    await expect(page.getByText("Sample · not for sale").first()).toBeVisible();
+    await expect(page.getByText("These are sample items")).toBeVisible();
+    await page.goto("/shop/RL-JMU-0001");
+    // The item's own badge comes before the related items' cards.
+    await expect(page.getByText("Sample · not for sale").first()).toBeVisible();
+    await expect(
+      page.getByText("This is a sample item to show how stock will look."),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /reserve/i })).toHaveCount(0);
+  });
+});
+
 test.describe("sell to us", () => {
   test("shop submissions ask visitors to log in or register first", async ({ page }) => {
     await page.goto("/sell/shops");
