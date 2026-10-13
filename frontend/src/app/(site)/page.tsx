@@ -18,6 +18,8 @@ import { GradeStrip } from "@/components/marketing/GradeStrip";
 import { HeroShowcase } from "@/components/marketing/HeroShowcase";
 import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
+import { ImpactCounter } from "@/features/impact/ImpactCounter";
+import { getImpactTotals } from "@/features/impact/queries";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
 import { getLatestShopItems, isSampleStock } from "@/features/shop/queries";
 import { env } from "@/lib/env";
@@ -63,7 +65,11 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
 ];
 
 export default async function HomePage() {
-  const [latest, sample] = await Promise.all([getLatestShopItems(8), isSampleStock()]);
+  const [latest, sample, impact] = await Promise.all([
+    getLatestShopItems(8),
+    isSampleStock(),
+    getImpactTotals(),
+  ]);
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -144,6 +150,8 @@ export default async function HomePage() {
           </ul>
         </Container>
       </section>
+
+      <ImpactCounter totals={impact} />
 
       {/* Grades */}
       <section className="py-16 sm:py-20" aria-labelledby="grades-heading">

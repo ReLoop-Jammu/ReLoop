@@ -1457,3 +1457,75 @@ describe("tracked links (20261024000001)", () => {
     assert.deepEqual(rows, [{ slug: "drive", source: "qr", medium: "print", n: 2 }]);
   });
 });
+
+describe("impact counter (20261025000001)", () => {
+  let db;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+  });
+  const item = (grade, source = "repair_shop", category = "accessory", partType = null) =>
+    db.query(
+      `insert into public.items (source_type, category, part_type, grade, buy_mode)
+       values ($1, $2, $3, $4, 'cash')`,
+      [source, category, partType, grade],
+    );
+  const totals = (who) =>
+    as(db, who, (tx) => tx.query("select * from public.impact_totals")).then((r) => r.rows);
+
+  test("starts at zero, so the home page shows the pilot message", async () => {
+    assert.deepEqual(
+      (await totals(null)).map((r) => [
+        Number(r.items_reused),
+        Number(r.kg_recycled),
+        Number(r.active_partner_shops),
+      ]),
+      [[0, 0, 0]],
+    );
+  });
+
+  test("counts A, B and C items once, kilograms handed over, and active partners", async () => {
+    for (const g of ["A", "B", "C", "D", null]) await item(g);
+    await item("C", "stripped", "part", "ram"); // a part taken from a C item: not counted again
+    await db.query(
+      `insert into public.handovers (recycler, kg_by_category, battery_kg, receipt_no)
+       values ('VRG Groups', '{"laptop": 12.5, "monitor": 30}', 4.25, 'R-1'),
+              ('VRG Groups', '{}', 1, 'R-2')`,
+    );
+    await db.query(
+      `insert into public.partners (type, name, phone, status)
+       values ('repair_shop', 'Active One', '9000000001', 'active'),
+              ('retailer', 'Lead Two', '9000000002', 'lead'),
+              ('repair_shop', 'Paused Three', '9000000003', 'paused')`,
+    );
+    // A sample listing never counts.
+    await db.query(
+      "insert into public.listings (title, price, is_sample) values ('Sample', 100, true)",
+    );
+    const [row] = await totals(null);
+    assert.equal(Number(row.items_reused), 3);
+    assert.equal(Number(row.kg_recycled), 47.8);
+    assert.equal(Number(row.active_partner_shops), 1);
+  });
+
+  test("shows only the three totals; visitors still can't read the tables behind them", async () => {
+    const { rows } = await db.query(
+      "select column_name from information_schema.columns where table_name = 'impact_totals' order by ordinal_position",
+    );
+    assert.deepEqual(
+      rows.map((r) => r.column_name),
+      ["items_reused", "kg_recycled", "active_partner_shops"],
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select buy_paise from public.items")),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select kg_by_category from public.handovers")),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select phone from public.partners")),
+      /permission denied/,
+    );
+  });
+});

@@ -322,3 +322,12 @@ test.describe("institution pickup booking", () => {
     await expect(page.getByText(/couldn't keep a copy/)).toHaveCount(0);
   });
 });
+
+test.describe("impact counter", () => {
+  test("shows the pilot date on the home page until there are real totals", async ({ page }) => {
+    await page.goto("/");
+    const impact = page.getByRole("region", { name: "Our impact so far" });
+    await expect(impact.getByText("Pilot starts November 2026")).toBeVisible();
+    await expect(impact.getByText("items reused")).toHaveCount(0);
+  });
+});
