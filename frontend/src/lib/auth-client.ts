@@ -154,6 +154,7 @@ export async function registerAccount(input: {
   }
 
   const email = input.email.trim().toLowerCase();
+<<<<<<< HEAD
   const fullName = input.fullName.trim();
   const phone = input.phone.trim();
 
@@ -169,13 +170,20 @@ export async function registerAccount(input: {
   if (input.password.length < 8 || input.password.length > 128) {
     throw new Error("Password must be between 8 and 128 characters.");
   }
+=======
+>>>>>>> 8001ce839c8e62c0b6e629babf795086092019d5
 
   const data = await authRequest("signup", {
     email,
     password: input.password,
     data: {
+<<<<<<< HEAD
       full_name: fullName,
       phone,
+=======
+      full_name: input.fullName.trim(),
+      phone: input.phone.trim(),
+>>>>>>> 8001ce839c8e62c0b6e629babf795086092019d5
       account_type: input.role,
       shop_name: input.shopName?.trim() ?? "",
       gstin: input.gstin?.trim().toUpperCase() ?? "",
