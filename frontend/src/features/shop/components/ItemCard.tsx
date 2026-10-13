@@ -26,12 +26,12 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
         className="absolute top-2.5 left-2.5 shadow-soft sm:top-3 sm:left-3"
       />
       {item.wasPaise && (
-        <span className="absolute top-2.5 right-2.5 rounded-full bg-ink px-2 py-0.5 text-[11px] font-semibold text-white sm:top-3 sm:right-3">
+        <span className="absolute top-2.5 right-2.5 rounded-full bg-ink px-2 py-0.5 text-xs font-semibold text-white sm:top-3 sm:right-3">
           Price cut
         </span>
       )}
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <p className="font-mono text-[11px] tracking-wide text-muted">
+        <p className="font-mono text-xs tracking-wide text-muted">
           {item.id}
           {item.sample && (
             <span className="ml-1.5 rounded bg-sunken px-1 py-px font-sans">
@@ -61,7 +61,7 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
               </s>
             )}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-[11px] text-ink-soft sm:text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-ink-soft">
             {item.warrantyDays && (
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck className="size-3.5 text-grade-a" aria-hidden="true" />

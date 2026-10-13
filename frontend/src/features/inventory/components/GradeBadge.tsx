@@ -16,7 +16,7 @@ export function GradeBadge({ grade, withLabel = true, size = "md", className }: 
       data-grade={grade}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full font-semibold whitespace-nowrap",
-        size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
+        size === "sm" ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-xs",
         STYLE[grade],
         className,
       )}
@@ -24,7 +24,7 @@ export function GradeBadge({ grade, withLabel = true, size = "md", className }: 
       <span
         className={cn(
           "grid place-items-center rounded-full bg-current font-bold",
-          size === "sm" ? "size-3.5 text-[9px]" : "size-4 text-[10px]",
+          size === "sm" ? "size-4 text-xs leading-none" : "size-5 text-xs leading-none",
         )}
         aria-hidden="true"
       >

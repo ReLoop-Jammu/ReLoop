@@ -51,6 +51,8 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
       <p className="mb-5 text-sm text-muted" aria-live="polite">
         Showing {items.length} of {total} items{active.length > 0 && ` for ${active.join(" · ")}`}
       </p>
+      {/* Item cards use h3 titles; this keeps the heading order for screen readers. */}
+      <h2 className="sr-only">Items</h2>
       <ItemGrid
         items={items}
         empty={

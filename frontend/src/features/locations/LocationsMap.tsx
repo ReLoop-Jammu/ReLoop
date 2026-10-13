@@ -24,6 +24,8 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
       map = L.map(container.current, { scrollWheelZoom: false });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
+        // Sharp tiles on high-density phone screens.
+        detectRetina: true,
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
