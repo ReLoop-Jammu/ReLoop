@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Info, PackagePlus } from "lucide-react";
+import { AlertTriangle, ArrowRight, Download, Info, PackagePlus } from "lucide-react";
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/Button";
 import { BUSINESS_RULES } from "@/config/business-rules";
@@ -8,6 +8,8 @@ import { STATUSES } from "@/features/inventory/model";
 import { hubAlerts } from "@/features/inventory/rules";
 import { dashboardStats } from "@/features/inventory/stats";
 import { cn } from "@/lib/utils/cn";
+import { itemsCsv, kpiCsv } from "../csv";
+import { downloadFile } from "../photos";
 import { useHubData } from "../useHubData";
 import { PageTitle, Panel, Stat } from "./ui";
 
@@ -15,7 +17,7 @@ const T = BUSINESS_RULES.targets;
 const pct = (n: number | null) => (n === null ? "–" : `${Math.round(n * 100)}%`);
 
 export function Dashboard() {
-  const { items, partners, handovers, loaded } = useHubData();
+  const { items, partners, institutions, handovers, loaded } = useHubData();
   const now = new Date();
   const stats = dashboardStats(items, handovers, partners, now);
   const month = now.toISOString().slice(0, 7);
@@ -126,7 +128,38 @@ export function Dashboard() {
         </Panel>
       </div>
 
-      <Panel title="Month by month" className="mt-6 overflow-x-auto">
+      <GradeSplit items={items} />
+
+      <Panel
+        title="Month by month"
+        className="mt-6 overflow-x-auto"
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonClasses({ size: "sm", variant: "secondary" })}
+              onClick={() =>
+                downloadFile(`reloop-kpis-${month}.csv`, kpiCsv(stats.months), "text/csv")
+              }
+            >
+              <Download className="size-4" aria-hidden="true" /> KPIs (CSV)
+            </button>
+            <button
+              type="button"
+              className={buttonClasses({ size: "sm", variant: "secondary" })}
+              onClick={() =>
+                downloadFile(
+                  `reloop-items-${month}.csv`,
+                  itemsCsv(items, partners, institutions, now),
+                  "text/csv",
+                )
+              }
+            >
+              <Download className="size-4" aria-hidden="true" /> Items (CSV)
+            </button>
+          </div>
+        }
+      >
         {stats.months.length === 0 ? (
           <p className="text-sm text-muted">Figures appear once items are logged.</p>
         ) : (
@@ -176,5 +209,49 @@ export function Dashboard() {
         </p>
       </Panel>
     </>
+  );
+}
+
+const GRADE_COLOURS = {
+  A: "bg-grade-a",
+  B: "bg-grade-b",
+  C: "bg-grade-c",
+  D: "bg-grade-d",
+} as const;
+
+/** Share of graded items in each grade, all time. */
+function GradeSplit({ items }: { items: readonly { grade: "A" | "B" | "C" | "D" | null }[] }) {
+  const graded = items.filter((i) => i.grade);
+  const counts = (["A", "B", "C", "D"] as const).map((g) => ({
+    grade: g,
+    n: graded.filter((i) => i.grade === g).length,
+  }));
+  return (
+    <Panel title="Grade split (all graded items)" className="mt-6">
+      {graded.length === 0 ? (
+        <p className="text-sm text-muted">Appears once items are graded.</p>
+      ) : (
+        <>
+          <div className="flex h-4 overflow-hidden rounded-full bg-sunken" aria-hidden="true">
+            {counts.map(({ grade, n }) =>
+              n ? (
+                <div
+                  key={grade}
+                  className={GRADE_COLOURS[grade]}
+                  style={{ width: `${(n / graded.length) * 100}%` }}
+                />
+              ) : null,
+            )}
+          </div>
+          <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm tabular-nums">
+            {counts.map(({ grade, n }) => (
+              <li key={grade}>
+                Grade {grade}: <strong>{n}</strong> ({pct(n / graded.length)})
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Panel>
   );
 }

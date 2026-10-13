@@ -26,8 +26,8 @@ Run order: 0 → A → B → C → E+F → G → D, then update G after D. The f
 | B     | `feat/account-recovery`  | done        | PR #20 merged (`10981a7`). Auth redirect URLs set by the team; **Gmail SMTP still to set up**.              |
 | C     | `feat/locations`         | done        | PR #21 merged (`0a12c71`); live: map, QR page, `/go/drive` redirects and counts (tested, test row removed). |
 | E+F   | `feat/launch-content`    | done        | PR #22 merged (`4924557`); live: contact names Harsh Raj; monitors no longer "ship across India".           |
-| G     | `docs/known-limitations` | in progress | `docs/known-limitations.md`; updated again after D.                                                         |
-| D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV.              |
+| G     | `docs/known-limitations` | done        | PR #23 merged (`bfc0eb4`); updated again in Batch D.                                                        |
+| D     | `feat/hub-supabase`      | in progress | Live: migration `20261018000001` applied, daily rules job scheduled, checks 24/24, counter 5. PR pending.   |
 
 ### Batch 0 live changes (2026-10-13)
 
