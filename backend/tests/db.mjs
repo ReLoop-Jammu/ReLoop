@@ -5,25 +5,37 @@ import { join } from "node:path";
 const root = new URL("..", import.meta.url).pathname;
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 
-/** Fresh in-memory database with the shim, all migrations and the seed applied. */
-export async function createTestDb() {
+export const MIGRATIONS = readdirSync(join(root, "supabase", "migrations"))
+  .filter((f) => f.endsWith(".sql"))
+  .sort();
+
+/** Reads a migration, or any file relative to the repo root with "../". */
+export const readSql = (path) =>
+  read(path.includes("/") ? path : join("supabase", "migrations", path));
+
+/**
+ * Fresh in-memory database with the shim and the given migrations (default:
+ * all of them, in order), plus the seed unless seed is false.
+ */
+export async function createTestDb({ migrations = MIGRATIONS, seed = true } = {}) {
   const db = new PGlite();
   await db.exec(read("tests", "supabase-shim.sql"));
-  const migrations = readdirSync(join(root, "supabase", "migrations"))
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  for (const file of migrations) await db.exec(read("supabase", "migrations", file));
-  await db.exec(read("supabase", "seed.sql"));
+  for (const file of migrations) await db.exec(readSql(file));
+  if (seed) await db.exec(read("supabase", "seed.sql"));
   return db;
 }
 
 export const ADMIN_ID = "00000000-0000-4000-8000-000000000001";
 
-/** Creates an auth user. Pass staff: true to add them to the hub staff list. */
-export async function createUser(db, name, { staff = false } = {}) {
+/**
+ * Creates an auth user; the sign-up trigger gives them a profile. Pass staff: true
+ * to add them to the hub staff list, and meta for extra sign-up fields
+ * (account_type, shop_name, business_address, gstin).
+ */
+export async function createUser(db, name, { staff = false, meta = {} } = {}) {
   const { rows } = await db.query(
     "insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id",
-    [`${name}@test.local`, { full_name: name }],
+    [`${name}@test.local`, { full_name: name, phone: "9000000000", ...meta }],
   );
   if (staff)
     await db.query("insert into public.staff (user_id, full_name) values ($1, $2)", [
