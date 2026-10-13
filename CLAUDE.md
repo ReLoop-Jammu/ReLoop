@@ -52,6 +52,8 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
     - Account roles are `buyer`, `shop_owner` and (from migration `20261015000001`) `admin`. The role is a label; admin rights come from `is_admin()`. Sign-up can't choose `admin`. `supabase-fixes/tidy-admin-account.sql` confirms the shared admin account, renames it "ReLoop Admin", removes its leftover shop row and sets its role to `admin`. The `admin` role is live (2026-10-13), but the tidy script has **not** been run: the admin account's shop row turned out to be verified, which is one of its safety stops.
     - Back up before any live change with `scripts/backup-live-data.sh`.
   - `backend/tests/live.test.mjs` replays every query the site makes, on the live schema before and after the fix. Add new queries there.
+- **Locations and QR:** `/locations` reads everything from `frontend/src/config/locations.ts`. The printed awareness-drive QR codes point at `https://re-loop-ochre.vercel.app/go/drive`, so **that domain must stay assigned to the Vercel project**: printed codes depend on it. Scans are counted in `qr_scans` (campaign and time only).
+- **What's not done yet:** see `docs/known-limitations.md` (launch items, email, sessions, rate limiting, test database, backups).
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
 ## Working rules

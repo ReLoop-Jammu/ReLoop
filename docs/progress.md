@@ -25,8 +25,8 @@ Run order: 0 → A → B → C → E+F → G → D, then update G after D. The f
 | A     | `feat/admin-verify`      | done        | PR #19 merged (`ba7f2e8`); live: `/hub/shops` asks visitors to log in.                                      |
 | B     | `feat/account-recovery`  | done        | PR #20 merged (`10981a7`). Auth redirect URLs set by the team; **Gmail SMTP still to set up**.              |
 | C     | `feat/locations`         | done        | PR #21 merged (`0a12c71`); live: map, QR page, `/go/drive` redirects and counts (tested, test row removed). |
-| E+F   | `feat/launch-content`    | in progress | Phone, hours, hub area, grievance officer (Harsh Raj); shipping only for laptops/boards; terms wording.     |
-| G     | `docs/known-limitations` | not started | Runs before D, and is updated after D.                                                                      |
+| E+F   | `feat/launch-content`    | done        | PR #22 merged (`4924557`); live: contact names Harsh Raj; monitors no longer "ship across India".           |
+| G     | `docs/known-limitations` | in progress | `docs/known-limitations.md`; updated again after D.                                                         |
 | D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV.              |
 
 ### Batch 0 live changes (2026-10-13)
