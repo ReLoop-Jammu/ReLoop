@@ -80,3 +80,33 @@ test.describe("map & locations", () => {
     await expect(page).toHaveURL(/\/locations$/);
   });
 });
+
+test.describe("printable outreach", () => {
+  test("/print links both A4 PDFs, and they download", async ({ page, request }) => {
+    await page.goto("/print");
+    for (const [name, file] of [
+      ["Partner-shop poster (PDF)", "/print/partner-poster.pdf"],
+      ["Awareness-drive flyer (PDF)", "/print/awareness-flyer.pdf"],
+    ]) {
+      await expect(page.getByRole("link", { name })).toHaveAttribute("href", file);
+      const res = await request.get(file);
+      expect(res.status(), file).toBe(200);
+      expect(res.headers()["content-type"]).toContain("application/pdf");
+    }
+  });
+
+  test("the sheets show the QR code and WhatsApp number, and aren't indexed", async ({ page }) => {
+    for (const path of ["/print/partner-poster", "/print/awareness-flyer", "/print"]) {
+      await page.goto(path);
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+      if (path === "/print") continue;
+      await expect(
+        page.getByRole("img", {
+          name: "QR code linking to https://re-loop-ochre.vercel.app/go/drive",
+        }),
+      ).toBeVisible();
+      await expect(page.getByText("+91 98712 76179")).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Main" }), "no site header").toHaveCount(0);
+    }
+  });
+});

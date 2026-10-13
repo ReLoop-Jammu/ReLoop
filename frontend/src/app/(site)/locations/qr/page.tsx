@@ -46,6 +46,11 @@ export default function DriveQrPage() {
           </a>
         </p>
         <p className="mt-2 text-sm print:hidden">
+          <Link className="font-semibold text-brand-600 underline" href="/print">
+            Posters and flyers with this code
+          </Link>
+        </p>
+        <p className="mt-2 text-sm print:hidden">
           <Link className="font-semibold text-brand-600 underline" href="/locations">
             Back to the map
           </Link>
