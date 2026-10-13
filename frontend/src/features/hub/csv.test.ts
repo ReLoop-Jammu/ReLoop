@@ -41,6 +41,39 @@ describe("CSV exports", () => {
         scrapKg: 12.5,
       },
     ]);
-    expect(csv.split("\r\n")[1]).toBe("2026-11,10,8,2,2,2,2,75,3,12.5");
+    expect(csv.split("\r\n")[1]).toBe("2026-11,10,8,2,2,2,2,75,3,12.5,0,0,0,0,0,0,0.00");
+  });
+});
+
+describe("loop KPIs", () => {
+  it("counts requests by kind and shop submissions through to purchase", async () => {
+    const { loopStats } = await import("@/features/inventory/stats");
+    const loop = loopStats(
+      [
+        { kind: "reservation", created_at: "2026-11-03T00:00:00Z" },
+        { kind: "enquiry", created_at: "2026-11-04T00:00:00Z" },
+        { kind: "institution_pickup", created_at: "2026-12-01T00:00:00Z" },
+      ],
+      [
+        {
+          status: "Purchased",
+          created_at: "2026-11-01T00:00:00Z",
+          reviewed_at: "2026-11-02T00:00:00Z",
+          purchased_at: "2026-11-05T00:00:00Z",
+          purchase_price: 900,
+          offer_price: 450,
+        },
+      ],
+    );
+    expect(loop.map((l) => l.month)).toEqual(["2026-11", "2026-12"]);
+    expect(loop[0]).toMatchObject({
+      reservations: 1,
+      enquiries: 1,
+      submissionsIn: 1,
+      submissionsOffered: 1,
+      submissionsPurchased: 1,
+      purchasedPaise: 90000,
+    });
+    expect(kpiCsv([], loop).split("\r\n")[1]).toBe("2026-11,0,0,0,0,0,0,,0,0.0,1,1,0,1,1,1,900.00");
   });
 });

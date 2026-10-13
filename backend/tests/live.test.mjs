@@ -948,3 +948,144 @@ describe("admin password reset (20261019000001)", () => {
     assert.ok(cols.rows.every((c) => !/pass/i.test(c.column_name)));
   });
 });
+
+describe("closing the loop (20261020000001)", () => {
+  let db;
+  let staff;
+  let owner;
+  let other;
+  let submission;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
+    staff = await createUser(db, "Hub Staff", { staff: true });
+    owner = await shopOwner(db, "Owner");
+    other = await shopOwner(db, "Other");
+    await db.query("update public.shop_owners set verification_status = 'verified'");
+    const { rows } = await asService(db, (tx) =>
+      tx.query(
+        `insert into public.shop_submissions (shop_owner_id, item_name, brand, model, quantity, condition, internal_notes)
+         values ($1, 'Redmi 9', 'Xiaomi', 'Redmi 9', 2, 'Damaged', 'secret') returning id`,
+        [owner],
+      ),
+    );
+    submission = rows[0].id;
+  });
+  const OWNER_COLS = "id, status, offer_price, offer_note, rejection_reason, reviewed_at";
+
+  test("staff make an offer; the owner sees it, other owners see nothing", async () => {
+    await as(db, staff, (tx) =>
+      tx.query(
+        `update public.shop_submissions set status = 'Offered', offer_price = 450, offer_note = 'Screens cracked',
+                reviewed_at = now(), reviewed_by = $2 where id = $1`,
+        [submission, staff],
+      ),
+    );
+    const mine = await as(db, owner, (tx) =>
+      tx.query(`select ${OWNER_COLS} from public.shop_submissions`),
+    );
+    assert.deepEqual(
+      [mine.rows[0].status, Number(mine.rows[0].offer_price), mine.rows[0].offer_note],
+      ["Offered", 450, "Screens cracked"],
+    );
+    await assert.rejects(
+      as(db, owner, (tx) => tx.query("select internal_notes from public.shop_submissions")),
+      /permission denied/,
+    );
+    const theirs = await as(db, other, (tx) =>
+      tx.query(`select ${OWNER_COLS} from public.shop_submissions`),
+    );
+    assert.equal(theirs.rows.length, 0);
+    const { rowCount } = await as(db, owner, (tx) =>
+      tx.query("update public.shop_submissions set status = 'Purchased' where id = $1", [
+        submission,
+      ]),
+    );
+    assert.equal(rowCount, 0, "owners can't change the status");
+  });
+
+  test("an offered submission becomes one linked hub item per unit, once", async () => {
+    await assert.rejects(
+      as(db, owner, (tx) =>
+        tx.query("select public.convert_submission($1, 'phone', null, 45000)", [submission]),
+      ),
+      /Only hub staff/,
+    );
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'phone', null, 45000) as tags", [submission]),
+    );
+    assert.deepEqual(rows[0].tags, ["RL-JMU-0001", "RL-JMU-0002"]);
+    const items = await db.query(
+      "select source_name, source_contact_name, brand, buy_paise, faults, shop_submission_id from public.items order by id",
+    );
+    assert.equal(items.rows.length, 2);
+    assert.deepEqual(
+      [
+        items.rows[0].source_name,
+        items.rows[0].brand,
+        Number(items.rows[0].buy_paise),
+        String(items.rows[0].shop_submission_id),
+      ],
+      ["Owner Mobiles", "Xiaomi", 45000, String(submission)],
+    );
+    assert.match(items.rows[0].faults, /Condition reported by the shop: Damaged/);
+    const sub = await db.query(
+      "select status, purchase_price from public.shop_submissions where id = $1",
+      [submission],
+    );
+    assert.deepEqual([sub.rows[0].status, Number(sub.rows[0].purchase_price)], ["Purchased", 900]);
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("select public.convert_submission($1, 'phone', null, 45000)", [submission]),
+      ),
+      /Only an offered submission/,
+    );
+  });
+
+  test("requests: only the server inserts, only staff read, and statuses include sold and cancelled", async () => {
+    const { rows } = await db.query("select id from public.items limit 1");
+    await asService(db, (tx) =>
+      tx.query(
+        "insert into public.submissions (kind, fields, item_id) values ('reservation', $1, $2)",
+        [{ name: "Asha", phone: "9876543210" }, rows[0].id],
+      ),
+    );
+    await asService(db, (tx) =>
+      tx.query(
+        "insert into public.submissions (kind, fields) values ('enquiry', '{\"name\":\"B\"}')",
+      ),
+    );
+    for (const user of [null, owner]) {
+      await assert.rejects(
+        as(db, user, (tx) =>
+          tx.query("insert into public.submissions (kind, fields) values ('enquiry', '{}')"),
+        ),
+        /permission denied/,
+      );
+    }
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select fields from public.submissions")),
+      /permission denied/,
+    );
+    const visible = await as(db, owner, (tx) => tx.query("select fields from public.submissions"));
+    assert.equal(
+      visible.rows.length,
+      0,
+      "a signed-in buyer or shop owner sees no one's contact details",
+    );
+    // Request ids are random uuids, so compare the kinds as a set.
+    const inbox = await as(db, staff, (tx) =>
+      tx.query("select kind, item_id from public.submissions"),
+    );
+    assert.deepEqual(inbox.rows.map((r) => r.kind).sort(), ["enquiry", "reservation"]);
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.submissions set status = 'sold', handled_at = now() where kind = 'reservation'",
+      ),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.submissions set status = 'cancelled' where kind = 'enquiry'"),
+    );
+  });
+});

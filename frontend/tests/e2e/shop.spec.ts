@@ -232,3 +232,32 @@ test.describe("contact details", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("institution pickup booking", () => {
+  test("is saved for staff, then handed off on WhatsApp or email", async ({ page }) => {
+    const bodies: unknown[] = [];
+    await page.route("**/api/requests", async (route) => {
+      bodies.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, json: { ok: true } });
+    });
+    await page.goto("/sell/institutions");
+    await page.getByLabel(/^Institution/).fill("IIM Jammu");
+    await page.getByLabel(/^Type/).selectOption("College / university");
+    await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
+    await page.getByLabel(/^Phone/).fill("98765 43210");
+    await page.getByLabel(/^What is in the lot/).fill("20 desktops, 15 monitors");
+    await page.getByRole("button", { name: "Prepare my booking" }).click();
+    await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
+    expect(bodies).toEqual([
+      expect.objectContaining({
+        kind: "institution_pickup",
+        fields: expect.objectContaining({
+          institution: "IIM Jammu",
+          contact: "Ravi Sharma",
+          phone: "98765 43210",
+        }),
+      }),
+    ]);
+    await expect(page.getByText(/couldn't keep a copy/)).toHaveCount(0);
+  });
+});

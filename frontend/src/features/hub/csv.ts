@@ -1,6 +1,6 @@
 import type { Item, Partner, Institution } from "@/features/inventory/model";
 import { daysBetween } from "@/features/inventory/rules";
-import type { MonthStats } from "@/features/inventory/stats";
+import type { LoopMonth, MonthStats } from "@/features/inventory/stats";
 
 /** One CSV cell: quoted when needed, and guarded against spreadsheet formulas. */
 function cell(value: string | number | boolean | null | undefined): string {
@@ -86,8 +86,9 @@ export function itemsCsv(
   ]);
 }
 
-/** Month-by-month KPIs: items in, grade split, reuse share, sold, scrap kg. */
-export function kpiCsv(months: readonly MonthStats[]): string {
+/** Month-by-month KPIs: items in, grade split, reuse share, sold, scrap kg, and the loop's requests and purchases. */
+export function kpiCsv(months: readonly MonthStats[], loop: readonly LoopMonth[] = []): string {
+  const all = [...new Set([...months.map((m) => m.month), ...loop.map((l) => l.month)])].sort();
   return toCsv([
     [
       "month",
@@ -100,18 +101,36 @@ export function kpiCsv(months: readonly MonthStats[]): string {
       "reuse_pct",
       "sold",
       "scrap_kg",
+      "reservations",
+      "enquiries",
+      "institution_pickups",
+      "shop_submissions_in",
+      "shop_submissions_offered",
+      "shop_submissions_purchased",
+      "purchased_inr",
     ],
-    ...months.map((m) => [
-      m.month,
-      m.itemsIn,
-      m.graded,
-      m.gradeMix.A,
-      m.gradeMix.B,
-      m.gradeMix.C,
-      m.gradeMix.D,
-      m.reuseShare === null ? null : Math.round(m.reuseShare * 1000) / 10,
-      m.sold,
-      m.scrapKg.toFixed(1),
-    ]),
+    ...all.map((month) => {
+      const m = months.find((x) => x.month === month);
+      const l = loop.find((x) => x.month === month);
+      return [
+        month,
+        m?.itemsIn ?? 0,
+        m?.graded ?? 0,
+        m?.gradeMix.A ?? 0,
+        m?.gradeMix.B ?? 0,
+        m?.gradeMix.C ?? 0,
+        m?.gradeMix.D ?? 0,
+        m?.reuseShare == null ? null : Math.round(m.reuseShare * 1000) / 10,
+        m?.sold ?? 0,
+        (m?.scrapKg ?? 0).toFixed(1),
+        l?.reservations ?? 0,
+        l?.enquiries ?? 0,
+        l?.institutionPickups ?? 0,
+        l?.submissionsIn ?? 0,
+        l?.submissionsOffered ?? 0,
+        l?.submissionsPurchased ?? 0,
+        rupees(l?.purchasedPaise ?? 0),
+      ];
+    }),
   ]);
 }

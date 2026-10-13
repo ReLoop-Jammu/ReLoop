@@ -59,6 +59,32 @@ select check_name, ok
                            and column_name ilike '%pass%')),
     (14, 'A temporary password opens nothing: admin and staff checks respect the flag',
         (select count(*) from pg_proc
-          where proname in ('is_admin', 'is_staff') and prosrc like '%password_change_pending()%') = 2)
+          where proname in ('is_admin', 'is_staff') and prosrc like '%password_change_pending()%') = 2),
+    (15, 'Requests: visitors and signed-in users cannot insert them directly (only the server route can)',
+        not has_table_privilege('anon', 'public.submissions', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.submissions', 'INSERT')
+        and not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'submissions'
+                          and cmd in ('INSERT', 'ALL') and roles && array['anon']::name[])),
+    (16, 'Requests: visitors cannot read them, and signed-in users only if they are staff',
+        not has_table_privilege('anon', 'public.submissions', 'SELECT')
+        and not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'submissions'
+                          and roles && array['authenticated']::name[]
+                          and coalesce(qual, with_check, '') not like '%is_staff()%')),
+    (17, 'Shop submissions: a signed-in user sees only their own rows unless they are staff or admin',
+        not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'shop_submissions'
+                      and cmd in ('SELECT', 'ALL') and roles && array['authenticated']::name[]
+                      and coalesce(qual, '') not like '%auth.uid()%'
+                      and coalesce(qual, '') not like '%is_staff()%'
+                      and coalesce(qual, '') not like '%is_admin()%')),
+    (18, 'Shop submissions: owners can read their offer and note, but not internal notes',
+        has_column_privilege('authenticated', 'public.shop_submissions', 'offer_price', 'SELECT')
+        and has_column_privilege('authenticated', 'public.shop_submissions', 'offer_note', 'SELECT')
+        and not has_column_privilege('authenticated', 'public.shop_submissions', 'internal_notes', 'SELECT')
+        and not has_table_privilege('anon', 'public.shop_submissions', 'SELECT')),
+    (19, 'Hub items: visitors cannot see which shop submission an item came from',
+        not has_column_privilege('anon', 'public.items', 'shop_submission_id', 'SELECT')),
+    (20, 'Converting a submission into hub items is not possible for visitors',
+        not has_function_privilege('anon',
+          'public.convert_submission(bigint, public.item_category, public.part_type, bigint)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

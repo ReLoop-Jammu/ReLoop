@@ -222,16 +222,26 @@ export async function saveRepairJob(
 // ---------------------------------------------------------------- public form submissions
 
 /**
- * Records a public form request. Until a shared database exists, requests
- * reach ReLoop by WhatsApp or email only, so nothing is kept on the
- * visitor's device (which may be shared, e.g. a cyber café). The Supabase
- * adapter will insert into a `submissions` table here.
+ * Records a public form request (reservation, enquiry or institution pickup)
+ * for hub staff, through the site's /api/requests route; nothing is kept on
+ * the visitor's device. Resolves `saved: false` instead of failing, so the
+ * WhatsApp/email handoff always goes ahead.
  */
 export async function addSubmission(
   kind: Submission["kind"],
   fields: Record<string, string>,
-): Promise<Submission> {
-  return { id: randomId("sub"), kind, createdAt: nowIso(), fields, status: "new" };
+  itemId?: string,
+): Promise<{ saved: boolean }> {
+  try {
+    const response = await fetch("/api/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind, fields, ...(itemId && { itemId }) }),
+    });
+    return { saved: response.ok };
+  } catch {
+    return { saved: false };
+  }
 }
 
 // ---------------------------------------------------------------- backup & publishing

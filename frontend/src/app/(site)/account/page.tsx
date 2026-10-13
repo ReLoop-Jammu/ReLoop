@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/Container";
+import { MySubmissions } from "@/features/account/MySubmissions";
 import { Button } from "@/components/ui/Button";
 import {
   authenticatedFetch,
@@ -107,6 +108,7 @@ export default function AccountPage() {
                     Your business must be verified before you can submit stock.
                   </p>
                 )}
+                <MySubmissions />
               </div>
             )}
             <div className="mt-6 flex flex-wrap gap-3">
