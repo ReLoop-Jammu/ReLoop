@@ -38,6 +38,24 @@ test.describe("map & locations", () => {
     );
   });
 
+  test("the Instagram and WhatsApp short links land with their UTM tags", async ({ request }) => {
+    for (const [slug, target] of [
+      ["ig-bio", "/?utm_source=instagram&utm_medium=bio&utm_campaign=reloop-pilot"],
+      ["ig-post", "/shop?utm_source=instagram&utm_medium=post&utm_campaign=reloop-pilot"],
+      [
+        "ig-story",
+        "/what-we-accept?utm_source=instagram&utm_medium=story&utm_campaign=reloop-pilot",
+      ],
+      ["wa", "/?utm_source=whatsapp&utm_medium=share&utm_campaign=reloop-pilot"],
+    ]) {
+      const res = await request.get(`/go/${slug}`, { maxRedirects: 0 });
+      expect(res.status(), slug).toBe(307);
+      expect(
+        new URL(res.headers()["location"]).pathname + new URL(res.headers()["location"]).search,
+      ).toBe(target);
+    }
+  });
+
   test("the printable QR page shows the code and the link", async ({ page }) => {
     await page.goto("/locations/qr");
     await expect(

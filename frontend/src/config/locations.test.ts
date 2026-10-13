@@ -30,7 +30,7 @@ describe("locations data", () => {
   it("keeps the printed QR link working", () => {
     expect(DRIVE_LINK.publicUrl).toBe(`https://re-loop-ochre.vercel.app${DRIVE_LINK.path}`);
     expect(DRIVE_LINK.destination.startsWith("/locations?")).toBe(true);
-    // Same rule as the qr_scans.campaign check in the database.
+    // Same rule as the link_visits checks in the database.
     expect(DRIVE_LINK.campaign).toMatch(/^[a-z0-9-]{1,60}$/);
   });
 });
