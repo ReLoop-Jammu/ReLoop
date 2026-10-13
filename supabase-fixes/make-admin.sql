@@ -1,5 +1,7 @@
--- Makes one existing ReLoop account an admin. An admin can verify shops and
--- manage listings, categories, orders and submissions.
+-- Makes one existing ReLoop account an admin. An admin can use every tool in
+-- the staff hub (/hub): shop verification, password resets, the team and the
+-- settings. Use it only to recover the first admin; after that, admins
+-- promote people on /hub/team.
 --
 -- 1. The person registers at /register and logs in once.
 -- 2. Put their email on the line marked CHANGE THIS below, keeping the quotes.
@@ -35,6 +37,9 @@ begin
   insert into public.admin_users (id, name, email, is_active)
   values (account.id, account.name, lower(account.email), true)
   on conflict (id) do update set is_active = true, email = excluded.email;
+
+  -- The account label the site shows ("ReLoop admin").
+  update public.profiles set role = 'admin' where user_id = account.id;
 end $$;
 
 -- Check this is the right person: the account should be theirs, created when

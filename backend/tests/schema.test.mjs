@@ -225,21 +225,22 @@ describe("who can see and change what", () => {
     }
   });
 
-  test("staff can't make themselves admin; admins can add staff", async () => {
+  test("staff can't make themselves admin; admins add staff only through set_account_role", async () => {
     await assert.rejects(
       as(db, staff, (tx) =>
         tx.query("update public.staff set role = 'admin' where user_id = $1", [staff]),
-      ).then(async () => {
-        const { rows } = await db.query("select role from public.staff where user_id = $1", [
-          staff,
-        ]);
-        if (rows[0].role !== "staff") throw new Error("escalated");
-        throw new Error("no change (expected)");
-      }),
-      /no change/,
+      ),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, ADMIN_ID, (tx) =>
+        tx.query("insert into public.staff (user_id, full_name) values ($1, 'Member')", [member]),
+      ),
+      /permission denied/,
+      "direct writes would skip the audit log",
     );
     await as(db, ADMIN_ID, (tx) =>
-      tx.query("insert into public.staff (user_id, full_name) values ($1, 'Member')", [member]),
+      tx.query("select public.set_account_role($1, true, false)", [member]),
     );
     const { rows } = await db.query("select count(*)::int as n from public.staff");
     assert.equal(rows[0].n, 3);

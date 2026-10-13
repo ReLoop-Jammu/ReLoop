@@ -31,14 +31,25 @@ export type AdminUserRow = {
   mustChangePassword: boolean;
 };
 
+/** Every auth account, page by page (the auth API returns at most 1,000 per page). */
+async function allAuthUsers(): Promise<AuthUser[]> {
+  const all: AuthUser[] = [];
+  for (let page = 1; page <= 50; page++) {
+    const { users } = await authAdmin<{ users: AuthUser[] }>(`users?page=${page}&per_page=1000`);
+    all.push(...users);
+    if (users.length < 1000) break;
+  }
+  return all;
+}
+
 /** Every account, for admins only: who they are, their role and when they last signed in. */
 export async function GET(request: Request) {
   const gate = await requireAdmin(request);
   if ("response" in gate) return gate.response;
   try {
     const q = new URL(request.url).searchParams.get("q")?.trim().toLowerCase() ?? "";
-    const [{ users }, profiles, staff, admins] = await Promise.all([
-      authAdmin<{ users: AuthUser[] }>("users?page=1&per_page=1000"),
+    const [users, profiles, staff, admins] = await Promise.all([
+      allAuthUsers(),
       serviceRest<Profile[]>("profiles?select=user_id,full_name,phone,role,must_change_password"),
       serviceRest<{ user_id: string }[]>("staff?select=user_id"),
       serviceRest<{ id: string }[]>("admin_users?select=id&is_active=eq.true"),

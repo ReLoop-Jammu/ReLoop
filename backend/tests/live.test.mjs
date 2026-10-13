@@ -349,12 +349,16 @@ for (const [label, fixed] of [
     });
 
     test("account page: a signed-in user reads their profile and shop", async () => {
+      // The page filters by the user's own id (frontend/src/app/(site)/account/page.tsx).
       const p = await as(db, owner, (tx) =>
-        tx.query("select full_name, role from public.profiles limit 1"),
+        tx.query("select full_name, role from public.profiles where user_id = $1", [owner]),
       );
       assert.equal(p.rows[0].role, "shop_owner");
       const s = await as(db, owner, (tx) =>
-        tx.query("select shop_name, gstin, verification_status from public.shop_owners limit 1"),
+        tx.query(
+          "select shop_name, gstin, verification_status from public.shop_owners where id = $1",
+          [owner],
+        ),
       );
       assert.equal(s.rows[0].verification_status, "verified");
     });
@@ -457,8 +461,10 @@ describe("supabase-fixes/make-admin.sql", () => {
   let db;
   let admin;
   before(async () => {
+    // Live as it is now: the baseline, the fix script and every later migration.
     db = await createTestDb({ migrations: LIVE, seed: false });
     await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
     admin = await createUser(db, "Asha");
   });
 
@@ -482,6 +488,10 @@ describe("supabase-fixes/make-admin.sql", () => {
     assert.deepEqual(rows, [{ id: admin, name: "Asha", is_active: true }]);
     const isAdmin = await as(db, admin, (tx) => tx.query("select public.is_admin() as yes"));
     assert.equal(isAdmin.rows[0].yes, true);
+    const label = await db.query("select role::text from public.profiles where user_id = $1", [
+      admin,
+    ]);
+    assert.equal(label.rows[0].role, "admin", "the account page shows 'ReLoop admin'");
   });
 });
 
@@ -686,6 +696,18 @@ describe("awareness-drive QR scans (20261017000001)", () => {
     await assert.rejects(
       as(db, null, (tx) => tx.query("select id from public.qr_scans")),
       /permission denied/,
+    );
+  });
+});
+
+describe("supabase-fixes/live-checks-v1.sql", () => {
+  test("every v1 check is true on the repo schema", async () => {
+    const db = await createTestDb();
+    const { rows } = await db.query(readSql("../supabase-fixes/live-checks-v1.sql"));
+    assert.ok(rows.length >= 5);
+    assert.deepEqual(
+      rows.filter((r) => !r.ok).map((r) => r.check_name),
+      [],
     );
   });
 });
@@ -902,8 +924,9 @@ describe("admin password reset (20261019000001)", () => {
       ),
       /permission denied/,
     );
+    // As mustChangePassword() asks: filtered to the user's own row.
     const { rows } = await as(db, staff, (tx) =>
-      tx.query("select must_change_password from public.profiles"),
+      tx.query("select must_change_password from public.profiles where user_id = $1", [staff]),
     );
     assert.equal(rows[0].must_change_password, true, "they can read it");
     await flag(staff, false);
@@ -1527,5 +1550,140 @@ describe("impact counter (20261025000001)", () => {
       as(db, null, (tx) => tx.query("select phone from public.partners")),
       /permission denied/,
     );
+  });
+});
+
+describe("v1 security baseline (20261026000001)", () => {
+  let db;
+  let staff;
+  let admin;
+  let buyer;
+  let owner;
+  let submission;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
+    staff = await createUser(db, "Hub Staff", { staff: true });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    buyer = await createUser(db, "Buyer");
+    owner = await shopOwner(db, "Owner");
+    await db.query("update public.shop_owners set verification_status = 'verified'");
+    const { rows } = await asService(db, (tx) =>
+      tx.query(
+        `insert into public.shop_submissions (shop_owner_id, item_name, quantity, condition)
+         values ($1, 'Old phones', 2, 'Damaged') returning id`,
+        [owner],
+      ),
+    );
+    submission = rows[0].id;
+  });
+  const access = (who) =>
+    as(db, who, (tx) => tx.query("select public.my_access() as a")).then((r) => r.rows[0].a);
+
+  test("my_access tells each role what to show, and visitors can't call it", async () => {
+    assert.deepEqual(
+      [
+        (await access(buyer)).role,
+        (await access(buyer)).is_staff,
+        (await access(buyer)).shop_status,
+      ],
+      ["buyer", false, null],
+    );
+    const shop = await access(owner);
+    assert.deepEqual(
+      [shop.role, shop.shop_status, shop.is_admin],
+      ["shop_owner", "verified", false],
+    );
+    const hub = await access(staff);
+    assert.deepEqual([hub.is_staff, hub.is_admin], [true, false]);
+    const boss = await access(admin);
+    assert.deepEqual(
+      [boss.is_staff, boss.is_admin, boss.must_change_password],
+      [true, true, false],
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select public.my_access()")),
+      /permission denied/,
+    );
+  });
+
+  test("the legacy listings and categories are read-only for everyone, admins included", async () => {
+    for (const who of [null, buyer, admin]) {
+      for (const sql of [
+        "insert into public.listings (title, price) values ('x', 1)",
+        "update public.listings set price = 1",
+        "delete from public.listings",
+        "insert into public.categories (name) values ('x')",
+        "update public.categories set name = 'x'",
+      ])
+        await assert.rejects(
+          as(db, who, (tx) => tx.query(sql)),
+          /permission denied/,
+          sql,
+        );
+    }
+  });
+
+  test("staff review submissions through the review columns only, and buying still works", async () => {
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.shop_submissions set status = 'Offered', offer_price = 200, offer_note = 'ok', reviewed_at = now(), reviewed_by = $2 where id = $1",
+        [submission, staff],
+      ),
+    );
+    for (const col of ["purchase_price = 1", `shop_owner_id = '${buyer}'`, "internal_notes = 'x'"])
+      await assert.rejects(
+        as(db, staff, (tx) =>
+          tx.query(`update public.shop_submissions set ${col} where id = $1`, [submission]),
+        ),
+        /permission denied/,
+        col,
+      );
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.shop_submissions set status = 'Purchased' where id = $1", [
+          submission,
+        ]),
+      ),
+      /bought only through/,
+      "staff can't mark a lot bought without creating its hub items",
+    );
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'phone', null, 20000) as tags", [submission]),
+    );
+    assert.equal(rows[0].tags.length, 2, "convert_submission still buys the lot");
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.shop_submissions set status = 'Offered' where id = $1", [
+          submission,
+        ]),
+      ),
+      /can no longer be changed/,
+    );
+  });
+
+  test("roles change only through set_account_role, which logs every change", async () => {
+    for (const sql of [
+      `insert into public.admin_users (id, name) values ('${buyer}', 'x')`,
+      `insert into public.staff (user_id, full_name) values ('${buyer}', 'x')`,
+      "update public.staff set role = 'admin'",
+      "delete from public.staff",
+    ])
+      await assert.rejects(
+        as(db, admin, (tx) => tx.query(sql)),
+        /permission denied/,
+        sql,
+      );
+    await as(db, admin, (tx) =>
+      tx.query("select public.set_account_role($1, true, false)", [buyer]),
+    );
+    assert.equal((await access(buyer)).is_staff, true);
+    const log = await db.query(
+      "select count(*)::int as n from public.admin_audit_log where target_user_id = $1",
+      [buyer],
+    );
+    assert.equal(log.rows[0].n, 1);
   });
 });

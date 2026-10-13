@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAuthRedirect } from "./auth-client";
+import { parseAuthRedirect, safeNext } from "./auth-client";
 
 describe("reset links", () => {
   it("reads a recovery session from the link", () => {
@@ -29,5 +29,42 @@ describe("reset links", () => {
     expect(parseAuthRedirect("#access_token=a&refresh_token=r&type=signup")).toEqual({
       kind: "none",
     });
+  });
+});
+
+describe("safeNext", () => {
+  const next = (v: string, fallback?: string) =>
+    safeNext(`?next=${encodeURIComponent(v)}`, fallback);
+
+  it("returns to any page on this site, keeping its query, including upper-case item tags", () => {
+    expect(next("/hub/items/RL-JMU-0006")).toBe("/hub/items/RL-JMU-0006");
+    expect(next("/shop?category=laptop&grade=A")).toBe("/shop?category=laptop&grade=A");
+    expect(next("/sell/shops")).toBe("/sell/shops");
+  });
+
+  it("ignores other sites, protocol-relative and odd links, and the login pages", () => {
+    for (const bad of [
+      "https://evil.example/hub",
+      "//evil.example",
+      "/\\evil.example",
+      "javascript:alert(1)",
+      "hub",
+      "/login",
+      "/register?next=/hub",
+      "/reset-password",
+      "/shop\nx",
+      "/.//evil.example",
+      "/hub/..//evil.example",
+      "/..//evil.example/x",
+      "/%2e//evil.example",
+      "/.%2e//evil.example",
+      "/./\\evil.example",
+    ])
+      expect(next(bad), bad).toBe("/account");
+  });
+
+  it("uses the caller's fallback when there is no usable next page", () => {
+    expect(safeNext("", "/hub")).toBe("/hub");
+    expect(next("//x", "/")).toBe("/");
   });
 });

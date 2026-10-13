@@ -34,8 +34,9 @@ export default function AccountPage() {
     let alive = true;
     (async () => {
       try {
-        if (!getSession()) {
-          window.location.replace("/login");
+        const session = getSession();
+        if (!session) {
+          window.location.replace("/login?next=%2Faccount");
           return;
         }
         if (await mustChangePassword()) {
@@ -43,9 +44,12 @@ export default function AccountPage() {
           return;
         }
         const [p, s] = await Promise.all([
-          authenticatedFetch("/rest/v1/profiles?select=full_name,role&limit=1"),
+          // Filtered by user: staff and admins may read other people's rows.
           authenticatedFetch(
-            "/rest/v1/shop_owners?select=shop_name,gstin,verification_status&limit=1",
+            `/rest/v1/profiles?select=full_name,role&user_id=eq.${session.user.id}`,
+          ),
+          authenticatedFetch(
+            `/rest/v1/shop_owners?select=shop_name,gstin,verification_status&id=eq.${session.user.id}`,
           ),
         ]);
         if (!p.ok)

@@ -172,14 +172,28 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}) {
 }
 
 /**
- * Where to go after logging in: the ?next= page if it is inside the hub or
- * the account pages,
- * otherwise the account page. Anything else (other sites, //host, odd paths)
- * is ignored, so the link can't send people elsewhere.
+ * Where to go after logging in: the ?next= page if it is a page on this site,
+ * otherwise `fallback`. Other sites, "//host", backslashes, schemes and the
+ * login pages themselves are ignored, so the link can't send people elsewhere
+ * or loop.
  */
-export function safeNext(search: string): string {
+export function safeNext(search: string, fallback = "/account"): string {
   const next = new URLSearchParams(search).get("next") ?? "";
-  return /^\/(hub|account)(\/[a-z0-9/-]*)?$/.test(next) ? next : "/account";
+  if (!/^\/(?![/\\])[A-Za-z0-9\-._~!$&'()*+,;=:@%/?]*$/.test(next)) return fallback;
+  const base = "https://reloop.invalid";
+  // globalThis: this module's own URL constant is the Supabase address.
+  let url: globalThis.URL;
+  try {
+    url = new globalThis.URL(next, base);
+  } catch {
+    return fallback;
+  }
+  if (url.origin !== base) return fallback;
+  // Check the resolved path too: "/.//evil.example" resolves to "//evil.example".
+  const resolved = url.pathname + url.search;
+  if (!/^\/(?![/\\])/.test(resolved)) return fallback;
+  if (/^\/(login|register|logout|reset-password)(\/|$)/.test(url.pathname)) return fallback;
+  return resolved;
 }
 
 /* ---------------------------------------------------------------- account recovery */
@@ -309,25 +323,51 @@ export async function siteFetch(path: string, init: RequestInit = {}) {
 
 /** True when an admin reset this account's password and a new one must be chosen first. */
 export async function mustChangePassword(): Promise<boolean> {
+  const me = getSession()?.user.id;
+  if (!me) return false;
   const response = await authenticatedFetch(
-    "/rest/v1/profiles?select=must_change_password&limit=1",
+    `/rest/v1/profiles?select=must_change_password&user_id=eq.${me}`,
   );
   if (!response.ok) return false;
   const rows = (await response.json()) as { must_change_password?: boolean }[];
   return rows[0]?.must_change_password === true;
 }
 
-/** Sets the signed-in user's new password (and clears a temporary-password flag). */
-export async function changePassword(password: string) {
+/**
+ * Sets the signed-in user's new password (and clears a temporary-password
+ * flag). The current password is required unless an admin reset it.
+ */
+export async function changePassword(password: string, currentPassword?: string) {
   if (password.length < 8 || password.length > 128) {
     throw new Error("Use a password of 8 to 128 characters.");
   }
   const response = await siteFetch("/api/account/password", {
     method: "POST",
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ password, currentPassword }),
   });
   const data = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) throw new Error(data.error ?? "Your password wasn't changed.");
 }
 
 export const CHANGE_PASSWORD_PATH = "/account/change-password";
+
+/** What the signed-in user may see, from public.my_access() (null when signed out or offline). */
+export type Access = {
+  user_id: string;
+  name: string | null;
+  role: "buyer" | "shop_owner" | "admin" | null;
+  must_change_password: boolean;
+  is_staff: boolean;
+  is_admin: boolean;
+  shop_status: "pending" | "verified" | "rejected" | null;
+};
+
+export async function myAccess(): Promise<Access | null> {
+  if (!getSession()) return null;
+  const response = await authenticatedFetch("/rest/v1/rpc/my_access", {
+    method: "POST",
+    body: "{}",
+  });
+  if (!response.ok) return null;
+  return (await response.json()) as Access;
+}
