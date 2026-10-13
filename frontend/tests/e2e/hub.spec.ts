@@ -113,3 +113,15 @@ test.describe("hub item lifecycle", () => {
     await expect(page.getByLabel("Partner shop")).toHaveValue("");
   });
 });
+
+test.describe("shop verification (admin only)", () => {
+  test("asks visitors to log in and shows no shop data", async ({ page }) => {
+    await page.goto("/hub/shops");
+    await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute(
+      "href",
+      "/login?next=%2Fhub%2Fshops",
+    );
+    await expect(page.getByRole("heading", { name: "Shop verification" })).toHaveCount(0);
+  });
+});

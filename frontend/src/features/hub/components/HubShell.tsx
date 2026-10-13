@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BadgeCheck,
   ClipboardList,
   Database,
   ExternalLink,
@@ -22,6 +23,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/hub/items", label: "Items", icon: ClipboardList },
   { href: "/hub/partners", label: "Shops & institutions", icon: Store },
   { href: "/hub/handovers", label: "Recycler handovers", icon: Recycle },
+  { href: "/hub/shops", label: "Shop verification", icon: BadgeCheck },
   { href: "/hub/data", label: "Backup & publish", icon: Database },
 ];
 

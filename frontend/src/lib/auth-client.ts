@@ -131,3 +131,13 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}) {
     cache: "no-store",
   });
 }
+
+/**
+ * Where to go after logging in: the ?next= page if it is inside the hub,
+ * otherwise the account page. Anything else (other sites, //host, odd paths)
+ * is ignored, so the link can't send people elsewhere.
+ */
+export function safeNext(search: string): string {
+  const next = new URLSearchParams(search).get("next") ?? "";
+  return /^\/hub(\/[a-z0-9/-]*)?$/.test(next) ? next : "/account";
+}
