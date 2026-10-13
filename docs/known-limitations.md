@@ -42,6 +42,9 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
 - **Photo links on shop submissions** are typed-in URLs (HTTPS only), not uploads, so they can point anywhere.
 - **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 43 of 43 true (end of round 4, 2026-10-14). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
 
+- **`npm audit` reports 5 "high" advisories, all one chain:** `eslint-config-next` → `@next/eslint-plugin-next` → `fast-glob` → `micromatch` → `braces` (GHSA-vfj7-8cjw-p6xm, a denial-of-service in glob parsing). No fixed `braces` release exists; npm's suggested fix is a downgrade to `eslint-config-next` 14. It runs only when linting and is never shipped to the site. `source-map-js` was fixed with an `overrides` entry (1.2.2).
+- **GitHub Pages is still switched on** for this repository and serves its files at `reloop-jammu.github.io/ReLoop`. Only a repo admin can turn it off (GitHub → Settings → Pages → Unpublish). Until then the root `index.html` redirects to the live site.
+
 ## 4. The loop (submissions, requests, map, team)
 
 - **Offers:** a shop accepts an offer by WhatsApp, not in the app. Staff then press "Create hub items" (one item per unit, linked to the submission).
