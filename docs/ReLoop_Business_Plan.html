@@ -1,0 +1,419 @@
+<title>ReLoop Business Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: single reading column (max 1040) on Sand; decision strip up top, sections as plain bands, exhibits (tables, flow, floor plan, chart) set off on paper cards. */
+:root{
+  --sand:#F0E1D1; --paper:#FBF5EE; --ink:#0E1A27; --navy:#26436C; --amber:#E9B26E; --mist:#E8E8E8;
+  --bg:var(--sand); --surface:var(--paper); --fg:var(--ink); --fg2:#3B4E66; --line:#D9C6B2; --accent:var(--navy);
+  --loop:var(--navy); --warm:var(--amber); --warm-ink:#7A4E14; --chip:#E6D3BE; --good:#2F6B4F; --bad:#A3412F;
+  --f-display:"Outfit",system-ui,sans-serif; --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1A27; --surface:#15243A; --fg:#F0E1D1; --fg2:#B9C3D1; --line:#2A3D58; --accent:#9DB6DA;
+  --loop:#F0E1D1; --warm:#E9B26E; --warm-ink:#E9B26E; --chip:#1E3150; --good:#7CC4A0; --bad:#E58B78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1A27; --surface:#15243A; --fg:#F0E1D1; --fg2:#B9C3D1; --line:#2A3D58; --accent:#9DB6DA;
+  --loop:#F0E1D1; --warm:#E9B26E; --warm-ink:#E9B26E; --chip:#1E3150; --good:#7CC4A0; --bad:#E58B78; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:28px 80px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(34px,6vw,54px);font-weight:700;letter-spacing:-.02em}
+h1 em{font-style:normal;font-weight:400;color:var(--accent)}
+h2{font-size:clamp(24px,3.4vw,32px);font-weight:600;letter-spacing:-.01em}
+h3{font-size:19px;font-weight:600}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--warm-ink)}
+.muted{color:var(--fg2)}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-size:24px;letter-spacing:-.01em}
+.brand b{font-weight:700}.brand span{font-weight:400;color:var(--accent)}
+.brand svg{width:34px;height:34px}
+.top nav{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+.top nav a{text-decoration:none;color:var(--fg2)}.top nav a:hover{color:var(--fg)}
+
+/* hero */
+.hero{display:grid;gap:18px;padding-block:44px 30px}
+.hero p.lead{font-size:19px;color:var(--fg2);max-width:62ch}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:12px;background:var(--chip);color:var(--fg);padding:4px 10px;border-radius:999px}
+
+/* decisions strip */
+.decisions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.decisions div{background:var(--surface);padding:18px 18px 20px;display:grid;gap:6px;align-content:start;min-width:0}
+.decisions .q{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
+.decisions .a{font-family:var(--f-display);font-size:18px;font-weight:600;line-height:1.3}
+.decisions .w{font-size:14px;color:var(--fg2)}
+
+section{padding-top:64px;display:grid;gap:20px}
+section > header{display:grid;gap:8px}
+section > *, .wrap > *{min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:620px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);font-weight:500}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--chip);white-space:nowrap}
+.tag.p{background:var(--navy);color:#F0E1D1}
+.tag.w{background:var(--amber);color:#0E1A27}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.two > *{min-width:0}
+ul.clean,ol.clean{margin:0;padding-left:20px;display:grid;gap:8px}
+ol.clean li::marker{font-family:var(--f-mono);color:var(--warm-ink)}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.grade div{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:grid;gap:4px;align-content:start}
+.grade .g{font-family:var(--f-display);font-size:30px;font-weight:700;line-height:1;color:var(--accent)}
+.grade .g.d{color:var(--warm-ink)}
+.grade b{font-family:var(--f-display);font-size:16px}
+.grade small{color:var(--fg2);font-size:13.5px}
+.note{border-left:3px solid var(--warm);padding:4px 0 4px 14px;color:var(--fg2);font-size:15px;max-width:72ch}
+figure{margin:0}
+figcaption{font-size:13.5px;color:var(--fg2);margin-top:10px}
+svg text{font-family:var(--f-body)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpis div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:2px}
+.kpis .v{font-family:var(--f-display);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpis .k{font-size:13.5px;color:var(--fg2)}
+.road{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.road div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;align-content:start}
+.road .when{font-family:var(--f-mono);font-size:12px;color:var(--warm-ink);letter-spacing:.06em;text-transform:uppercase}
+.road ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14.5px}
+.road .gate{font-size:13.5px;border-top:1px dashed var(--line);padding-top:10px;color:var(--fg2)}
+footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--fg2);display:grid;gap:8px}
+footer ol{margin:0;padding-left:18px;display:grid;gap:4px}
+@media (max-width:520px){.wrap{padding-inline:16px}.card{padding:16px}.hero{padding-block:30px 20px}}
+</style>
+
+<div class="wrap">
+
+<div class="top">
+  <div class="brand" aria-label="ReLoop">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><path d="M42 91.18A36 36 0 0 1 78 28.82" fill="none" stroke="var(--loop)" stroke-width="12"/><path d="M81.67 31.25A36 36 0 0 1 80.65 89.49" fill="none" stroke="var(--warm)" stroke-width="12"/><path d="M88.33 99.36L67.23 98.88L73.99 78.89Z" fill="var(--warm)" stroke="var(--warm)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="42" cy="91.18" r="11.5" fill="var(--loop)"/><circle cx="42" cy="91.18" r="4.6" fill="var(--bg)"/></svg>
+    <span>Re</span><b>Loop</b>
+  </div>
+  <nav aria-label="Sections">
+    <a href="#supply">Supply</a><a href="#hub">Hub</a><a href="#buyers">Buyers</a><a href="#money">Money</a><a href="#rules">Compliance</a><a href="#pilot">Pilot</a>
+  </nav>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Business plan · Jammu pilot · Nov 2026 – Apr 2027</div>
+  <h1>Collect from the bazaar.<br><em>Sort at one hub. Resell what still works.</em></h1>
+  <p class="lead">ReLoop buys used and broken electronics from Jammu's repair shops, retailers and institutions. It grades every item at one hub in the old-city market belt, then resells, repairs or strips it for parts. Only what is truly dead goes to an authorised recycler.</p>
+  <div class="meta"><span class="chip">1 hub · 250 sq ft</span><span class="chip">25 partner shops</span><span class="chip">3 anchor institutions</span><span class="chip">₹73k to start</span><span class="chip">Pays back in month 4</span></div>
+</div>
+
+<div class="decisions" role="list">
+  <div role="listitem"><span class="q">Who we collect from</span><span class="a">Repair shops and electronics retailers first</span><span class="w">In Raghunath Bazaar and Residency Road. Institutions second, households by drop-off only.</span></div>
+  <div role="listitem"><span class="q">Where we store</span><span class="a">One rented ground-floor room, about 250 sq ft</span><span class="w">Inside the old-city market belt, within a 10-minute e-rickshaw ride of both markets.</span></div>
+  <div role="listitem"><span class="q">How we store</span><span class="a">Tagged, graded A–D, racked by grade</span><span class="w">Batteries kept apart in a metal cabinet. Nothing sits more than 75 days.</span></div>
+  <div role="listitem"><span class="q">Who we sell to</span><span class="a">Students, technicians, makers, then the recycler</span><span class="w">Online marketplace plus hub pickup. Scrap goes to VRG Groups, Gangyal.</span></div>
+</div>
+
+<!-- SUPPLY -->
+<section id="supply">
+  <header>
+    <div class="eyebrow">01 · Supply</div>
+    <h2>We collect from the shops that already hold the stock</h2>
+    <p class="muted">Repair shops and retailers sit in two streets and produce e-waste every week. They already know what works and what can be fixed. One pickup route covers 25 of them. Institutions add big lots a few times a year. Households give single items that cost more to collect than they're worth, so they come to us.</p>
+  </header>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Source</th><th>Role</th><th>What they hand over</th><th>Why they say yes</th><th>How we collect</th><th class="r">Items / month at steady state</th></tr></thead>
+      <tbody>
+        <tr><td><b>Repair shops</b><br><span class="muted">Raghunath Bazaar, Residency Road, Gandhi Nagar</span></td><td><span class="tag p">Primary</span></td><td>Unclaimed customer devices, dead units kept for parts, old spare stock</td><td>Cash on pickup for clutter. They also become our paid repair partners</td><td>Fixed route by e-rickshaw, Tuesday and Friday</td><td class="r">140</td></tr>
+        <tr><td><b>Electronics retailers</b><br><span class="muted">Same markets</span></td><td><span class="tag p">Primary</span></td><td>Exchange-offer trade-ins, customer returns, display units, old models</td><td>One buyer for mixed lots. Trade-ins turn into cash</td><td>Same route</td><td class="r">60</td></tr>
+        <tr><td><b>Institutions</b><br><span class="muted">Colleges, schools, bank branches, offices</span></td><td><span class="tag w">Secondary</span></td><td>Bulk lots of desktops, monitors, printers, UPS units</td><td>Free pickup, sorting and a handover record. Their dead e-waste goes straight to the authorised recycler</td><td>Booked pickups, one lot a month per institution, tempo hired by the trip</td><td class="r">60</td></tr>
+        <tr><td><b>Households</b></td><td><span class="tag">Drop-off only</span></td><td>Old phones, laptops, chargers, small appliances</td><td>Instant price for working items, a safe place for the rest</td><td>Drop at the hub or partner shops. One drive a month at a college or colony</td><td class="r">20</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">We start with IIM Jammu and two more campuses as anchor institutions. Campuses decide faster than government offices, already replace lab and hostel equipment every year, and are full of our first buyers.</p>
+</section>
+
+<!-- HUB -->
+<section id="hub">
+  <header>
+    <div class="eyebrow">02 · Collection, storage, handling</div>
+    <h2>Every item passes through one hub before it leaves</h2>
+    <p class="muted">The hub is a rented ground-floor room of about 250 sq ft in the old-city market belt, between Raghunath Bazaar and Residency Road. Ground floor for heavy items and a rolling shutter for e-rickshaw loading. Budget ₹10,000 a month. We only need a room, not a warehouse: at 280 items a month and 75 days maximum stock, about 300 items are on the racks at any time.</p>
+  </header>
+
+  <figure class="card scroll">
+    <svg viewBox="0 0 960 360" width="100%" style="min-width:720px" role="img" aria-label="Flow from three sources through the hub to four outlets">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--fg2)"/></marker></defs>
+      <g font-size="12" fill="var(--fg2)" style="letter-spacing:.08em"><text x="20" y="24">WHERE IT COMES FROM</text><text x="360" y="24">WHAT THE HUB DOES</text><text x="700" y="24">WHERE IT GOES</text></g>
+      <g fill="none" stroke="var(--fg2)" stroke-width="1.4">
+        <path d="M262 74H300"/><path d="M262 166H300"/><path d="M262 258H300"/><path d="M300 74V258"/><path d="M300 166H352" marker-end="url(#ar)"/>
+        <path d="M608 166H648"/><path d="M648 66V302"/><path d="M648 66H698" marker-end="url(#ar)"/><path d="M648 145H698" marker-end="url(#ar)"/><path d="M648 224H698" marker-end="url(#ar)"/><path d="M648 302H698" marker-end="url(#ar)"/>
+      </g>
+      <g>
+        <rect x="20" y="44" width="242" height="60" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="36" y="70" font-size="15" font-weight="600" fill="var(--fg)">Repair shops + retailers</text><text x="36" y="91" font-size="13" fill="var(--fg2)">200 items/mo · weekly route</text>
+        <rect x="20" y="136" width="242" height="60" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="36" y="162" font-size="15" font-weight="600" fill="var(--fg)">Institutions</text><text x="36" y="183" font-size="13" fill="var(--fg2)">60 items/mo · booked lots</text>
+        <rect x="20" y="228" width="242" height="60" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="36" y="254" font-size="15" font-weight="600" fill="var(--fg)">Households</text><text x="36" y="275" font-size="13" fill="var(--fg2)">20 items/mo · drop-off, drives</text>
+      </g>
+      <g>
+        <rect x="354" y="60" width="254" height="212" rx="12" fill="var(--chip)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="374" y="90" font-size="16" font-weight="700" fill="var(--fg)">ReLoop hub</text>
+        <g font-size="13.5" fill="var(--fg)"><text x="374" y="120">1  Tag + log  (RL-JMU-0001)</text><text x="374" y="146">2  Test + grade A / B / C / D</text><text x="374" y="172">3  Wipe phones, laptops, drives</text><text x="374" y="198">4  Rack by grade</text><text x="374" y="224">5  List online within 48 h</text><text x="374" y="250">6  Dispatch or hand over</text></g>
+      </g>
+      <g>
+        <rect x="700" y="38" width="240" height="56" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="716" y="62" font-size="15" font-weight="600" fill="var(--fg)">A · Resell as is</text><text x="716" y="82" font-size="13" fill="var(--fg2)">15% · students, households</text>
+        <rect x="700" y="117" width="240" height="56" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="716" y="141" font-size="15" font-weight="600" fill="var(--fg)">B · Repair, then resell</text><text x="716" y="161" font-size="13" fill="var(--fg2)">25% · fixed by partner shops</text>
+        <rect x="700" y="196" width="240" height="56" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="716" y="220" font-size="15" font-weight="600" fill="var(--fg)">C · Strip for parts</text><text x="716" y="240" font-size="13" fill="var(--fg2)">30% · technicians, makers</text>
+        <rect x="700" y="274" width="240" height="56" rx="10" fill="var(--surface)" stroke="var(--warm)" stroke-width="1.6"/><text x="716" y="298" font-size="15" font-weight="600" fill="var(--fg)">D · Authorised recycler</text><text x="716" y="318" font-size="13" fill="var(--fg2)">30% · VRG Groups, Gangyal</text>
+      </g>
+    </svg>
+    <figcaption>Steady-state flow, month 6. Grade shares are our planning assumption until the first month of real grading data replaces them.</figcaption>
+  </figure>
+
+  <div class="grade">
+    <div><span class="g">A</span><b>Works, clean</b><small>Powers on, all functions pass the checklist. Cleaned, photographed, listed.</small></div>
+    <div><span class="g">B</span><b>One fixable fault</b><small>Screen, battery, port or keyboard. Partner shop repairs it for a fixed fee per job, then it is listed.</small></div>
+    <div><span class="g">C</span><b>Not worth fixing</b><small>Good parts removed: screens, boards, RAM, batteries that test healthy, chargers, motors. Shell goes to D.</small></div>
+    <div><span class="g d">D</span><b>Dead or hazardous</b><small>Bagged by category, weighed, held in the scrap cage. Never opened beyond simple part removal.</small></div>
+  </div>
+
+  <div class="two">
+    <figure class="card">
+      <h3 style="margin-bottom:14px">Hub floor plan, 12.5 × 20 ft</h3>
+      <svg viewBox="0 0 420 300" width="100%" role="img" aria-label="Floor plan of the 250 square foot hub with intake, test bench, grade racks, battery cabinet and scrap cage">
+        <rect x="10" y="10" width="400" height="250" rx="4" fill="none" stroke="var(--fg)" stroke-width="3"/>
+        <rect x="150" y="256" width="120" height="8" fill="var(--warm)"/><text x="210" y="284" text-anchor="middle" font-size="12" fill="var(--fg2)">Rolling shutter · loading</text>
+        <rect x="150" y="196" width="120" height="44" rx="4" fill="var(--chip)" stroke="var(--line)"/><text x="210" y="216" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">Intake table</text><text x="210" y="231" text-anchor="middle" font-size="11" fill="var(--fg2)">tag · weigh · photo</text>
+        <rect x="22" y="22" width="56" height="226" rx="4" fill="var(--chip)" stroke="var(--line)"/><text x="50" y="135" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)" transform="rotate(-90 50 135)">Test bench + wipe station</text>
+        <rect x="100" y="22" width="200" height="40" rx="4" fill="var(--surface)" stroke="var(--accent)"/><text x="200" y="47" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">Racks A · B (ready to sell)</text>
+        <rect x="100" y="76" width="200" height="40" rx="4" fill="var(--surface)" stroke="var(--line)"/><text x="200" y="101" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">B queue · out for repair</text>
+        <rect x="100" y="130" width="130" height="40" rx="4" fill="var(--surface)" stroke="var(--line)"/><text x="165" y="155" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">C parts bins</text>
+        <rect x="322" y="22" width="76" height="60" rx="4" fill="var(--surface)" stroke="var(--bad)" stroke-width="1.6"/><text x="360" y="48" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">Battery</text><text x="360" y="64" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">cabinet</text>
+        <text x="360" y="100" text-anchor="middle" font-size="11" fill="var(--fg2)">sand + CO₂</text>
+        <rect x="300" y="150" width="98" height="98" rx="4" fill="var(--surface)" stroke="var(--warm)" stroke-width="1.6"/><text x="349" y="194" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">D scrap</text><text x="349" y="210" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">cage</text><text x="349" y="228" text-anchor="middle" font-size="11" fill="var(--fg2)">next to shutter</text>
+      </svg>
+      <figcaption>The scrap cage sits by the shutter so the recycler's pickup never crosses the sales racks. Batteries sit in the far corner, away from the door and the bench.</figcaption>
+    </figure>
+
+    <div class="card" style="display:grid;gap:14px;align-content:start">
+      <h3>Storage rules</h3>
+      <ul class="clean">
+        <li><b>Tag on arrival.</b> Every item gets an ID like <span class="tag">RL-JMU-0142</span> and a row in the inventory sheet: source, date, category, grade, buy price, photo.</li>
+        <li><b>Racks by grade.</b> Steel slotted racks, off the floor. Shelf label matches the grade column in the sheet.</li>
+        <li><b>Batteries apart.</b> Loose and swollen lithium cells go in a closed metal cabinet with sand. Never stacked or crushed. Out to the recycler every week.</li>
+        <li><b>Screens upright.</b> Monitors and laptops stand on edge with card dividers.</li>
+        <li><b>Data wiped before listing.</b> Factory reset plus overwrite for phones. Hard drives wiped, or drilled if they fail the wipe. Logged against the tag.</li>
+        <li><b>Room conditions.</b> Dry, locked, CCTV on the shutter, one fire extinguisher near the bench.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card scroll">
+    <h3 style="margin-bottom:10px">How long anything sits</h3>
+    <table>
+      <thead><tr><th>Trigger</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td>Arrival</td><td>Graded within 24 hours. A and B listed online within 48 hours.</td></tr>
+        <tr><td>Day 45 unsold</td><td>Price cut by 20%. Pushed in the week's Instagram post.</td></tr>
+        <tr><td>Day 75 unsold</td><td>Downgraded to C. Parts removed, shell to D.</td></tr>
+        <tr><td>Scrap cage reaches 100 kg, or 14 days pass</td><td>VRG Groups collects. We get a weight receipt and payment per kg.</td></tr>
+        <tr><td>Batteries</td><td>Handed over every week, whatever the quantity.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- BUYERS -->
+<section id="buyers">
+  <header>
+    <div class="eyebrow">03 · Demand</div>
+    <h2>Each grade has its own buyer</h2>
+    <p class="muted">Jammu buyers pick up from the hub or get delivery in town for ₹50. Only laptops and boards are worth shipping across India, and only if the buyer pays shipping.</p>
+  </header>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Buyer</th><th>Buys</th><th>Where we find them</th><th>Why they pick us over OLX</th></tr></thead>
+      <tbody>
+        <tr><td><b>Students</b><br><span class="muted">IIM Jammu, IIT Jammu, University of Jammu, coaching hubs</span></td><td>Phones, laptops, monitors, keyboards</td><td>Campus drives, hostel WhatsApp groups, Instagram</td><td>Tested, data-wiped, 30-day warranty, local pickup</td></tr>
+        <tr><td><b>Budget households</b></td><td>Phones, TVs, small appliances</td><td>Instagram, partner shop counters</td><td>Lower price than new and someone to call if it fails</td></tr>
+        <tr><td><b>Repair technicians</b></td><td>Screens, boards, batteries, chargers</td><td>Our own supply route. The same shops</td><td>Sorted parts in one place instead of hunting through the bazaar</td></tr>
+        <tr><td><b>Makers, engineering labs</b></td><td>Motors, sensors, power supplies, boards</td><td>Engineering college clubs, robotics teams</td><td>Cheap parts for projects</td></tr>
+        <tr><td><b>Authorised recycler</b></td><td>D-grade scrap by weight</td><td>VRG Groups, Gangyal (JKPCC-authorised)</td><td>Pre-sorted, weighed, steady supply</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- MONEY -->
+<section id="money">
+  <header>
+    <div class="eyebrow">04 · Money</div>
+    <h2>We earn the gap between what we pay and what sorting unlocks</h2>
+    <p class="muted">Buy prices are set as a share of what the item will resell for, so if resale prices fall, buy prices fall with them. Sellers choose cash on pickup at our price list, or consignment for items worth more than ₹10,000, where they get 70% when it sells.</p>
+  </header>
+
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Grade</th><th>We pay</th><th class="r">Avg buy</th><th class="r">Repair / handling</th><th class="r">Avg sale</th><th class="r">Margin per item</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag p">A</span> Works</td><td>~45% of expected resale</td><td class="r">₹1,500</td><td class="r">₹100</td><td class="r">₹3,200</td><td class="r"><b>₹1,600</b></td></tr>
+        <tr><td><span class="tag p">B</span> Repairable</td><td>~25% of expected resale</td><td class="r">₹600</td><td class="r">₹550</td><td class="r">₹2,400</td><td class="r"><b>₹1,250</b></td></tr>
+        <tr><td><span class="tag">C</span> Parts</td><td>Flat ₹100–200</td><td class="r">₹150</td><td class="r">₹60</td><td class="r">₹500</td><td class="r"><b>₹290</b></td></tr>
+        <tr><td><span class="tag w">D</span> Scrap</td><td>Free pickup</td><td class="r">₹0</td><td class="r">₹0</td><td class="r">₹40</td><td class="r"><b>₹40</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two">
+    <div class="card scroll">
+      <h3 style="margin-bottom:10px">Other income</h3>
+      <table style="min-width:0">
+        <tbody>
+          <tr><td>Marketplace commission when sellers list themselves</td><td class="r">8% of sale</td></tr>
+          <tr><td>Institutional pickup + handover record</td><td class="r">₹3,000 / lot</td></tr>
+          <tr><td>Delivery in Jammu</td><td class="r">₹50 (at cost)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card scroll">
+      <h3 style="margin-bottom:10px">Monthly fixed costs</h3>
+      <table style="min-width:0">
+        <tbody>
+          <tr><td>Hub rent, 250 sq ft</td><td class="r">₹10,000</td></tr>
+          <tr><td>Hub helper, full time</td><td class="r">₹12,000</td></tr>
+          <tr><td>E-rickshaw hire, 2 routes a week + drives</td><td class="r">₹8,000</td></tr>
+          <tr><td>Instagram ads, drives, printing</td><td class="r">₹5,000</td></tr>
+          <tr><td>Testing tools, consumables</td><td class="r">₹3,000</td></tr>
+          <tr><td>Power, internet, phone</td><td class="r">₹2,500</td></tr>
+          <tr><td><b>Total</b></td><td class="r"><b>₹40,500</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card scroll">
+    <h3 style="margin-bottom:10px">One-time setup: ₹73,000</h3>
+    <table>
+      <tbody>
+        <tr><td>Rent deposit, 2 months</td><td class="r">₹20,000</td><td>Racks, bins, labels</td><td class="r">₹18,000</td></tr>
+        <tr><td>Test bench: multimeter, bench PSU, chargers, tool kit</td><td class="r">₹15,000</td><td>Branding, signage, pickup bags</td><td class="r">₹8,000</td></tr>
+        <tr><td>Battery cabinet, sand bucket, extinguisher</td><td class="r">₹7,000</td><td>Data-wipe kit, drive drill</td><td class="r">₹5,000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <figure class="card">
+    <h3>Monthly profit turns positive in month 2. Setup is paid back in month 4.</h3>
+    <p class="muted" style="margin-top:6px;font-size:14.5px">Bars: monthly profit after fixed costs. Line: cumulative cash including the ₹73,000 setup. Assumes only 75–85% of graded stock sells in the month it arrives.</p>
+    <div class="scroll" style="margin-top:14px"><svg id="chart" viewBox="0 0 760 340" width="100%" style="min-width:560px" role="img" aria-label="Six-month pilot: monthly profit and cumulative cash"></svg></div>
+    <div class="scroll" style="margin-top:12px">
+      <table class="num" id="pl"><thead><tr><th>Month</th><th class="r">Items in</th><th class="r">Gross margin</th><th class="r">Fixed costs</th><th class="r">Profit</th><th class="r">Cumulative cash</th></tr></thead><tbody></tbody></table>
+    </div>
+    <figcaption>Break-even volume is about 96 items a month. Every item adds about ₹420 on average once sell-through is counted. The team draws no salary during the pilot.</figcaption>
+  </figure>
+</section>
+
+<!-- COMPLIANCE -->
+<section id="rules">
+  <header>
+    <div class="eyebrow">05 · Compliance</div>
+    <h2>Pilot through an authorised partner, then register ourselves</h2>
+    <p class="muted">Under the E-Waste (Management) Rules, 2022, refurbishers and recyclers must register on CPCB's EPR portal and hold consent and hazardous-waste authorisation. Bulk consumers such as offices and colleges may hand e-waste only to registered producers, recyclers or refurbishers.</p>
+  </header>
+  <div class="two">
+    <div class="card" style="display:grid;gap:10px;align-content:start">
+      <span class="tag p" style="justify-self:start">Phase 1 · pilot</span>
+      <ul class="clean">
+        <li>We trade in <b>used equipment for reuse</b>: working and repairable items bought from shops and people.</li>
+        <li>Every D-grade item and every battery goes only to <b>VRG Groups, Gangyal</b>, a JKPCC-authorised dismantler with a capacity of 135 tonnes a year. Each handover gets a weight receipt.</li>
+        <li>For institutions, their dead e-waste is handed directly to VRG with the institution named on the receipt. We buy only the working and repairable equipment from them.</li>
+      </ul>
+    </div>
+    <div class="card" style="display:grid;gap:10px;align-content:start">
+      <span class="tag w" style="justify-self:start">Phase 2 · from month 6</span>
+      <ul class="clean">
+        <li>Apply to JKPCC for consent to operate and hazardous-waste authorisation for the hub.</li>
+        <li>Register on the CPCB EPR portal as a <b>refurbisher</b>. Then institutions can hand their full lots to us directly.</li>
+        <li>Refurbishing certificates become a second income line once registration is in place.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PILOT -->
+<section id="pilot">
+  <header>
+    <div class="eyebrow">06 · Pilot plan</div>
+    <h2>Six months to prove the loop works</h2>
+  </header>
+  <div class="road">
+    <div><span class="when">Nov 2026 · Months 1–2</span><h3>Open the hub</h3><ul><li>Rent the room, set up racks and test bench</li><li>Sign 10 shops, then 18</li><li>Marketplace live with the first 100 listings</li><li>First VRG handover</li></ul><span class="gate">Move on when: 100 items in a month and 20 sales</span></div>
+    <div><span class="when">Jan 2027 · Months 3–4</span><h3>Fill the route</h3><ul><li>25 partner shops on the Tuesday/Friday route</li><li>3 anchor campuses signed, first bulk lots</li><li>Repair partners on fixed per-job rates</li></ul><span class="gate">Move on when: profitable 2 months running</span></div>
+    <div><span class="when">Mar 2027 · Months 5–6</span><h3>Make it official</h3><ul><li>280 items a month</li><li>Apply for JKPCC consent and refurbisher registration</li><li>Decide on a second hub or a Kathua route</li></ul><span class="gate">Pilot passes at: 65% of items reused, under 30 days average stock age</span></div>
+  </div>
+
+  <div class="kpis">
+    <div><span class="v">280</span><span class="k">items collected a month by month 6</span></div>
+    <div><span class="v">≥ 65%</span><span class="k">of items reused (A + B + C)</span></div>
+    <div><span class="v">100%</span><span class="k">of scrap to the authorised recycler, on receipt</span></div>
+    <div><span class="v">&lt; 30 days</span><span class="k">average time an item sits in the hub</span></div>
+    <div><span class="v">25</span><span class="k">active partner shops</span></div>
+  </div>
+
+  <div class="card scroll">
+    <h3 style="margin-bottom:10px">Who runs what</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Owns</th></tr></thead>
+      <tbody>
+        <tr><td><b>Supply lead</b></td><td>Shop and institution partnerships, the pickup route, the buy price list</td></tr>
+        <tr><td><b>Hub lead</b></td><td>Grading, data wipe, inventory sheet, repair partners, VRG handovers</td></tr>
+        <tr><td><b>Sales lead</b></td><td>Marketplace listings, Instagram, campus drives, delivery</td></tr>
+        <tr><td><b>Finance + compliance lead</b></td><td>Pricing, weekly P&amp;L, receipts, the JKPCC and CPCB filings</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div><b>Assumptions to replace with field data:</b> 280 items a month and the A/B/C/D split come from typical repair-shop stock. Subgroup 1's survey should confirm them. Prices are averages across phones, laptops and monitors, to be checked against Subgroup 3's listing data. VRG's per-kg rate and minimum lot should come from Subgroup 2's off-taker calls. Rent is a typical rate for a small ground-floor room in the old city.</div>
+  <div>Sources</div>
+  <ol>
+    <li><a href="https://cpcb.nic.in/uploads/Projects/E-Waste/FAQ_ewaste_23012024.pdf">CPCB, FAQs under E-Waste (Management) Rules, 2022</a>: registration of refurbishers and recyclers, bulk consumer obligations.</li>
+    <li><a href="https://ndmc.gov.in/pdf/cpcb_approved_list_of_e-waste_recyclers_dismantler.pdf">CPCB list of authorised e-waste dismantlers/recyclers (as on 08-06-2023)</a>: VRG Groups, Gangyal, 135 MTA.</li>
+    <li><a href="https://www.greaterkashmir.com/kashmir/safe-e-waste-management-drive-launched-in-jammu/">Greater Kashmir: JKPCC e-waste drive in Jammu with VRG Groups</a>.</li>
+  </ol>
+</footer>
+</div>
+
+<script>
+(function(){
+  const months=['Nov','Dec','Jan','Feb','Mar','Apr'];
+  const items=[60,110,160,200,240,280];
+  const gm=[28520,55820,84720,109400,129480,149560];
+  const fixed=40500, setup=73000;
+  const profit=gm.map(g=>g-fixed);
+  let c=-setup; const cum=profit.map(p=>c+=p);
+  const inr=v=>(v<0?'−':'')+'₹'+Math.abs(Math.round(v)).toLocaleString('en-IN');
+  const tb=document.querySelector('#pl tbody');
+  tb.innerHTML=months.map((m,i)=>`<tr><td>${m} · M${i+1}</td><td class="r">${items[i]}</td><td class="r">${inr(gm[i])}</td><td class="r">${inr(fixed)}</td><td class="r" style="color:var(${profit[i]<0?'--bad':'--good'})">${inr(profit[i])}</td><td class="r" style="color:var(${cum[i]<0?'--bad':'--good'})"><b>${inr(cum[i])}</b></td></tr>`).join('');
+  const svg=document.getElementById('chart'), W=760,H=340,L=78,R=24,T=20,B=44;
+  const lo=-100000, hi=250000, step=50000;
+  const y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const bw=(W-L-R)/months.length, x=i=>L+bw*i+bw/2;
+  let s='';
+  for(let v=lo; v<=hi; v+=step){s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v===0?'stroke-width="1.6" stroke="var(--fg2)"':''}/><text x="${L-10}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="var(--fg2)">${v===0?'0':(v<0?'−':'')+'₹'+Math.abs(v/1000)+'k'}</text>`;}
+  profit.forEach((p,i)=>{const y0=y(0),y1=y(p);s+=`<rect x="${x(i)-bw*0.28}" y="${Math.min(y0,y1)}" width="${bw*0.56}" height="${Math.abs(y1-y0)}" rx="3" fill="var(${p<0?'--bad':'--loop'})" opacity="${p<0?0.8:0.85}"/>`;
+    s+=`<text x="${x(i)}" y="${p<0?y1+16:y1-7}" text-anchor="middle" font-size="12" fill="var(--fg)">${inr(p)}</text>`;
+    s+=`<text x="${x(i)}" y="${H-18}" text-anchor="middle" font-size="12.5" fill="var(--fg2)">${months[i]} · M${i+1}</text>`;});
+  s+=`<polyline points="${cum.map((v,i)=>x(i)+','+y(v)).join(' ')}" fill="none" stroke="var(--warm)" stroke-width="3"/>`;
+  cum.forEach((v,i)=>{s+=`<circle cx="${x(i)}" cy="${y(v)}" r="${i===3?6:4}" fill="var(--warm)" stroke="var(--surface)" stroke-width="2"/>`;});
+  s+=`<text x="${x(3)+10}" y="${y(cum[3])-12}" font-size="12.5" font-weight="600" fill="var(--warm-ink)">Setup paid back</text>`;
+  s+=`<text x="${x(5)-8}" y="${y(cum[5])-12}" text-anchor="end" font-size="12.5" font-weight="600" fill="var(--warm-ink)">Cumulative ${inr(cum[5])}</text>`;
+  svg.innerHTML=s;
+})();
+</script>

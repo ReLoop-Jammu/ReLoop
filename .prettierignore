@@ -7,3 +7,6 @@ package-lock.json
 **/test-results
 **/coverage
 **/next-env.d.ts
+
+# The group's business plan, kept exactly as written.
+docs/ReLoop_Business_Plan.html

@@ -48,7 +48,8 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - The repo's hub tables (`items`, `item_events` and the rest) now exist live, with RLS on, but are empty: the hub app still stores data in each browser.
   - **The 2026-10-14 fix is applied** (2026-10-13; see the execution record in `docs/runbooks/apply-fix-2026-10-14.md`). Every hole the SQL could fix is closed (the High one and two Mediums, plus the Lows), and `supabase-fixes/2026-10-14-checks.sql` shows 13 of 13 true; re-run it after any database change. Still open: email confirmation is off, and Preview shares the production database.
     - Live and repo schemas match: migrations `20261010000001` (baseline) and `20261014000001` describe what the fix applied.
-    - There is 1 admin (`admin_users`). Add more with `supabase-fixes/make-admin.sql`.
+    - There is 1 admin, the shared ReLoop admin account (`admin_users`). Add more with `supabase-fixes/make-admin.sql`.
+    - Account roles are `buyer`, `shop_owner` and (from migration `20261015000001`) `admin`. The role is a label; admin rights come from `is_admin()`. Sign-up can't choose `admin`. `supabase-fixes/tidy-admin-account.sql` confirms the shared admin account, renames it "ReLoop Admin", removes its leftover shop row and sets its role to `admin`. The `admin` role is live (2026-10-13), but the tidy script has **not** been run: the admin account's shop row turned out to be verified, which is one of its safety stops.
     - Back up before any live change with `scripts/backup-live-data.sh`.
   - `backend/tests/live.test.mjs` replays every query the site makes, on the live schema before and after the fix. Add new queries there.
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
