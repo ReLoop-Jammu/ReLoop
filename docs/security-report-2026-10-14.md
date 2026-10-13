@@ -1,9 +1,11 @@
 # Security report, 2026-10-14
 
+> **Status, 2026-10-13:** findings 1–3 and 6–11 are fixed live (`supabase-fixes/2026-10-14.sql`, checks 13 of 13 true; see `docs/runbooks/apply-fix-2026-10-14.md`). Still open: 4 (email confirmation) and 5 (Preview shares production).
+
 Based on the live read-only check of 2026-10-13: [live-check-2026-10-13.md](live-check-2026-10-13.md) and `backend/supabase/live-schema-2026-10-13.sql`.
 
 - **Each finding was reproduced** in PGlite on a database built from the live schema; see `backend/tests/live.test.mjs`. Nothing was run against production.
-- **Fixes:** `supabase-fixes/2026-10-14.sql` holds the fixes, written but **not yet run**. Repo migration `20261014000001` makes the same changes.
+- **Fixes:** `supabase-fixes/2026-10-14.sql` holds the fixes, **applied on 2026-10-13**. Repo migration `20261014000001` makes the same changes.
 
 Severity: **High** means data that should be private is public now. **Medium** means a rule can be bypassed or abused now. **Low** means hardening, not exploitable today.
 

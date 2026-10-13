@@ -2,44 +2,35 @@
 
 Updated at the end of every task. Status is one of: done, in progress or not started.
 
-| Stage                                          | Status      | Date       | Note                                                                                                                     |
-| ---------------------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                     |
-| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.                  |
-| PR #15 (`chore/prod-health`)                   | in progress | 2026-10-14 | Committed locally, waiting for you to push. Locally everything passes, including all 86 browser tests the CI way.        |
-| Read-only script                               | done        | 2026-10-13 | Run by you. Results saved to `docs/live-check-2026-10-13.md`; schema dump committed; no secrets or personal data.        |
-| C. Database baseline and fixes                 | done        | 2026-10-14 | Baseline, fix script with checks, make-admin and backup scripts, and the runbook, all tested. Nothing has been run live. |
-| Apply fix script                               | not started | 2026-10-14 | Follow `docs/runbooks/apply-fix-2026-10-14.md`: back up, run the fix, check it, make the admin.                          |
-| Merge PR #15                                   | not started | 2026-10-14 | **After** the fix script has run (runbook step 29), once CI is green.                                                    |
-| D. Map page and QR code                        | not started | 2026-10-14 |                                                                                                                          |
-| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-14 | The hub tables arrive with the fix script; the hub still stores data in each browser.                                    |
+| Stage                                          | Status      | Date       | Note                                                                                                                   |
+| ---------------------------------------------- | ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                   |
+| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.                |
+| PR #15 (`chore/prod-health`)                   | done        | 2026-10-13 | All checks green. The local branch was deleted after confirming nothing was left out of `main`.                        |
+| Read-only script                               | done        | 2026-10-13 | Run by you. Results in `docs/live-check-2026-10-13.md`; schema dump committed.                                         |
+| C. Database baseline and fixes                 | done        | 2026-10-13 | Baseline, fix script with checks, make-admin and backup scripts, and the runbook, all tested.                          |
+| Merge PR #15                                   | done        | 2026-10-13 | Squash-merged as `c74134e`, before the fix (safe per the compatibility check). Production functions now run in `bom1`. |
+| Apply fix script                               | done        | 2026-10-13 | Backup taken; fix applied; checks 13 of 13; 1 admin set; 16 of 16 live tests; test data cleaned up.                    |
+| D. Map page and QR code                        | not started | 2026-10-13 |                                                                                                                        |
+| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-13 | The hub tables now exist live, empty; the hub app still stores data in each browser.                                   |
 
-## Stage C items (2026-10-14)
+## Fix applied (2026-10-13)
 
-- [x] **Baseline migration** `20261010000001_live_baseline.sql`. It is guarded and changes nothing live; a test proves re-running it changes nothing.
-- [x] **CI build without Supabase variables, only when `CI=true` and not on Vercel.** CI uses the sample stock file. A build without `CI` still fails with "Supabase environment variables are missing".
-- [x] **Security report** `docs/security-report-2026-10-14.md`: 1 High, 4 Medium and 5 Low findings, plus the missing hub tables.
-- [x] **`supabase-fixes/2026-10-14.sql`**, written and **not run**.
-  - It is one transaction, safe to run twice, and ends with read-only checks; it refuses to commit if any check fails.
-  - Every storage bucket is limited to 5 MB of JPEG, PNG or WebP.
-- [x] **`supabase-fixes/make-admin.sql`**: one placeholder email; fails clearly if no account uses it.
-- [x] **`scripts/backup-live-data.sh`**: a data-only backup of `public`, `auth.users` and `auth.identities` to `~/ReLoop-backups`, which the script refuses to write into if it is inside git.
-- [x] **Runbook** `docs/runbooks/apply-fix-2026-10-14.md`.
-- [x] **Server functions set to `bom1`** in `frontend/vercel.json`. Takes effect on the next deploy.
-- [x] **`CLAUDE.md` updated.**
+The full execution record is at the top of `docs/runbooks/apply-fix-2026-10-14.md`.
 
-## Tests (2026-10-14)
+- **Backup:** `~/ReLoop-backups/backup-2026-10-13-162145.sql`, 12,429 bytes, 12 tables, outside git.
+- **Checks:** 13 of 13 true, both inside the fix and in a separate read-only run.
+- **Live tests:** 16 of 16 passed:
+  - the shop pages work;
+  - visitors can't read cost or notes columns, and can't create orders or enquiries;
+  - sign-up without a GSTIN works and stays pending;
+  - the submission route refuses unverified shops and saves "Broken" as `Damaged` for verified ones;
+  - buyer sign-up works.
+- **Cleanup:** 0 test users, profiles, shops or submissions remain.
 
-- `npm run check` passes: Prettier, lint, typecheck, 39 unit tests and 50 backend tests.
-- The CI build passes, and so do all 86 browser tests with `CI=true` (desktop and mobile).
-- The 10 stale browser tests were fixed:
-  - tests for the removed `/sell/consignment` and `/sell/list-yourself` pages were deleted;
-  - the `/sell/shops` tests now cover the log-in prompt, a signed-in multi-item submission, and the "must be verified" refusal;
-  - the hub's ambiguous "Name" field is now labelled "Seller name".
-- `backend/tests/live.test.mjs` replays every query the site makes, as the right database role, on the live schema before and after the fix.
+## Still open
 
-## Notes
-
-- **A bug on `main`:** shop submissions with any condition except "Working" are rejected by the database. Fixed on this branch by `frontend/src/features/sell/conditions.ts`.
-- **The read-only guard didn't hold** in the 2026-10-13 check. The Supabase pooler ignored `PGOPTIONS`, so those sessions weren't forced read-only. Only `SELECT` and `pg_dump` ran, so nothing changed.
-- **Still open:** email confirmation is off, and needs a custom SMTP sender first. Preview deployments share the production database.
+- **Email confirmation is off.** Set up a custom SMTP sender in Supabase, then switch on "Confirm email".
+- **Preview deployments share the production database.** e2e tests need a separate test database.
+- **Check the admin account.** It was registered as a shop owner, has never signed in, and its email isn't confirmed. Confirm it belongs to the intended person.
+- **Leftover shop owner:** that same account still has a `shop_owners` row from sign-up. Decide whether the admin should also stay a shop owner.
