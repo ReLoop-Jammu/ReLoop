@@ -1379,3 +1379,81 @@ describe("request retention (20261023000001)", () => {
     assert.match(cron, /public\.purge_closed_requests\(\)/);
   });
 });
+
+describe("tracked links (20261024000001)", () => {
+  let db;
+  let admin;
+  let staff;
+  let user;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    staff = await createUser(db, "Staff", { staff: true });
+    user = await createUser(db, "Visitor");
+  });
+  const click =
+    (slug, source = "instagram", medium = "bio") =>
+    (tx) =>
+      tx.query("insert into public.link_visits (slug, source, medium) values ($1, $2, $3)", [
+        slug,
+        source,
+        medium,
+      ]);
+  const counts = (who) =>
+    as(db, who, (tx) => tx.query("select * from public.link_visit_counts() order by slug"));
+
+  test("only the server records clicks, with valid values and nothing personal", async () => {
+    await asService(db, click("ig-bio"));
+    await asService(db, click("ig-bio"));
+    await asService(db, click("wa", "whatsapp", "share"));
+    await assert.rejects(asService(db, click("Bad Slug!")), /check constraint/);
+    for (const who of [null, user, staff, admin])
+      await assert.rejects(as(db, who, click("ig-bio")), /permission denied/);
+    const { rows } = await db.query(
+      "select column_name from information_schema.columns where table_name = 'link_visits' order by ordinal_position",
+    );
+    assert.deepEqual(
+      rows.map((r) => r.column_name),
+      ["id", "slug", "source", "medium", "visited_at"],
+    );
+  });
+
+  test("admins see clicks per link this month and all time; nobody reads the table", async () => {
+    await db.query(
+      "insert into public.link_visits (slug, source, medium, visited_at) values ('ig-bio', 'instagram', 'bio', now() - interval '3 months')",
+    );
+    const { rows } = await counts(admin);
+    assert.deepEqual(
+      rows.map((r) => [r.slug, Number(r.this_month), Number(r.all_time)]),
+      [
+        ["ig-bio", 2, 3],
+        ["wa", 1, 1],
+      ],
+    );
+    await assert.rejects(counts(staff), /Only admins/);
+    await assert.rejects(counts(user), /Only admins/);
+    await assert.rejects(counts(null), /permission denied/);
+    for (const who of [null, user, admin])
+      await assert.rejects(
+        as(db, who, (tx) => tx.query("select id from public.link_visits")),
+        /permission denied/,
+      );
+  });
+
+  test("QR scans counted before the change carry over as /go/drive visits, once", async () => {
+    const fresh = await createTestDb({
+      migrations: MIGRATIONS.filter((m) => m < "20261024000001"),
+      seed: false,
+    });
+    await fresh.query("insert into public.qr_scans (campaign) values ('awareness-drive-2026')");
+    await fresh.query("insert into public.qr_scans (campaign) values ('awareness-drive-2026')");
+    const migration = readSql("20261024000001_link_visits.sql");
+    await fresh.exec(migration);
+    await fresh.exec(migration);
+    const { rows } = await fresh.query(
+      "select slug, source, medium, count(*)::int as n from public.link_visits group by 1, 2, 3",
+    );
+    assert.deepEqual(rows, [{ slug: "drive", source: "qr", medium: "print", n: 2 }]);
+  });
+});

@@ -107,6 +107,17 @@ select check_name, ok
         and not has_function_privilege('authenticated', 'public.purge_closed_requests(timestamptz)', 'EXECUTE')),
     (26, 'Retention: the daily clean-up job is scheduled',
         exists (select 1 from cron.job where jobname = 'reloop-request-retention' and active
-                  and command like '%purge_closed_requests%'))
+                  and command like '%purge_closed_requests%')),
+    (27, 'Tracked links: Row Level Security is on, and visitors and signed-in users cannot read or write clicks',
+        (select relrowsecurity from pg_class where oid = 'public.link_visits'::regclass)
+        and not has_table_privilege('anon', 'public.link_visits', 'SELECT')
+        and not has_table_privilege('anon', 'public.link_visits', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.link_visits', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.link_visits', 'INSERT')),
+    (28, 'Tracked links: only signed-in admins can read the counts, and clicks store nothing personal',
+        not has_function_privilege('anon', 'public.link_visit_counts()', 'EXECUTE')
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'link_visits')
+            = array['id', 'slug', 'source', 'medium', 'visited_at'])
   ) as c(n, check_name, ok)
  order by n;
