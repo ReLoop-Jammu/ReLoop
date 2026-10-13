@@ -583,3 +583,64 @@ describe("sample listings (20261016000001)", () => {
     );
   });
 });
+
+describe("admin shop verification (/hub/shops)", () => {
+  let db;
+  let admin;
+  let owner;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    owner = await shopOwner(db, "Pending");
+    buyer = await createUser(db, "Buyer");
+  });
+  const COLUMNS =
+    "id, shop_name, owner_name, phone, email, business_address, city, gstin, verification_status, verified_at, review_notes, created_at";
+
+  test("the page's role checks are callable by signed-in users", async () => {
+    const r = await as(db, admin, (tx) =>
+      tx.query("select public.is_admin() as a, public.is_staff() as s"),
+    );
+    assert.deepEqual(r.rows[0], { a: true, s: false });
+    const b = await as(db, buyer, (tx) => tx.query("select public.is_admin() as a"));
+    assert.equal(b.rows[0].a, false);
+  });
+
+  test("an admin lists every shop and can verify or reject one", async () => {
+    const list = await as(db, admin, (tx) => tx.query(`select ${COLUMNS} from public.shop_owners`));
+    assert.equal(list.rows.length, 1);
+    const verify = await as(db, admin, (tx) =>
+      tx.query(
+        `update public.shop_owners set verification_status = 'verified', verified_at = now(), reviewed_by = $2, review_notes = 'ok'
+          where id = $1 returning ${COLUMNS}`,
+        [owner, admin],
+      ),
+    );
+    assert.equal(verify.rows[0].verification_status, "verified");
+    const reject = await as(db, admin, (tx) =>
+      tx.query(
+        `update public.shop_owners set verification_status = 'rejected', verified_at = null, reviewed_by = $2, review_notes = 'Fake GSTIN'
+          where id = $1 returning verification_status`,
+        [owner, admin],
+      ),
+    );
+    assert.equal(reject.rows[0].verification_status, "rejected");
+  });
+
+  test("a shop owner sees only their own row and can't review it; a buyer sees none", async () => {
+    const own = await as(db, owner, (tx) => tx.query(`select ${COLUMNS} from public.shop_owners`));
+    assert.equal(own.rows.length, 1);
+    const { rowCount } = await as(db, owner, (tx) =>
+      tx.query("update public.shop_owners set verification_status = 'verified' where id = $1", [
+        owner,
+      ]),
+    );
+    assert.equal(rowCount, 0);
+    const none = await as(db, buyer, (tx) => tx.query("select id from public.shop_owners"));
+    assert.equal(none.rows.length, 0);
+  });
+});

@@ -51,6 +51,7 @@ const PAGES = [
   "/hub/partners",
   "/hub/handovers",
   "/hub/data",
+  "/hub/shops",
   "/hub/items/RL-JMU-0042",
 ];
 

@@ -21,8 +21,8 @@ Run order: 0 → A → B → C → E+F → G → D, then update G after D. The f
 
 | Batch | Branch                   | Status      | Note                                                                                           |
 | ----- | ------------------------ | ----------- | ---------------------------------------------------------------------------------------------- |
-| 0     | `chore/batch0-cleanup`   | in progress | Live data done (see below); PR pending.                                                        |
-| A     | `feat/admin-verify`      | not started | Admin page to verify or reject shop owners.                                                    |
+| 0     | `chore/batch0-cleanup`   | done        | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.    |
+| A     | `feat/admin-verify`      | in progress | `/hub/shops` (admins only): verify or reject shops. Login returns to hub pages (`?next=`).     |
 | B     | `feat/account-recovery`  | not started | Forgot password, reset, resend confirmation. Pause for the Auth URL settings and Gmail SMTP.   |
 | C     | `feat/locations`         | not started | `/locations` map from one data file, plus the QR code and `/go/drive` tracked link.            |
 | E+F   | `feat/launch-content`    | not started | Contact details, grievance officer (Harsh Raj), consistency audit.                             |

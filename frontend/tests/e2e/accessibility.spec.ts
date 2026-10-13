@@ -23,6 +23,7 @@ const PAGES = [
   "/hub/partners",
   "/hub/handovers",
   "/hub/data",
+  "/hub/shops",
   "/this-page-does-not-exist",
 ];
 

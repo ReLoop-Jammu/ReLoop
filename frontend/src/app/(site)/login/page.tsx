@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "@/features/sell/components/RequestForm";
-import { loginAccount } from "@/lib/auth-client";
+import { loginAccount, safeNext } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError("");
     try {
       await loginAccount(email, password);
-      router.push("/account");
+      router.push(safeNext(window.location.search));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed. Please try again.");
     } finally {
