@@ -76,7 +76,9 @@ export async function myShopSubmissions(): Promise<ShopSubmission[]> {
 
 async function review(id: number, fields: Record<string, unknown>) {
   const reviewer = getSession()?.user.id;
-  const rows = await rest<unknown[]>(`shop_submissions?id=eq.${id}`, {
+  // Ask for the id only: staff can't read internal_notes, so returning the whole
+  // row would make the database refuse the update.
+  const rows = await rest<unknown[]>(`shop_submissions?id=eq.${id}&select=id`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({
@@ -164,7 +166,7 @@ export async function listRequests(): Promise<HubRequest[]> {
 }
 
 export async function setRequestStatus(id: string, status: Submission["status"]) {
-  const rows = await rest<unknown[]>(`submissions?id=eq.${id}`, {
+  const rows = await rest<unknown[]>(`submissions?id=eq.${id}&select=id`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({

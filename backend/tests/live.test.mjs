@@ -1005,6 +1005,30 @@ describe("closing the loop (20261020000001)", () => {
     assert.equal(rowCount, 0, "owners can't change the status");
   });
 
+  test("a staff review must return only the id: the full row includes internal notes", async () => {
+    const { rows } = await asService(db, (tx) =>
+      tx.query(
+        "insert into public.shop_submissions (shop_owner_id, item_name) values ($1, 'Probe') returning id",
+        [owner],
+      ),
+    );
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.shop_submissions set offer_price = 1 where id = $1 returning *", [
+          rows[0].id,
+        ]),
+      ),
+      /permission denied/,
+    );
+    const ok = await as(db, staff, (tx) =>
+      tx.query("update public.shop_submissions set offer_price = 1 where id = $1 returning id", [
+        rows[0].id,
+      ]),
+    );
+    assert.equal(ok.rows.length, 1);
+    await db.query("delete from public.shop_submissions where id = $1", [rows[0].id]);
+  });
+
   test("an offered submission becomes one linked hub item per unit, once", async () => {
     await assert.rejects(
       as(db, owner, (tx) =>
