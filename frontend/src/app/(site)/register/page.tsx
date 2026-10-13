@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [notGstRegistered, setNotGstRegistered] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -33,15 +34,16 @@ export default function RegisterPage() {
       setError("Choose whether you are registering as a buyer or shop owner.");
       return;
     }
-    if (role === "shop_owner" && !/^[0-9A-Z]{15}$/.test(form.gstin.trim().toUpperCase())) {
+    const gstin = role === "shop_owner" && !notGstRegistered ? form.gstin.replace(/\s/g, "") : "";
+    if (role === "shop_owner" && !notGstRegistered && !/^[0-9A-Z]{15}$/.test(gstin)) {
       setError(
-        "Enter a 15-character GSTIN. ReLoop will verify it before enabling shop submissions.",
+        'Enter your 15-character GSTIN, or tick "Not GST-registered". ReLoop checks it before enabling shop submissions.',
       );
       return;
     }
     setBusy(true);
     try {
-      const result = await registerAccount({ ...form, role });
+      const result = await registerAccount({ ...form, gstin, role });
       if (result.session) router.push("/account");
       else setMessage(result.message);
     } catch (e) {
@@ -147,17 +149,27 @@ export default function RegisterPage() {
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
-                GSTIN *
+                {notGstRegistered ? "GSTIN" : "GSTIN *"}
                 <input
                   className={inputClass}
-                  required
+                  required={!notGstRegistered}
+                  disabled={notGstRegistered}
                   maxLength={15}
                   minLength={15}
-                  value={form.gstin}
+                  value={notGstRegistered ? "" : form.gstin}
                   onChange={(e) => update("gstin", e.target.value.toUpperCase())}
-                  placeholder="15-character GSTIN"
+                  placeholder={notGstRegistered ? "Not GST-registered" : "15-character GSTIN"}
                   autoCapitalize="characters"
                 />
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-brand-600"
+                  checked={notGstRegistered}
+                  onChange={(e) => setNotGstRegistered(e.target.checked)}
+                />
+                Not GST-registered
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
                 Business address *
@@ -170,8 +182,8 @@ export default function RegisterPage() {
                 />
               </label>
               <p className="text-sm text-muted">
-                Shop owner access starts as pending. GSTIN submission is not itself proof of
-                verification; ReLoop will review it.
+                Shop owner access starts as pending. ReLoop reviews every shop, with or without a
+                GSTIN, before enabling submissions.
               </p>
             </div>
           )}
