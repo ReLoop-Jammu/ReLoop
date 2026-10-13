@@ -10,3 +10,6 @@ package-lock.json
 
 # The group's business plan, kept exactly as written.
 docs/ReLoop_Business_Plan.html
+
+# Generated from frontend/src/features/help/guide.json; a test checks it matches
+docs/report/shop-owner-guide.md

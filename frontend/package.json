@@ -13,7 +13,8 @@
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run typecheck && npm run test",
     "qr": "node scripts/make-qr.mjs",
-    "print": "node scripts/make-print.mjs"
+    "print": "node scripts/make-print.mjs",
+    "help-guide": "UPDATE_GUIDE=1 vitest run src/features/help/guide.test.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

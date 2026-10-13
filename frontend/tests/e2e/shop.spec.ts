@@ -191,6 +191,7 @@ test.describe("site", () => {
       "/how-it-works",
       "/where-scrap-goes",
       "/what-we-accept",
+      "/help",
       "/print",
       "/print/partner-poster",
       "/print/awareness-flyer",
@@ -332,5 +333,50 @@ test.describe("impact counter", () => {
     const impact = page.getByRole("region", { name: "Our impact so far" });
     await expect(impact.getByText("Pilot starts November 2026")).toBeVisible();
     await expect(impact.getByText("items reused")).toHaveCount(0);
+  });
+});
+
+test.describe("help for partner shops", () => {
+  test("switches between English and Hindi, marks the Hindi, and remembers the choice", async ({
+    page,
+  }) => {
+    await page.goto("/sell/shops");
+    await page.getByRole("link", { name: "Step-by-step help, in English and Hindi" }).click();
+    await expect(page).toHaveURL(/\/help$/);
+    const main = page.getByRole("main");
+    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+    await expect(main.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    for (const title of [
+      "2. Wait for verification",
+      "3. Submit your items",
+      "4. See our offer",
+      "5. Pickup",
+      "6. Payment",
+      "7. Contact us",
+    ])
+      await expect(main.getByRole("heading", { name: title })).toBeVisible();
+
+    await main.getByRole("button", { name: "हिन्दी" }).click();
+    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
+    await expect(main.locator('[lang="hi"]').filter({ hasText: "साइन अप करें" })).toHaveCount(1);
+    await expect(main.getByRole("link", { name: "/register" })).toHaveAttribute(
+      "href",
+      "/register",
+    );
+
+    await page.reload();
+    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
+    await main.getByRole("button", { name: "English" }).click();
+    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+  });
+
+  test("is linked from the footer", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("contentinfo").getByRole("link", { name: "Help for shops" }),
+    ).toHaveAttribute("href", "/help");
   });
 });

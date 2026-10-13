@@ -109,6 +109,12 @@ export default function AccountPage() {
                   </p>
                 )}
                 <MySubmissions />
+                <Link
+                  className="mt-4 inline-block text-sm font-semibold text-brand-600 underline"
+                  href="/help"
+                >
+                  Help for partner shops, in English and Hindi
+                </Link>
               </div>
             )}
             <div className="mt-6 flex flex-wrap gap-3">
