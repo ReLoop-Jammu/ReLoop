@@ -141,3 +141,111 @@ export function safeNext(search: string): string {
   const next = new URLSearchParams(search).get("next") ?? "";
   return /^\/hub(\/[a-z0-9/-]*)?$/.test(next) ? next : "/account";
 }
+
+/* ---------------------------------------------------------------- account recovery */
+
+const backTo = (path: string) => encodeURIComponent(`${window.location.origin}${path}`);
+
+/**
+ * Asks Supabase to email a password-reset link that opens /reset-password.
+ * Resolves the same way whether or not the email has an account, so the page
+ * never reveals who is registered; only "too many requests" is passed on.
+ */
+export async function requestPasswordReset(email: string) {
+  await neutral(() =>
+    authRequest(`recover?redirect_to=${backTo("/reset-password")}`, {
+      email: email.trim().toLowerCase(),
+    }),
+  );
+}
+
+/** Asks Supabase to send the sign-up confirmation email again (link opens /login). */
+export async function resendConfirmation(email: string) {
+  await neutral(() =>
+    authRequest(`resend?redirect_to=${backTo("/login")}`, {
+      type: "signup",
+      email: email.trim().toLowerCase(),
+    }),
+  );
+}
+
+async function neutral(send: () => Promise<unknown>) {
+  try {
+    await send();
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "";
+    if (/rate limit|too many|seconds/i.test(message)) {
+      throw new Error("Too many requests. Please wait a minute and try again.");
+    }
+    if (/not configured/i.test(message)) throw e;
+  }
+}
+
+export type AuthRedirect =
+  | { kind: "recovery"; session: AuthSession }
+  | { kind: "error"; message: string }
+  | { kind: "none" };
+
+/**
+ * Reads what Supabase puts after the # when an email link opens the site:
+ * a recovery session, or an error such as an expired link.
+ */
+export function parseAuthRedirect(hash: string): AuthRedirect {
+  const p = new URLSearchParams(hash.replace(/^#/, ""));
+  if (p.get("error") || p.get("error_code")) {
+    const expired = p.get("error_code") === "otp_expired";
+    return {
+      kind: "error",
+      message: expired
+        ? "This link has expired or was already used. Ask for a new one."
+        : (p.get("error_description") ?? "This link didn't work. Ask for a new one."),
+    };
+  }
+  const access = p.get("access_token");
+  const refresh = p.get("refresh_token");
+  if (p.get("type") === "recovery" && access && refresh) {
+    const expiresIn = Number(p.get("expires_in"));
+    return {
+      kind: "recovery",
+      session: {
+        access_token: access,
+        refresh_token: refresh,
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: Math.floor(Date.now() / 1000) + expiresIn }
+          : {}),
+        user: { id: "" },
+      },
+    };
+  }
+  return { kind: "none" };
+}
+
+/** Sets a new password with the session from a reset link, then keeps the user logged in. */
+export async function setNewPassword(session: AuthSession, password: string) {
+  if (password.length < 8 || password.length > 128) {
+    throw new Error("Use a password of 8 to 128 characters.");
+  }
+  const { base, key } = config();
+  const response = await fetch(`${base}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: key,
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ password }),
+    cache: "no-store",
+  });
+  const data = (await response.json().catch(() => ({}))) as {
+    id?: string;
+    email?: string;
+    msg?: string;
+    message?: string;
+  };
+  if (!response.ok || !data.id) {
+    throw new Error(
+      data.msg ?? data.message ?? "We couldn't set your password. Ask for a new reset link.",
+    );
+  }
+  saveSession({ ...session, user: { id: data.id, ...(data.email ? { email: data.email } : {}) } });
+}

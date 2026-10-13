@@ -19,15 +19,15 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 Run order: 0 → A → B → C → E+F → G → D, then update G after D. The full plan is in the approved plan file; this table is the resume point.
 
-| Batch | Branch                   | Status      | Note                                                                                           |
-| ----- | ------------------------ | ----------- | ---------------------------------------------------------------------------------------------- |
-| 0     | `chore/batch0-cleanup`   | done        | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.    |
-| A     | `feat/admin-verify`      | in progress | `/hub/shops` (admins only): verify or reject shops. Login returns to hub pages (`?next=`).     |
-| B     | `feat/account-recovery`  | not started | Forgot password, reset, resend confirmation. Pause for the Auth URL settings and Gmail SMTP.   |
-| C     | `feat/locations`         | not started | `/locations` map from one data file, plus the QR code and `/go/drive` tracked link.            |
-| E+F   | `feat/launch-content`    | not started | Contact details, grievance officer (Harsh Raj), consistency audit.                             |
-| G     | `docs/known-limitations` | not started | Runs before D, and is updated after D.                                                         |
-| D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV. |
+| Batch | Branch                   | Status      | Note                                                                                                       |
+| ----- | ------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| 0     | `chore/batch0-cleanup`   | done        | PR #18 merged (`f212377`); live: shop shows samples labelled "not for sale", all pages 200.                |
+| A     | `feat/admin-verify`      | done        | PR #19 merged (`ba7f2e8`); live: `/hub/shops` asks visitors to log in.                                     |
+| B     | `feat/account-recovery`  | in progress | `/forgot-password`, `/reset-password`, `/resend-confirmation`. Waiting on your Auth URL and SMTP settings. |
+| C     | `feat/locations`         | not started | `/locations` map from one data file, plus the QR code and `/go/drive` tracked link.                        |
+| E+F   | `feat/launch-content`    | not started | Contact details, grievance officer (Harsh Raj), consistency audit.                                         |
+| G     | `docs/known-limitations` | not started | Runs before D, and is updated after D.                                                                     |
+| D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV.             |
 
 ### Batch 0 live changes (2026-10-13)
 

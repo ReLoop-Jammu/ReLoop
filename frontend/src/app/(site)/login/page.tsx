@@ -67,6 +67,14 @@ export default function LoginPage() {
           <Button type="submit" size="lg" disabled={busy}>
             {busy ? "Logging in…" : "Log in"}
           </Button>
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link className="font-semibold text-brand-600 underline" href="/forgot-password">
+              Forgot your password?
+            </Link>
+            <Link className="font-semibold text-brand-600 underline" href="/resend-confirmation">
+              Didn&apos;t get the confirmation email?
+            </Link>
+          </p>
           <p className="text-sm text-muted">
             New to ReLoop?{" "}
             <Link className="font-semibold text-brand-600 underline" href="/register">
