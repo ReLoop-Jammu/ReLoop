@@ -172,13 +172,14 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}) {
 }
 
 /**
- * Where to go after logging in: the ?next= page if it is inside the hub,
+ * Where to go after logging in: the ?next= page if it is inside the hub or
+ * the account pages,
  * otherwise the account page. Anything else (other sites, //host, odd paths)
  * is ignored, so the link can't send people elsewhere.
  */
 export function safeNext(search: string): string {
   const next = new URLSearchParams(search).get("next") ?? "";
-  return /^\/hub(\/[a-z0-9/-]*)?$/.test(next) ? next : "/account";
+  return /^\/(hub|account)(\/[a-z0-9/-]*)?$/.test(next) ? next : "/account";
 }
 
 /* ---------------------------------------------------------------- account recovery */
@@ -288,3 +289,45 @@ export async function setNewPassword(session: AuthSession, password: string) {
   }
   saveSession({ ...session, user: { id: data.id, ...(data.email ? { email: data.email } : {}) } });
 }
+
+/* ---------------------------------------------------------------- temporary passwords */
+
+/** Calls one of this site's own API routes with the signed-in user's session. */
+export async function siteFetch(path: string, init: RequestInit = {}) {
+  const session = await currentSession();
+  if (!session?.access_token) throw new Error("Please log in to continue.");
+  return fetch(path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      ...(init.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+}
+
+/** True when an admin reset this account's password and a new one must be chosen first. */
+export async function mustChangePassword(): Promise<boolean> {
+  const response = await authenticatedFetch(
+    "/rest/v1/profiles?select=must_change_password&limit=1",
+  );
+  if (!response.ok) return false;
+  const rows = (await response.json()) as { must_change_password?: boolean }[];
+  return rows[0]?.must_change_password === true;
+}
+
+/** Sets the signed-in user's new password (and clears a temporary-password flag). */
+export async function changePassword(password: string) {
+  if (password.length < 8 || password.length > 128) {
+    throw new Error("Use a password of 8 to 128 characters.");
+  }
+  const response = await siteFetch("/api/account/password", {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
+  const data = (await response.json().catch(() => ({}))) as { error?: string };
+  if (!response.ok) throw new Error(data.error ?? "Your password wasn't changed.");
+}
+
+export const CHANGE_PASSWORD_PATH = "/account/change-password";

@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "@/features/sell/components/RequestForm";
-import { loginAccount, safeNext } from "@/lib/auth-client";
+import {
+  CHANGE_PASSWORD_PATH,
+  loginAccount,
+  mustChangePassword,
+  safeNext,
+} from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +25,13 @@ export default function LoginPage() {
     setError("");
     try {
       await loginAccount(email, password);
-      router.push(safeNext(window.location.search));
+      const next = safeNext(window.location.search);
+      // After an admin reset, a new password comes before anything else.
+      router.push(
+        (await mustChangePassword())
+          ? `${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(next)}`
+          : next,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed. Please try again.");
     } finally {
@@ -70,9 +81,6 @@ export default function LoginPage() {
           <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <Link className="font-semibold text-brand-600 underline" href="/forgot-password">
               Forgot your password?
-            </Link>
-            <Link className="font-semibold text-brand-600 underline" href="/resend-confirmation">
-              Didn&apos;t get the confirmation email?
             </Link>
           </p>
           <p className="text-sm text-muted">

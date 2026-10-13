@@ -1,15 +1,53 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("account recovery", () => {
-  test("login links to password reset and the confirmation email", async ({ page }) => {
+  test("login links to password help, and no longer to the confirmation email", async ({
+    page,
+  }) => {
     await page.goto("/login");
+    await expect(page.getByRole("link", { name: /confirmation email/i })).toHaveCount(0);
     await page.getByRole("link", { name: "Forgot your password?" }).click();
-    await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();
-    await page.goto("/login");
-    await page.getByRole("link", { name: "Didn't get the confirmation email?" }).click();
+    await expect(page.getByRole("heading", { name: "Forgot your password?" })).toBeVisible();
+  });
+
+  test("forgot password explains the admin reset and shows the support contacts", async ({
+    page,
+  }) => {
+    await page.goto("/forgot-password");
+    const main = page.getByRole("main");
+    await expect(
+      main.getByText(
+        "Message us on WhatsApp or email; after we confirm it's you, an admin resets your password.",
+      ),
+    ).toBeVisible();
+    await expect(main.getByRole("link", { name: /WhatsApp \+91 98712 76179/ })).toHaveAttribute(
+      "href",
+      /^https:\/\/wa\.me\/919871276179\?text=/,
+    );
+    await expect(main.getByRole("link", { name: /@gmail\.com$/ })).toHaveAttribute(
+      "href",
+      /^mailto:/,
+    );
+    await expect(main.getByLabel("Email address")).toHaveCount(0);
+  });
+
+  test("the resend-confirmation page still exists, but nothing links to it", async ({ page }) => {
+    await page.goto("/resend-confirmation");
     await expect(
       page.getByRole("heading", { name: "Resend the confirmation email" }),
     ).toBeVisible();
+    for (const path of ["/", "/login", "/register", "/forgot-password"]) {
+      await page.goto(path);
+      await expect(page.locator('a[href="/resend-confirmation"]')).toHaveCount(0);
+    }
+  });
+
+  test("changing your password asks you to log in first", async ({ page }) => {
+    await page.goto("/account/change-password");
+    await expect(page.getByRole("link", { name: "Log in first" })).toHaveAttribute(
+      "href",
+      "/login?next=%2Faccount%2Fchange-password",
+    );
   });
 
   test("the reset page needs a link from the email", async ({ page }) => {

@@ -46,6 +46,19 @@ select check_name, ok
         exists (select 1 from pg_proc where proname = 'is_staff' and prosrc like '%is_admin()%')),
     (11, 'Hub tags continue after the sample listings',
         (select last_number from public.item_counters where hub_code = 'JMU')
-          >= coalesce((select max(id) from public.listings), 0))
+          >= coalesce((select max(id) from public.listings), 0)),
+    (12, 'Password reset: users cannot change their own must_change_password flag',
+        not has_column_privilege('authenticated', 'public.profiles', 'must_change_password', 'UPDATE')
+        and not has_column_privilege('anon', 'public.profiles', 'must_change_password', 'UPDATE')),
+    (13, 'Audit log: no visitor access, no writes by signed-in users, and no password column',
+        not has_table_privilege('anon', 'public.admin_audit_log', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.admin_audit_log', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.admin_audit_log', 'UPDATE')
+        and not exists (select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'admin_audit_log'
+                           and column_name ilike '%pass%')),
+    (14, 'A temporary password opens nothing: admin and staff checks respect the flag',
+        (select count(*) from pg_proc
+          where proname in ('is_admin', 'is_staff') and prosrc like '%password_change_pending()%') = 2)
   ) as c(n, check_name, ok)
  order by n;

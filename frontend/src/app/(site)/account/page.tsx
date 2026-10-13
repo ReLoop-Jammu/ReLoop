@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { authenticatedFetch, getSession, logoutAccount } from "@/lib/auth-client";
+import {
+  authenticatedFetch,
+  CHANGE_PASSWORD_PATH,
+  getSession,
+  logoutAccount,
+  mustChangePassword,
+} from "@/lib/auth-client";
 
 type Profile = { full_name: string; role: "buyer" | "shop_owner" | "admin" };
 
@@ -29,6 +35,10 @@ export default function AccountPage() {
       try {
         if (!getSession()) {
           window.location.replace("/login");
+          return;
+        }
+        if (await mustChangePassword()) {
+          window.location.replace(CHANGE_PASSWORD_PATH);
           return;
         }
         const [p, s] = await Promise.all([
@@ -103,6 +113,12 @@ export default function AccountPage() {
               <Button variant="secondary" onClick={signOut}>
                 Log out
               </Button>
+              <Link
+                className="inline-flex min-h-11 items-center rounded-full px-4 font-semibold text-brand-600 underline"
+                href={CHANGE_PASSWORD_PATH}
+              >
+                Change password
+              </Link>
               <Link
                 className="inline-flex min-h-11 items-center rounded-full px-4 font-semibold text-brand-600 underline"
                 href="/shop"

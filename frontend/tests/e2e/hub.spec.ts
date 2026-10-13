@@ -157,3 +157,11 @@ test.describe("KPI dashboard exports", () => {
     );
   });
 });
+
+test.describe("user admin", () => {
+  test("/hub/users asks visitors to log in and shows no accounts", async ({ page }) => {
+    await page.goto("/hub/users");
+    await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reset password" })).toHaveCount(0);
+  });
+});
