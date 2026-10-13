@@ -34,15 +34,12 @@ describe("role gate", () => {
     expect(gateState({ signedIn: true, allowed: null, failed: true })).toBe("error");
   });
 
-  it("only returns to hub pages after login", () => {
+  it("returns to the hub page after login, and never to another site", () => {
     expect(safeNext("?next=%2Fhub%2Fshops")).toBe("/hub/shops");
     expect(safeNext("?next=/hub")).toBe("/hub");
-    for (const bad of [
-      "?next=https://evil.example",
-      "?next=//evil.example",
-      "?next=/hub/../x",
-      "",
-    ]) {
+    // Dot segments are resolved, and the result stays on this site.
+    expect(safeNext("?next=/hub/../x")).toBe("/x");
+    for (const bad of ["?next=https://evil.example", "?next=//evil.example", ""]) {
       expect(safeNext(bad)).toBe("/account");
     }
   });

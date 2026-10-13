@@ -242,10 +242,16 @@ async function getAllPublicShopItems(): Promise<ShopItem[]> {
   return combineStock(hubItems, fromListings);
 }
 
-/** Real stock if there is any; otherwise the sample listings (exported for tests). */
+/**
+ * Real stock if there is any; otherwise the sample listings (exported for
+ * tests). A listing whose shop ID equals a hub item's tag is dropped: hub tags
+ * win, so an ID always leads to exactly one item.
+ */
 export function combineStock(hubItems: ShopItem[], fromListings: ShopItem[]): ShopItem[] {
-  const real = [...hubItems, ...fromListings.filter((i) => !i.sample)];
-  return real.length > 0 ? real : fromListings;
+  const hubIds = new Set(hubItems.map((i) => i.id));
+  const listings = fromListings.filter((i) => !hubIds.has(i.id));
+  const real = [...hubItems, ...listings.filter((i) => !i.sample)];
+  return real.length > 0 ? real : listings;
 }
 
 export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): ShopItem[] {

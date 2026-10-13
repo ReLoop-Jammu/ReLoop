@@ -44,6 +44,32 @@ export async function userFromToken(token: string): Promise<{ id: string; email?
   return user.id ? { id: user.id, ...(user.email ? { email: user.email } : {}) } : null;
 }
 
+/**
+ * Whether `password` is this email's current password, checked with a
+ * throwaway sign-in that is signed out again at once. Throws when the auth
+ * service can't answer (rate limit, outage), so that isn't mistaken for a
+ * wrong password.
+ */
+export async function passwordMatches(email: string, password: string): Promise<boolean> {
+  const r = await fetch(`${URL_}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: SERVICE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+    cache: "no-store",
+  });
+  if (r.status === 400 || r.status === 401) return false;
+  if (!r.ok) throw new Error(`Password check failed (${r.status})`);
+  const session = (await r.json().catch(() => ({}))) as { access_token?: string };
+  if (session.access_token) {
+    await fetch(`${URL_}/auth/v1/logout?scope=local`, {
+      method: "POST",
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${session.access_token}` },
+      cache: "no-store",
+    }).catch(() => {});
+  }
+  return true;
+}
+
 /** Asks the database, as the caller, whether they are an admin (false while a password change is pending). */
 export async function callerIsAdmin(token: string): Promise<boolean> {
   const r = await fetch(`${URL_}/rest/v1/rpc/is_admin`, {

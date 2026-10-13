@@ -67,10 +67,15 @@ export async function listShopSubmissions(): Promise<ShopSubmission[]> {
   });
 }
 
-/** A shop owner's own submissions (Row Level Security shows only theirs). */
+/**
+ * The signed-in shop owner's own submissions. Filtered by owner: staff and
+ * admins may read every shop's rows.
+ */
 export async function myShopSubmissions(): Promise<ShopSubmission[]> {
+  const me = getSession()?.user.id;
+  if (!me) return [];
   return rest<ShopSubmission[]>(
-    "shop_submissions?select=id,item_name,quantity,condition,status,offer_price,offer_note,rejection_reason,reviewed_at,created_at&order=created_at.desc",
+    `shop_submissions?select=id,item_name,quantity,condition,status,offer_price,offer_note,rejection_reason,reviewed_at,created_at&shop_owner_id=eq.${me}&order=created_at.desc`,
   );
 }
 

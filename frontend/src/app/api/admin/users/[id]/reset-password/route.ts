@@ -30,6 +30,17 @@ export async function POST(
   }
 
   try {
+    // Admins can't reset each other: an admin's password is changed only by that admin.
+    const [staffAdmin, activeAdmin] = await Promise.all([
+      serviceRest<unknown[]>(`staff?select=user_id&user_id=eq.${id}&role=eq.admin`),
+      serviceRest<unknown[]>(`admin_users?select=id&id=eq.${id}&is_active=eq.true`),
+    ]);
+    if (staffAdmin.length || activeAdmin.length) {
+      return reply(
+        { error: "That account is an admin. Admins change their own password from their account." },
+        403,
+      );
+    }
     // Flag first: if anything after this fails, the account still has to change its password.
     const flagged = await serviceRest<unknown[]>(`profiles?user_id=eq.${id}`, {
       method: "PATCH",

@@ -5,7 +5,7 @@ import { Plus, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "./RequestForm";
 import Link from "next/link";
-import { getSession } from "@/lib/auth-client";
+import { getSession, siteFetch } from "@/lib/auth-client";
 import { SUBMISSION_CONDITIONS } from "../conditions";
 
 type ItemDraft = {
@@ -86,14 +86,10 @@ export function ShopSubmissionForm() {
     }
     setBusy(true);
     try {
-      const session = getSession();
-      if (!session?.access_token) throw new Error("Please log in to submit items.");
-      const response = await fetch("/api/shop-submissions", {
+      if (!getSession()?.access_token) throw new Error("Please log in to submit items.");
+      // siteFetch refreshes an expired login token before sending.
+      const response = await siteFetch("/api/shop-submissions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
         body: JSON.stringify({ shopName, ownerName, phone, email, address, city, items, website }),
       });
       const result = (await response.json()) as { ok?: boolean; count?: number; error?: string };

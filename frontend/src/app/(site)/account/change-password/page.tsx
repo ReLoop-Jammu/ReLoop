@@ -15,6 +15,7 @@ export default function ChangePasswordPage() {
   const router = useRouter();
   const signedIn = useSyncExternalStore(noSubscribe, isSignedIn, () => false);
   const [forced, setForced] = useState(false);
+  const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [again, setAgain] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,7 +41,7 @@ export default function ChangePasswordPage() {
     }
     setBusy(true);
     try {
-      await changePassword(password);
+      await changePassword(password, forced ? undefined : current);
       router.push(safeNext(window.location.search));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Your password wasn't changed.");
@@ -74,6 +75,20 @@ export default function ChangePasswordPage() {
             onSubmit={submit}
             className="mt-8 space-y-4 rounded-2xl border border-line bg-surface p-5 sm:p-7"
           >
+            {!forced && (
+              <label className="grid gap-1.5 text-sm font-medium">
+                Current password
+                <input
+                  className={inputClass}
+                  required
+                  type="password"
+                  maxLength={128}
+                  value={current}
+                  onChange={(e) => setCurrent(e.target.value)}
+                  autoComplete="current-password"
+                />
+              </label>
+            )}
             <label className="grid gap-1.5 text-sm font-medium">
               New password
               <input

@@ -100,4 +100,13 @@ describe("hub items in the shop", () => {
     expect(combineStock([], [sample])).toEqual([sample]);
     expect(combineStock([real], [sample])).toEqual([real]);
   });
+
+  it("keeps one item per ID: a listing with a hub item's tag is dropped", () => {
+    const hub = hubItemToShopItem(row, "")!;
+    const clash = { ...hub, title: "Old listing", sample: false };
+    const other = { ...hub, id: "RL-JMU-0099", title: "Another listing", sample: false };
+    const shown = combineStock([hub], [clash, other]);
+    expect(shown.map((i) => i.title)).toEqual([hub.title, "Another listing"]);
+    expect(new Set(shown.map((i) => i.id)).size).toBe(shown.length);
+  });
 });
