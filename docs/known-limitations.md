@@ -24,7 +24,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
   - So password-reset and resend-confirmation emails (`/forgot-password`, `/resend-confirmation`) won't reach ordinary users yet.
   - Fix: Gmail SMTP in Supabase → Authentication → Emails: host `smtp.gmail.com`, port 465, the shared ReLoop Gmail with an app password, sender name "ReLoop Jammu".
 - **Login sessions live in the browser** (`localStorage`), not in secure HTTP-only cookies. A script injected into the page could read them.
-  - There's no automatic session refresh, so a login lasts about an hour.
+  - Sessions are refreshed automatically shortly before the hourly access token expires. If the refresh fails, the user is logged out.
   - Fix: cookie-based sessions via server routes. The earlier, reverted commit `39f28da` shows the shape.
 - **One shared admin account.** The team shares one admin login, so you can't tell who verified a shop. Fix: one admin account per person (`supabase-fixes/make-admin.sql`).
 - **GSTIN is checked for format only** (15 letters or numbers), not against the government's GST database. A person still reviews every shop on `/hub/shops`.
@@ -58,7 +58,19 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
 
 ## 6. Staff hub
 
-- **Until Batch D ships,** the hub (`/hub`) stores its data in each browser only, has no login, and isn't connected to Supabase. That's fine for one hub laptop, but staff can't share data.
-- Hub items the hub marks "List online" don't appear in the public shop yet.
+The hub (`/hub`) now runs on the shared Supabase database, behind a staff login. The previous, device-only hub is used only in local development and CI.
 
-_This section is updated when the staff hub moves to Supabase._
+- **Who can use it:** hub staff and admins. Today that's only the shared ReLoop admin account. Add staff with a row in `public.staff`, or admins with `supabase-fixes/make-admin.sql`.
+- **Tags:** RL-JMU numbers come from the database. The first real item gets `RL-JMU-0006`, because 0001–0005 are taken by the sample listings.
+- **Stock rules:** the day-45 price cut (20%) and day-75 downgrade to C run every day at 06:00 IST (`pg_cron`, `supabase-fixes/2026-10-18-stock-rules-cron.sql`). The dashboard's button runs them too. Each happens once per item, however often the rules run; tests run them repeatedly to prove it.
+- **What visitors see:** only shop-facing item columns, and only for listed items. Buy price, supplier, payment, faults, rack and other staff-only fields are never readable by visitors or buyers. `supabase-fixes/live-checks-extra.sql` checks this.
+- **Item photos are public by link.** They're stored in the public `item-photos` bucket, so anyone with a photo's exact address can open it, even before the item is listed. The addresses aren't listed anywhere public. Fix: a private bucket with signed links for unlisted items.
+- **CSV exports** (dashboard): items and monthly KPIs, for hub staff only. They exclude supplier contact names and phone numbers, and household sellers' names.
+- **Device data:** items saved in a browser before the move can be copied to the shared database from `/hub/data`, but only items a person ticks and confirms as real. Copied items get new tags; the old tag is noted in their history.
+- **Not built yet:**
+  - repair-partner fee tracking beyond the repair log;
+  - label or barcode printing;
+  - offline use;
+  - more than one hub;
+  - automatic Instagram posts for price cuts.
+- **The public "Sell to us" forms** still hand off to WhatsApp or email. They don't write to the database.

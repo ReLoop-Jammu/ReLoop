@@ -12,10 +12,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { LogoMark } from "@/components/brand/Logo";
+import { SHARED_DATABASE } from "@/features/inventory/store";
+import { logoutAccount } from "@/lib/auth-client";
 import { cn } from "@/lib/utils/cn";
+import { HUB_ERROR_EVENT } from "../useHubData";
+import { RequireRole } from "./RequireRole";
 
 const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/hub", label: "Dashboard", icon: LayoutDashboard },
@@ -24,7 +28,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/hub/partners", label: "Shops & institutions", icon: Store },
   { href: "/hub/handovers", label: "Recycler handovers", icon: Recycle },
   { href: "/hub/shops", label: "Shop verification", icon: BadgeCheck },
-  { href: "/hub/data", label: "Backup & publish", icon: Database },
+  { href: "/hub/data", label: "Data & exports", icon: Database },
 ];
 
 export function HubShell({ children }: { children: ReactNode }) {
@@ -71,18 +75,64 @@ export function HubShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
       <div className="min-w-0 flex-1">
-        <p className="border-b border-gold-400/50 bg-gold-100 px-4 py-2 text-xs text-gold-700 sm:px-8">
-          <strong>This device only:</strong> hub data is saved in this browser and is not shared.
-          Use one hub laptop and export a backup every day from{" "}
-          <Link href="/hub/data" className="underline">
-            Backup &amp; publish
-          </Link>
-          .
-        </p>
+        {SHARED_DATABASE ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-sunken px-4 py-2 text-xs text-ink-soft sm:px-8">
+            <span>
+              <strong>Shared database:</strong> everything you save here is stored for all hub
+              staff.
+            </span>
+            <SignOut />
+          </div>
+        ) : (
+          <p className="border-b border-gold-400/50 bg-gold-100 px-4 py-2 text-xs text-gold-700 sm:px-8">
+            <strong>This device only:</strong> hub data is saved in this browser and is not shared.
+            Use one hub laptop and export a backup every day from{" "}
+            <Link href="/hub/data" className="underline">
+              Data &amp; exports
+            </Link>
+            .
+          </p>
+        )}
+        <HubErrors />
         <main id="main" className="px-4 py-6 sm:px-8 sm:py-8">
-          {children}
+          {SHARED_DATABASE ? <RequireRole role="staff">{children}</RequireRole> : children}
         </main>
       </div>
     </div>
+  );
+}
+
+function SignOut() {
+  const router = useRouter();
+  return (
+    <button
+      type="button"
+      className="font-semibold text-brand-600 underline"
+      onClick={() => void logoutAccount().then(() => router.push("/login?next=%2Fhub"))}
+    >
+      Log out
+    </button>
+  );
+}
+
+/** Shows the latest error from loading or saving hub data, so nothing fails silently. */
+function HubErrors() {
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    const show = (e: Event) => setMessage((e as CustomEvent<string>).detail);
+    window.addEventListener(HUB_ERROR_EVENT, show);
+    return () => window.removeEventListener(HUB_ERROR_EVENT, show);
+  }, []);
+  if (!message) return null;
+  return (
+    <p
+      role="alert"
+      className="flex justify-between gap-4 bg-danger/10 px-4 py-2 text-sm text-danger sm:px-8"
+    >
+      {message}
+      <button type="button" className="underline" onClick={() => setMessage("")}>
+        Dismiss
+      </button>
+    </p>
   );
 }

@@ -605,7 +605,8 @@ describe("admin shop verification (/hub/shops)", () => {
     const r = await as(db, admin, (tx) =>
       tx.query("select public.is_admin() as a, public.is_staff() as s"),
     );
-    assert.deepEqual(r.rows[0], { a: true, s: false });
+    // Admins count as hub staff (20261018000001).
+    assert.deepEqual(r.rows[0], { a: true, s: true });
     const b = await as(db, buyer, (tx) => tx.query("select public.is_admin() as a"));
     assert.equal(b.rows[0].a, false);
   });
@@ -698,5 +699,175 @@ describe("supabase-fixes/live-checks-extra.sql", () => {
       rows.filter((r) => !r.ok).map((r) => r.check_name),
       [],
     );
+  });
+});
+
+describe("staff hub on Supabase (20261018000001)", () => {
+  let db;
+  let staff;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Hub Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+  });
+
+  async function listedItem(
+    daysAgo,
+    { pricePaise = 100000, category = "laptop", grade = "A", partType = null } = {},
+  ) {
+    // Valid for sale: wiped (laptops must be) and, for parts, with a part type.
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, part_type, buy_mode, grade, current_paise, list_paise,
+                                 status, listed_at, wiped_at)
+       values ('repair_shop', $1, $5, 'cash', $2, $3, $3, 'listed', now() - make_interval(days => $4), now())
+       returning id`,
+      [category, grade, pricePaise, daysAgo, partType],
+    );
+    return rows[0].id;
+  }
+  const item = async (id) =>
+    (
+      await db.query(
+        "select grade, status, current_paise, price_cut_at from public.items where id = $1",
+        [id],
+      )
+    ).rows[0];
+  const runAt = (days) =>
+    db.query("select public.apply_stock_rules(now() + make_interval(days => $1))", [days]);
+
+  test("the day-45 cut and the day-75 downgrade each happen once, however often the rules run", async () => {
+    const id = await listedItem(0);
+    for (let i = 0; i < 3; i++) await runAt(0);
+    assert.equal((await item(id)).current_paise, 100000, "nothing before day 45");
+
+    for (let i = 0; i < 3; i++) await runAt(46);
+    const cut = await item(id);
+    assert.equal(cut.current_paise, 80000, "cut by 20% once");
+    for (const d of [50, 60, 74]) await runAt(d);
+    assert.equal((await item(id)).current_paise, 80000, "never cut again");
+
+    for (let i = 0; i < 3; i++) await runAt(76);
+    const after = await item(id);
+    assert.deepEqual([after.grade, after.status], ["C", "stripping"]);
+    await runAt(120);
+    assert.equal((await item(id)).current_paise, 80000, "a stripped item is left alone");
+  });
+
+  test("parts are cut once but not downgraded, and a cheap item never breaks the run", async () => {
+    const part = await listedItem(80, {
+      category: "part",
+      grade: "C",
+      pricePaise: 50000,
+      partType: "board",
+    });
+    const cheap = await listedItem(50, { pricePaise: 1000 });
+    for (let i = 0; i < 2; i++) await runAt(0);
+    assert.deepEqual(
+      [(await item(part)).status, (await item(part)).current_paise],
+      ["listed", 40000],
+    );
+    assert.equal((await item(cheap)).current_paise, 1000, "never below Rs 10");
+  });
+
+  test("staff run the rules from the dashboard; buyers and visitors can't", async () => {
+    const n = await as(db, staff, (tx) => tx.query("select public.run_stock_rules() as n"));
+    assert.equal(typeof n.rows[0].n, "number");
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select public.run_stock_rules()")),
+      /Only hub staff/,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select public.run_stock_rules()")),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("select public.apply_stock_rules()")),
+      /permission denied/,
+    );
+  });
+
+  test("visitors read listed items' shop columns only; buyers read no items", async () => {
+    const id = await listedItem(1);
+    const shop = await as(db, null, (tx) =>
+      tx.query(
+        "select id, category, grade, brand, model, current_paise, list_paise, price_cut_at, listed_at from public.items where status = 'listed'",
+      ),
+    );
+    assert.ok(shop.rows.some((r) => r.id === id));
+    for (const col of [
+      "buy_paise",
+      "source_name",
+      "source_contact_name",
+      "source_phone",
+      "purchase_payment_method",
+      "faults",
+      "created_by",
+    ]) {
+      await assert.rejects(
+        as(db, null, (tx) => tx.query(`select ${col} from public.items`)),
+        /permission denied/,
+        col,
+      );
+    }
+    const mine = await as(db, buyer, (tx) => tx.query("select id from public.items"));
+    assert.equal(mine.rows.length, 0);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select fee_paise from public.repair_jobs")),
+      /permission denied/,
+    );
+  });
+
+  test("the first hub tag comes after the sample listings", async () => {
+    const fresh = await createTestDb({ migrations: LIVE, seed: false });
+    await fresh.exec(readSql(FIX_SCRIPT));
+    for (let i = 0; i < 5; i++)
+      await fresh.query("insert into public.listings (title, price) values ('Sample', 1)");
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await fresh.exec(readSql(m));
+    const s = await createUser(fresh, "Staff", { staff: true });
+    const { rows } = await as(fresh, s, (tx) =>
+      tx.query(
+        "insert into public.items (source_type, category, buy_mode) values ('household', 'phone', 'cash') returning id",
+      ),
+    );
+    assert.equal(rows[0].id, "RL-JMU-0006");
+  });
+});
+
+describe("item notes (20261018000001)", () => {
+  test("staff can add a note to an item's history; buyers can't", async () => {
+    const db = await createTestDb({ seed: false });
+    const staff = await createUser(db, "Staff", { staff: true });
+    const buyer = await createUser(db, "Buyer");
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query(
+        "insert into public.items (source_type, category, buy_mode) values ('household', 'phone', 'cash') returning id",
+      ),
+    );
+    const id = rows[0].id;
+    await as(db, staff, (tx) =>
+      tx.query(
+        "insert into public.item_events (item_id, type, note) values ($1, 'note', 'Sent for a screen')",
+        [id],
+      ),
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query("insert into public.item_events (item_id, type, note) values ($1, 'note', 'x')", [
+          id,
+        ]),
+      ),
+    );
+    const history = await as(db, staff, (tx) =>
+      tx.query(
+        "select type, note, actor = $2 as mine from public.item_events where item_id = $1 order by id",
+        [id, staff],
+      ),
+    );
+    assert.deepEqual(
+      history.rows.map((r) => r.type),
+      ["received", "note"],
+    );
+    assert.equal(history.rows[1].mine, true);
   });
 });

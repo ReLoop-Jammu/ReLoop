@@ -1,8 +1,8 @@
 import "server-only";
 
 import snapshot from "@/data/shop-snapshot.json";
-import { shipsAcrossIndia } from "@/features/inventory/model";
-import { shopSnapshotSchema, type ShopFilters, type ShopItem } from "./model";
+import { shipsAcrossIndia, type Item } from "@/features/inventory/model";
+import { shopSnapshotSchema, toShopItem, type ShopFilters, type ShopItem } from "./model";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY =
@@ -172,14 +172,80 @@ export function listingToShopItem(
   };
 }
 
+/** The shop-facing columns of a hub item: all that visitors may read (see 20261018000001). */
+export type PublicHubItem = {
+  id: string;
+  category: Item["category"];
+  part_type: Item["partType"] | null;
+  grade: Item["grade"];
+  brand: string;
+  model: string;
+  description: string;
+  checklist: Record<string, boolean>;
+  wiped_at: string | null;
+  list_paise: number | null;
+  current_paise: number | null;
+  price_cut_at: string | null;
+  status: Item["status"];
+  listed_at: string | null;
+  item_photos: { position: number; storage_path: string }[];
+};
+
+const HUB_ITEM_SELECT =
+  "id,category,part_type,grade,brand,model,description,checklist,wiped_at,list_paise,current_paise,price_cut_at,status,listed_at,item_photos(position,storage_path)";
+
+/** A listed hub item as the shop shows it (exported for tests). */
+export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopItem | null {
+  const photos = [...(row.item_photos ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map((p) => `${photoBase}/${p.storage_path}`);
+  return toShopItem({
+    id: row.id,
+    category: row.category,
+    ...(row.part_type && { partType: row.part_type }),
+    grade: row.grade,
+    brand: row.brand,
+    model: row.model,
+    description: row.description,
+    checklist: row.checklist ?? {},
+    dataWipe: { required: false, ...(row.wiped_at && { doneAt: row.wiped_at }) },
+    listPaise: row.list_paise === null ? null : Number(row.list_paise),
+    currentPaise: row.current_paise === null ? null : Number(row.current_paise),
+    ...(row.price_cut_at && { priceCutAt: row.price_cut_at }),
+    status: row.status,
+    ...(row.listed_at && { listedAt: row.listed_at }),
+    photos,
+  } as Item);
+}
+
+async function getHubItems(): Promise<ShopItem[]> {
+  const rows = await supabaseFetch<PublicHubItem[]>(
+    `items?select=${HUB_ITEM_SELECT}&status=eq.listed&order=listed_at.desc`,
+  );
+  const photoBase = `${SUPABASE_URL}/storage/v1/object/public/item-photos`;
+  return rows
+    .map((row) => hubItemToShopItem(row, photoBase))
+    .filter((item): item is ShopItem => item !== null);
+}
+
+/**
+ * Listed hub items and live listings. Sample listings show only while there
+ * is no real stock, so they disappear by themselves once the hub lists items.
+ */
 async function getAllPublicShopItems(): Promise<ShopItem[]> {
   if (USE_SAMPLE_STOCK) return shopSnapshotSchema.parse(snapshot).items;
 
-  const { listings, categories } = await getShopData();
-
-  return listings
+  const [{ listings, categories }, hubItems] = await Promise.all([getShopData(), getHubItems()]);
+  const fromListings = listings
     .map((listing) => listingToShopItem(listing, categories))
     .filter((item): item is ShopItem => item !== null);
+  return combineStock(hubItems, fromListings);
+}
+
+/** Real stock if there is any; otherwise the sample listings (exported for tests). */
+export function combineStock(hubItems: ShopItem[], fromListings: ShopItem[]): ShopItem[] {
+  const real = [...hubItems, ...fromListings.filter((i) => !i.sample)];
+  return real.length > 0 ? real : fromListings;
 }
 
 export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): ShopItem[] {

@@ -117,8 +117,47 @@ export async function logoutAccount() {
   saveSession(null);
 }
 
-export async function authenticatedFetch(path: string, init: RequestInit = {}) {
+/** Access tokens last about an hour; swap the refresh token for a new pair shortly before. */
+export function needsRefresh(session: AuthSession, nowSeconds = Date.now() / 1000): boolean {
+  return Boolean(session.expires_at && session.expires_at - 60 <= nowSeconds);
+}
+
+let refreshing: Promise<AuthSession | null> | null = null;
+
+async function currentSession(): Promise<AuthSession | null> {
   const session = getSession();
+  if (!session?.access_token || !needsRefresh(session)) return session;
+  // One refresh at a time, even when several requests start together.
+  refreshing ??= (async () => {
+    try {
+      const data = await authRequest("token?grant_type=refresh_token", {
+        refresh_token: session.refresh_token,
+      });
+      if (typeof data.access_token !== "string" || typeof data.refresh_token !== "string") {
+        throw new Error("No session returned");
+      }
+      const next: AuthSession = {
+        ...session,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        ...(typeof data.expires_in === "number" && {
+          expires_at: Math.floor(Date.now() / 1000) + data.expires_in,
+        }),
+      };
+      saveSession(next);
+      return next;
+    } catch {
+      saveSession(null);
+      return null;
+    } finally {
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+
+export async function authenticatedFetch(path: string, init: RequestInit = {}) {
+  const session = await currentSession();
   if (!session?.access_token) throw new Error("Please log in to continue.");
   const { base, key } = config();
   return fetch(`${base}${path}`, {
