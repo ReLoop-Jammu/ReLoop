@@ -6,7 +6,13 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { authenticatedFetch, getSession, logoutAccount } from "@/lib/auth-client";
 
-type Profile = { full_name: string; role: "buyer" | "shop_owner" };
+type Profile = { full_name: string; role: "buyer" | "shop_owner" | "admin" };
+
+const ROLE_LABEL: Record<Profile["role"], string> = {
+  buyer: "Buyer",
+  shop_owner: "Shop owner",
+  admin: "ReLoop admin",
+};
 type ShopProfile = {
   shop_name: string;
   gstin: string;
@@ -69,9 +75,7 @@ export default function AccountPage() {
         ) : profile ? (
           <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
             <h2 className="text-xl font-bold">Welcome, {profile.full_name}</h2>
-            <p className="mt-2 text-muted">
-              Account type: {profile.role === "shop_owner" ? "Shop owner" : "Buyer"}
-            </p>
+            <p className="mt-2 text-muted">Account type: {ROLE_LABEL[profile.role] ?? "Buyer"}</p>
             {profile.role === "shop_owner" && (
               <div className="mt-5 rounded-xl bg-sunken p-4">
                 <p className="font-semibold">Shop verification</p>

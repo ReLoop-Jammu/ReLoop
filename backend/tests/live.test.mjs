@@ -481,3 +481,81 @@ describe("supabase-fixes/make-admin.sql", () => {
     assert.equal(isAdmin.rows[0].yes, true);
   });
 });
+
+describe("the admin account role", () => {
+  const TIDY = "../supabase-fixes/tidy-admin-account.sql";
+  const leftoverAdmin = async (db, name) => {
+    const id = await createUser(db, name, {
+      meta: { account_type: "shop_owner", shop_name: name, business_address: name },
+    });
+    await db.query("insert into public.admin_users (id, name) values ($1, $2)", [id, name]);
+    return id;
+  };
+  const failing = async (db, message) => {
+    await assert.rejects(db.exec(readSql(TIDY)), message);
+    await db.exec("rollback");
+  };
+  const liveDb = async () => {
+    const db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    return db;
+  };
+
+  test("nobody can sign up as an admin", async () => {
+    const db = await createTestDb({ seed: false });
+    const id = await createUser(db, "Sneaky", { meta: { account_type: "admin" } });
+    const { rows } = await db.query("select role from public.profiles where user_id = $1", [id]);
+    assert.equal(rows[0].role, "buyer");
+  });
+
+  test("tidy-admin-account.sql turns the leftover shop owner into a confirmed 'ReLoop Admin'", async () => {
+    const db = await liveDb();
+    const id = await leftoverAdmin(db, "wer");
+    await db.exec(readSql(TIDY));
+    const { rows } = await db.query(
+      `select p.full_name, p.role::text, a.name, u.email_confirmed_at is not null as confirmed,
+              u.raw_user_meta_data ->> 'full_name' as meta_name,
+              exists (select 1 from public.shop_owners where id = $1) as has_shop
+         from public.profiles p join public.admin_users a on a.id = p.user_id join auth.users u on u.id = p.user_id
+        where p.user_id = $1`,
+      [id],
+    );
+    assert.deepEqual(rows[0], {
+      full_name: "ReLoop Admin",
+      role: "admin",
+      name: "ReLoop Admin",
+      confirmed: true,
+      meta_name: "ReLoop Admin",
+      has_shop: false,
+    });
+    const isAdmin = await as(db, id, (tx) => tx.query("select public.is_admin() as yes"));
+    assert.equal(isAdmin.rows[0].yes, true);
+    await db.exec(readSql(TIDY));
+  });
+
+  test("refuses, changing nothing, if the shop row has a submission", async () => {
+    const db = await liveDb();
+    const id = await leftoverAdmin(db, "wer");
+    await db.query(
+      "insert into public.shop_submissions (shop_owner_id, item_name) values ($1, 'TV')",
+      [id],
+    );
+    await failing(db, /the admin's shop row looks real \(status pending, 1 submissions\)/);
+    const { rows } = await db.query(
+      "select (select role::text from public.profiles where user_id = $1) as role, (select count(*)::int from public.shop_owners where id = $1) as shops",
+      [id],
+    );
+    assert.deepEqual(rows[0], { role: "shop_owner", shops: 1 });
+  });
+
+  test("refuses if the shop was ever verified, or if there isn't exactly one admin", async () => {
+    const db = await liveDb();
+    const id = await leftoverAdmin(db, "wer");
+    await db.query("update public.shop_owners set verification_status = 'verified' where id = $1", [
+      id,
+    ]);
+    await failing(db, /looks real \(status verified, 0 submissions\)/);
+    await leftoverAdmin(db, "second");
+    await failing(db, /expected exactly one active admin, found 2/);
+  });
+});

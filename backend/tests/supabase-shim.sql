@@ -14,6 +14,7 @@ create table auth.users (
   role text,
   raw_user_meta_data jsonb not null default '{}',
   created_at timestamptz not null default now(),
+  email_confirmed_at timestamptz,
   last_sign_in_at timestamptz
 );
 
