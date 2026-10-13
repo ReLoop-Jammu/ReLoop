@@ -31,3 +31,17 @@ export async function resetPassword(id: string): Promise<string> {
     )
   ).password;
 }
+
+/** Makes an account hub staff and/or an admin, or removes either (admins only; always one admin). */
+export async function setAccountRole(id: string, staff: boolean, admin: boolean): Promise<void> {
+  const { authenticatedFetch } = await import("@/lib/auth-client");
+  const response = await authenticatedFetch("/rest/v1/rpc/set_account_role", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ p_user: id, p_staff: staff, p_admin: admin }),
+  });
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "That change wasn't saved.");
+  }
+}

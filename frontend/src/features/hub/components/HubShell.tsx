@@ -11,6 +11,7 @@ import {
   PackagePlus,
   Recycle,
   Store,
+  UserCog,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -34,6 +35,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/hub/handovers", label: "Recycler handovers", icon: Recycle },
   { href: "/hub/shops", label: "Shop verification", icon: BadgeCheck },
   { href: "/hub/users", label: "Users", icon: Users },
+  { href: "/hub/team", label: "Team", icon: UserCog },
   { href: "/hub/data", label: "Data & exports", icon: Database },
 ];
 

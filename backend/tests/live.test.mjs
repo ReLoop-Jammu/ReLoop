@@ -692,7 +692,8 @@ describe("awareness-drive QR scans (20261017000001)", () => {
 
 describe("supabase-fixes/live-checks-extra.sql", () => {
   test("every check is true on the repo schema", async () => {
-    const db = await createTestDb({ seed: false });
+    // With the seed, which (like live) has an admin.
+    const db = await createTestDb();
     const { rows } = await db.query(readSql("../supabase-fixes/live-checks-extra.sql"));
     assert.ok(rows.length > 0);
     assert.deepEqual(
@@ -1176,5 +1177,74 @@ describe("partner shops on the map (20261021000001)", () => {
       tx.query("update public.shop_owners set show_on_map = true where id = $1", [shop]),
     );
     assert.equal(rowCount, 0);
+  });
+});
+
+describe("team management (20261022000001)", () => {
+  let db;
+  let admin;
+  let user;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    user = await createUser(db, "Ravi");
+  });
+  const setRole = (who, target, staff, adminOn) =>
+    as(db, who, (tx) =>
+      tx.query("select public.set_account_role($1, $2, $3)", [target, staff, adminOn]),
+    );
+  const state = async (id) =>
+    (
+      await db.query(
+        `select exists (select 1 from public.staff where user_id = $1) as staff,
+                exists (select 1 from public.admin_users where id = $1 and is_active) as admin,
+                (select role::text from public.profiles where user_id = $1) as role`,
+        [id],
+      )
+    ).rows[0];
+
+  test("an admin promotes and demotes; the profile label follows; each change is logged", async () => {
+    await setRole(admin, user, true, false);
+    assert.deepEqual(await state(user), { staff: true, admin: false, role: "buyer" });
+    await setRole(admin, user, true, true);
+    assert.deepEqual(await state(user), { staff: true, admin: true, role: "admin" });
+    await setRole(admin, user, false, false);
+    assert.deepEqual(await state(user), { staff: false, admin: false, role: "buyer" });
+    const log = await db.query(
+      "select detail from public.admin_audit_log where action = 'role_change' order by id",
+    );
+    assert.deepEqual(
+      log.rows.map((r) => r.detail),
+      ["staff on, admin off", "staff on, admin on", "staff off, admin off"],
+    );
+  });
+
+  test("non-admins can't change roles", async () => {
+    await assert.rejects(setRole(user, user, true, true), /Only admins/);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select public.set_account_role($1, true, true)", [user])),
+      /permission denied/,
+    );
+  });
+
+  test("ReLoop always keeps at least one admin, however the change is made", async () => {
+    await assert.rejects(setRole(admin, admin, false, false), /at least one admin/);
+    await assert.rejects(
+      db.query("update public.admin_users set is_active = false"),
+      /at least one admin/,
+    );
+    await assert.rejects(db.query("delete from public.admin_users"), /at least one admin/);
+    await assert.rejects(
+      db.query("delete from auth.users where id = $1", [admin]),
+      /at least one admin/,
+    );
+    await setRole(admin, user, false, true);
+    await setRole(admin, admin, false, false);
+    assert.deepEqual(
+      await state(admin),
+      { staff: false, admin: false, role: "buyer" },
+      "with another admin, you can step down",
+    );
   });
 });

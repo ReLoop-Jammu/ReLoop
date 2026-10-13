@@ -159,6 +159,12 @@ test.describe("KPI dashboard exports", () => {
 });
 
 test.describe("user admin", () => {
+  test("/hub/team asks visitors to log in and shows no accounts", async ({ page }) => {
+    await page.goto("/hub/team");
+    await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Make admin" })).toHaveCount(0);
+  });
+
   test("/hub/users asks visitors to log in and shows no accounts", async ({ page }) => {
     await page.goto("/hub/users");
     await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
