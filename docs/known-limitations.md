@@ -40,13 +40,13 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
   - Fix: a per-IP limit at the edge (Vercel Firewall), or in the route.
 - **Preview deployments use the production database and keys.** Any branch preview reads and writes live data. Fix: a separate Supabase project for Preview.
 - **Photo links on shop submissions** are typed-in URLs (HTTPS only), not uploads, so they can point anywhere.
-- **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 37 of 37 true (2026-10-14). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
+- **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 39 of 39 true (round 4, batch 1). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
 
 ## 4. The loop (submissions, requests, map, team)
 
 - **Offers:** a shop accepts an offer by WhatsApp, not in the app. Staff then press "Create hub items" (one item per unit, linked to the submission).
 - **Reservations** don't hold an item by themselves, and nothing expires. Staff mark the item reserved or sold from `/hub/requests`.
-- **Deleting requests** after 12 months, as the privacy policy says, is done by hand. There's no scheduled clean-up yet.
+- **Deleting requests** is automatic: the daily `reloop-request-retention` job (22:00 UTC, 03:30 IST) deletes a request 12 months after it was closed (sold, cancelled or done), with its contact details. Open requests are kept until staff close them, so an inbox nobody tidies keeps its data. Shop submissions, hub items and the audit log are business records and are not deleted.
 - **Map consent** is recorded as a date ticked by an admin, not a signed form. Positions default to the shop's market, marked approximate.
 - **Unused live tables** (`enquiries`, `orders`, `institution_submissions`) from the hand-made schema are left in place; the site uses `submissions`.
 

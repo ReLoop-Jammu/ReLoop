@@ -694,6 +694,9 @@ describe("supabase-fixes/live-checks-extra.sql", () => {
   test("every check is true on the repo schema", async () => {
     // With the seed, which (like live) has an admin.
     const db = await createTestDb();
+    // The daily jobs, as scheduled live (PGlite has no extension to create).
+    for (const job of ["2026-10-18-stock-rules-cron.sql", "2026-10-23-request-retention-cron.sql"])
+      await db.exec(readSql(`../supabase-fixes/${job}`).replace(/^create extension.*$/m, ""));
     const { rows } = await db.query(readSql("../supabase-fixes/live-checks-extra.sql"));
     assert.ok(rows.length > 0);
     assert.deepEqual(
@@ -1246,5 +1249,133 @@ describe("team management (20261022000001)", () => {
       { staff: false, admin: false, role: "buyer" },
       "with another admin, you can step down",
     );
+  });
+});
+
+describe("request retention (20261023000001)", () => {
+  let db;
+  let staff;
+  before(async () => {
+    db = await createTestDb();
+    staff = await createUser(db, "Staff", { staff: true });
+    const owner = await shopOwner(db, "Ravi");
+    await db.query(
+      `insert into public.shop_submissions (shop_owner_id, item_name, quantity, condition)
+       values ($1, 'Old phones', 2, 'Damaged')`,
+      [owner],
+    );
+    await db.query(
+      "insert into public.admin_audit_log (action, detail) values ('role_change', 'keep me')",
+    );
+  });
+  const add = async (label, status, monthsAgo) => {
+    const { rows } = await db.query(
+      `insert into public.submissions (kind, fields) values ('reservation', $1) returning id`,
+      [{ name: label, phone: "9000000000" }],
+    );
+    // New requests always arrive as "new"; staff then change the status.
+    await db.query(
+      "update public.submissions set status = $2, created_at = now() - interval '3 years' where id = $1",
+      [rows[0].id, status],
+    );
+    if (monthsAgo !== null) {
+      // The trigger sets closed_at to now(); backdate it as if closed long ago.
+      await db.exec("alter table public.submissions disable trigger submissions_track_closed");
+      await db.query(
+        `update public.submissions set closed_at = now() - make_interval(months => $2::int) where id = $1`,
+        [rows[0].id, monthsAgo],
+      );
+      await db.exec("alter table public.submissions enable trigger submissions_track_closed");
+    }
+    return rows[0].id;
+  };
+  const names = async () =>
+    (await db.query("select fields->>'name' as n from public.submissions order by 1")).rows.map(
+      (r) => r.n,
+    );
+
+  test("closing sets closed_at once, moving between closed statuses keeps it, reopening clears it", async () => {
+    const id = await add("clock", "new", null);
+    const at = async () =>
+      (await db.query("select closed_at from public.submissions where id = $1", [id])).rows[0]
+        .closed_at;
+    assert.equal(await at(), null);
+    await as(db, staff, (tx) =>
+      tx.query("update public.submissions set status = 'done' where id = $1", [id]),
+    );
+    const first = await at();
+    assert.ok(first, "closing starts the clock");
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.submissions set status = 'cancelled', closed_at = '2000-01-01' where id = $1",
+        [id],
+      ),
+    );
+    assert.deepEqual(await at(), first, "staff can't backdate it, and a second close keeps it");
+    await as(db, staff, (tx) =>
+      tx.query("update public.submissions set status = 'contacted' where id = $1", [id]),
+    );
+    assert.equal(await at(), null, "reopening stops the clock");
+    await db.query("delete from public.submissions where id = $1", [id]);
+  });
+
+  test("deletes only requests closed more than 12 months ago, and nothing else", async () => {
+    await db.query("delete from public.submissions");
+    await add("closed 13 months ago (sold)", "sold", 13);
+    await add("closed 13 months ago (cancelled)", "cancelled", 13);
+    await add("closed 13 months ago (done)", "done", 13);
+    await add("closed 11 months ago", "done", 11);
+    await add("open, new, 3 years old", "new", null);
+    await add("open, contacted, 3 years old", "contacted", null);
+    const reopened = await add("reopened", "sold", 13);
+    await db.query("update public.submissions set status = 'contacted' where id = $1", [reopened]);
+
+    const others = async () =>
+      (
+        await db.query(
+          `select (select count(*) from public.items)::int as items,
+                  (select count(*) from public.shop_submissions)::int as shop,
+                  (select count(*) from public.admin_audit_log)::int as audit`,
+        )
+      ).rows[0];
+    const before = await others();
+    assert.ok(before.items > 0 && before.shop === 1 && before.audit === 1);
+
+    const { rows } = await db.query("select public.purge_closed_requests() as n");
+    assert.equal(rows[0].n, 3);
+    assert.deepEqual(await names(), [
+      "closed 11 months ago",
+      "open, contacted, 3 years old",
+      "open, new, 3 years old",
+      "reopened",
+    ]);
+    assert.deepEqual(
+      await others(),
+      before,
+      "items, shop submissions and the audit log are untouched",
+    );
+
+    const again = await db.query("select public.purge_closed_requests() as n");
+    assert.equal(again.rows[0].n, 0, "running it twice deletes nothing more");
+
+    const later = await db.query(
+      "select public.purge_closed_requests(now() + interval '1 month 1 day') as n",
+    );
+    assert.equal(later.rows[0].n, 1, "a month later, the 11-month-old one goes too");
+  });
+
+  test("visitors, shop owners and staff can't run the clean-up", async () => {
+    for (const user of [null, staff]) {
+      await assert.rejects(
+        as(db, user, (tx) => tx.query("select public.purge_closed_requests()")),
+        /permission denied/,
+      );
+    }
+  });
+
+  test("the daily job script schedules the clean-up", () => {
+    const cron = readSql("../supabase-fixes/2026-10-23-request-retention-cron.sql");
+    assert.match(cron, /cron\.schedule\('reloop-request-retention', '0 22 \* \* \*'/);
+    assert.match(cron, /public\.purge_closed_requests\(\)/);
   });
 });
