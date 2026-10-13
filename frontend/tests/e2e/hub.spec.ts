@@ -153,7 +153,7 @@ test.describe("KPI dashboard exports", () => {
     await page.getByRole("button", { name: "KPIs (CSV)" }).click();
     const kpiCsv = (await import("node:fs")).readFileSync(await (await kpis).path(), "utf8");
     expect(kpiCsv.split("\r\n")[0]).toBe(
-      "month,items_in,graded,grade_a,grade_b,grade_c,grade_d,reuse_pct,sold,scrap_kg",
+      "month,items_in,graded,grade_a,grade_b,grade_c,grade_d,reuse_pct,sold,scrap_kg,reservations,enquiries,institution_pickups,shop_submissions_in,shop_submissions_offered,shop_submissions_purchased,purchased_inr",
     );
   });
 });
@@ -164,4 +164,17 @@ test.describe("user admin", () => {
     await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Reset password" })).toHaveCount(0);
   });
+});
+
+test.describe("the loop in the hub (device mode)", () => {
+  for (const [path, heading] of [
+    ["/hub/requests", "Requests"],
+    ["/hub/submissions", "Shop submissions"],
+  ] as const) {
+    test(`${path} explains it needs the shared database`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(page.getByText(/kept in the shared database/)).toBeVisible();
+    });
+  }
 });

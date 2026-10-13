@@ -59,6 +59,8 @@ const PAGES = [
   "/hub/data",
   "/hub/shops",
   "/hub/users",
+  "/hub/requests",
+  "/hub/submissions",
   "/account/change-password",
   "/hub/items/RL-JMU-0042",
 ];

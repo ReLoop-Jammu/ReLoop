@@ -246,12 +246,21 @@ describe("who can see and change what", () => {
     await db.query("delete from public.staff where user_id = $1", [member]);
   });
 
-  test("anyone can send a request; only staff read it, and status can't be faked", async () => {
-    await as(db, null, (tx) =>
-      tx.query(
-        "insert into public.submissions (kind, fields, status) values ('shop_partner', '{\"shop\":\"Sharma Mobiles\"}', 'done')",
+  test("requests arrive only through the server; only staff read them, and status can't be faked", async () => {
+    // Visitors can't insert directly any more (20261020000001); the site's
+    // /api/requests route inserts with the service role.
+    await assert.rejects(
+      as(db, null, (tx) =>
+        tx.query("insert into public.submissions (kind, fields) values ('shop_partner', '{}')"),
       ),
+      /permission denied/,
     );
+    await db.transaction(async (tx) => {
+      await tx.exec("set local role service_role");
+      await tx.query(
+        "insert into public.submissions (kind, fields, status) values ('shop_partner', '{\"shop\":\"Sharma Mobiles\"}', 'done')",
+      );
+    });
     await assert.rejects(
       as(db, null, (tx) => tx.query("select * from public.submissions")),
       /permission denied/,

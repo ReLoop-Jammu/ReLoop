@@ -195,10 +195,12 @@ export type RepairJob = {
 /** Requests sent through the public "Sell to us" forms. */
 export type Submission = {
   id: string;
-  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "reservation";
+  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "reservation" | "enquiry";
   createdAt: string;
   fields: Record<string, string>;
-  status: "new" | "contacted" | "done";
+  /** Reservations and enquiries are about one item. */
+  itemId?: string;
+  status: "new" | "contacted" | "done" | "sold" | "cancelled";
 };
 
 export function categoryLabel(value: Category, plural = false): string {

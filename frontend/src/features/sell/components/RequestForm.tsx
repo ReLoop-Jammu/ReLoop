@@ -26,19 +26,22 @@ type Props = {
   fields: Field[];
   submitLabel: string;
   initial?: Record<string, string>;
+  /** The item a reservation or enquiry is about. */
+  itemId?: string;
 };
 
 export const inputClass =
   "min-h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-base text-ink transition placeholder:text-muted hover:border-line-strong focus:border-brand-500 focus:ring-3 focus:ring-brand-500/15 focus:outline-none aria-[invalid=true]:border-danger sm:text-sm";
 
 /** Generic sell-side request form with inline validation and WhatsApp/email handoff. */
-export function RequestForm({ kind, title, fields, submitLabel, initial = {} }: Props) {
+export function RequestForm({ kind, title, fields, submitLabel, initial = {}, itemId }: Props) {
   const formId = useId();
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.name, initial[f.name] ?? ""])),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState<string | null>(null);
+  const [saved, setSaved] = useState(true);
 
   const set = (name: string, value: string) => {
     setValues((v) => ({ ...v, [name]: value }));
@@ -68,12 +71,21 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {} }: 
       title,
       fields.map((f) => [f.label, values[f.name] ?? ""]),
     );
-    await addSubmission(kind, values);
+    setSaved((await addSubmission(kind, values, itemId)).saved);
     setSent(text);
   };
 
   if (sent)
-    return <HandoffPanel subject={`ReLoop: ${title}`} text={sent} onReset={() => setSent(null)} />;
+    return (
+      <>
+        {!saved && (
+          <p role="status" className="mb-3 text-sm text-muted">
+            We couldn&apos;t keep a copy of this request, so please send it to us below.
+          </p>
+        )}
+        <HandoffPanel subject={`ReLoop: ${title}`} text={sent} onReset={() => setSent(null)} />
+      </>
+    );
 
   return (
     <form noValidate onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">

@@ -2,15 +2,19 @@
 
 import { AlertTriangle, ArrowRight, Download, Info, PackagePlus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { STATUSES } from "@/features/inventory/model";
 import { hubAlerts } from "@/features/inventory/rules";
-import { dashboardStats } from "@/features/inventory/stats";
+import { dashboardStats, loopStats, type LoopMonth } from "@/features/inventory/stats";
+import { SHARED_DATABASE } from "@/features/inventory/store";
+import { listRequests, listShopSubmissions } from "../loop";
 import { cn } from "@/lib/utils/cn";
+import { formatPrice } from "@/lib/utils/money";
 import { itemsCsv, kpiCsv } from "../csv";
 import { downloadFile } from "../photos";
-import { useHubData } from "../useHubData";
+import { reportHubError, useHubData } from "../useHubData";
 import { PageTitle, Panel, Stat } from "./ui";
 
 const T = BUSINESS_RULES.targets;
@@ -18,6 +22,7 @@ const pct = (n: number | null) => (n === null ? "–" : `${Math.round(n * 100)}%
 
 export function Dashboard() {
   const { items, partners, institutions, handovers, loaded } = useHubData();
+  const loop = useLoop();
   const now = new Date();
   const stats = dashboardStats(items, handovers, partners, now);
   const month = now.toISOString().slice(0, 7);
@@ -129,6 +134,7 @@ export function Dashboard() {
       </div>
 
       <GradeSplit items={items} />
+      {SHARED_DATABASE && <LoopPanel month={loop.find((l) => l.month === month)} />}
 
       <Panel
         title="Month by month"
@@ -139,7 +145,7 @@ export function Dashboard() {
               type="button"
               className={buttonClasses({ size: "sm", variant: "secondary" })}
               onClick={() =>
-                downloadFile(`reloop-kpis-${month}.csv`, kpiCsv(stats.months), "text/csv")
+                downloadFile(`reloop-kpis-${month}.csv`, kpiCsv(stats.months, loop), "text/csv")
               }
             >
               <Download className="size-4" aria-hidden="true" /> KPIs (CSV)
@@ -252,6 +258,49 @@ function GradeSplit({ items }: { items: readonly { grade: "A" | "B" | "C" | "D" 
           </ul>
         </>
       )}
+    </Panel>
+  );
+}
+
+/** Requests and shop submissions by month (shared database only). */
+function useLoop(): LoopMonth[] {
+  const [loop, setLoop] = useState<LoopMonth[]>([]);
+  useEffect(() => {
+    if (!SHARED_DATABASE) return;
+    Promise.all([listRequests(), listShopSubmissions()])
+      .then(([requests, submissions]) => setLoop(loopStats(requests, submissions)))
+      .catch(reportHubError);
+  }, []);
+  return loop;
+}
+
+function LoopPanel({ month }: { month: LoopMonth | undefined }) {
+  const n = (v: number | undefined) => v ?? 0;
+  return (
+    <Panel title="The loop this month" className="mt-6">
+      <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        {[
+          ["Reservations", n(month?.reservations), "/hub/requests"],
+          ["Questions", n(month?.enquiries), "/hub/requests"],
+          ["Institution pickups", n(month?.institutionPickups), "/hub/requests"],
+          ["Shop submissions in", n(month?.submissionsIn), "/hub/submissions"],
+          ["Offers made", n(month?.submissionsOffered), "/hub/submissions"],
+          ["Bought from shops", n(month?.submissionsPurchased), "/hub/submissions"],
+        ].map(([label, value, href]) => (
+          <div key={label as string} className="rounded-lg bg-sunken p-3">
+            <dt className="text-xs text-muted">{label}</dt>
+            <dd className="mt-1 text-xl font-bold tabular-nums">
+              <Link href={href as string}>{value}</Link>
+            </dd>
+          </div>
+        ))}
+        <div className="rounded-lg bg-sunken p-3">
+          <dt className="text-xs text-muted">Paid to shops</dt>
+          <dd className="mt-1 text-xl font-bold tabular-nums">
+            {formatPrice(n(month?.purchasedPaise))}
+          </dd>
+        </div>
+      </dl>
     </Panel>
   );
 }

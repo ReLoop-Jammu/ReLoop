@@ -31,6 +31,8 @@ const PAGES = [
   "/hub/data",
   "/hub/shops",
   "/hub/users",
+  "/hub/requests",
+  "/hub/submissions",
   "/account/change-password",
   "/this-page-does-not-exist",
 ];
