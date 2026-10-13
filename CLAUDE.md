@@ -16,7 +16,7 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 
 ## Current state (2026-10-14)
 
-Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`.
+Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
 - **The Business Plan is the source of truth** (ADR 0004).
   - ReLoop buys stock outright (purchase-only: no consignment, no self-listing), grades it A–D at one Jammu hub and resells it.
@@ -39,6 +39,8 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - GSTIN: live, the sign-up trigger requires a 15-character GSTIN. After the fix script runs, it is optional: empty is allowed, the format is checked when one is given, and the form has a "Not GST-registered" option. Nothing checks a GSTIN is real.
   - New shop owners are `pending`. A shop owner can't change their own `verification_status`: RLS allows owners only to read, and after the fixes a trigger also blocks it. Only admins (`is_admin()`: an active `admin_users` row, or a hub staff admin) or the dashboard can verify, and there is no admin screen.
   - `/api/shop-submissions` checks the session and verification on the server before using the service-role key.
+  - The form's conditions (Working, Broken, …) are mapped in `frontend/src/features/sell/conditions.ts` to the values `shop_submissions.condition` allows. On `main`, every condition but "Working" is rejected by the database.
+  - To make someone an admin, use `supabase-fixes/make-admin.sql`.
 - **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish) stores its data **in each browser only**. It has no login and is not connected to Supabase.
 - **Database:**
   - Live tables: `admin_users`, `categories`, `enquiries`, `institution_submissions`, `listings`, `orders`, `processing_records`, `profiles`, `shop_owners`, `shop_submissions`. All have RLS on.
@@ -46,6 +48,9 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - The repo's hub tables (`items`, `item_events` and the rest) **do not exist live yet**.
   - **Open security holes live** (security report): listing costs and internal notes are readable by anyone (High); unverified shop owners can insert submissions directly, and anyone can create orders and enquiries (Medium).
   - `supabase-fixes/2026-10-14.sql` fixes all of this and adds the hub tables. It is **written, tested in PGlite, and not yet run**. Repo migration `20261014000001` makes the same security and GSTIN changes.
+    - It ends with read-only checks (also in `supabase-fixes/2026-10-14-checks.sql`) and refuses to commit if any fails.
+    - **Order:** back up (`scripts/backup-live-data.sh`, to `~/ReLoop-backups`, outside git), run the fix, check it, then merge PR #15. The code on `main` works before and after the fix; this branch's "Not GST-registered" option only works after it.
+  - `backend/tests/live.test.mjs` replays every query the site makes, on the live schema before and after the fix. Add new queries there.
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
 ## Working rules
