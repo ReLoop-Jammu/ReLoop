@@ -2,17 +2,17 @@
 
 Updated at the end of every task. Status is one of: done, in progress or not started.
 
-| Stage                                          | Status      | Date       | Note                                                                                                                |
-| ---------------------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                |
-| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.             |
-| PR #15 (`chore/prod-health`)                   | in progress | 2026-10-14 | Stage C pushed. Lint, types, unit and backend tests and the CI build pass; 10 stale browser tests from `main` fail. |
-| Read-only script                               | done        | 2026-10-13 | Run by you. Results saved to `docs/live-check-2026-10-13.md`; schema dump committed; no secrets or personal data.   |
-| C. Database baseline and fixes                 | done        | 2026-10-14 | All six items below are done. The fix script is written and tested in PGlite, not run.                              |
-| Merge PR #15                                   | not started | 2026-10-14 | Waits for your review, and ideally for the stale browser tests to be updated.                                       |
-| Apply fix script                               | not started | 2026-10-14 | `supabase-fixes/2026-10-14.sql`: you review it, back up, then run it in the Supabase SQL editor.                    |
-| D. Map page and QR code                        | not started | 2026-10-14 |                                                                                                                     |
-| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-14 | The hub tables arrive with the fix script; the hub still stores data in each browser.                               |
+| Stage                                          | Status      | Date       | Note                                                                                                                                        |
+| ---------------------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                                        |
+| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.                                     |
+| PR #15 (`chore/prod-health`)                   | in progress | 2026-10-14 | Stage C committed locally; the push was blocked, so CI hasn't run on it. Locally, check and the CI build pass; 10 stale browser tests fail. |
+| Read-only script                               | done        | 2026-10-13 | Run by you. Results saved to `docs/live-check-2026-10-13.md`; schema dump committed; no secrets or personal data.                           |
+| C. Database baseline and fixes                 | done        | 2026-10-14 | All six items below are done. The fix script is written and tested in PGlite, not run.                                                      |
+| Merge PR #15                                   | not started | 2026-10-14 | Waits for your review, and ideally for the stale browser tests to be updated.                                                               |
+| Apply fix script                               | not started | 2026-10-14 | `supabase-fixes/2026-10-14.sql`: you review it, back up, then run it in the Supabase SQL editor.                                            |
+| D. Map page and QR code                        | not started | 2026-10-14 |                                                                                                                                             |
+| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-14 | The hub tables arrive with the fix script; the hub still stores data in each browser.                                                       |
 
 ## Stage C items (2026-10-14)
 
