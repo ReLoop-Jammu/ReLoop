@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Clock, Mail, MapPin, Phone, ShieldCheck, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -51,6 +52,9 @@ export default function ContactPage() {
         </Card>
         <Card icon={MapPin} title="Collection hub">
           {SITE.hubAddress ?? `Old-city market area, Jammu (opening ${SITE.hubOpens})`}
+          <Link href="/locations" className="mt-1 block font-semibold text-brand-600 underline">
+            See the map
+          </Link>
         </Card>
         <Card icon={Clock} title="Hours">
           <ContactDetail value={SITE.hours} />

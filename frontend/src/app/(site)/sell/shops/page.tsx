@@ -1,5 +1,6 @@
 import { Store } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { ShopSubmissionForm } from "@/features/sell/components/ShopSubmissionForm";
 import { BenefitList, SellPageHeader } from "@/features/sell/components/SellPageHeader";
@@ -49,6 +50,11 @@ export default function ShopsPage() {
             },
           ]}
         />
+        <p className="mt-4 text-sm">
+          <Link href="/locations" className="font-semibold text-brand-600 underline">
+            See the pickup route and stops on the map
+          </Link>
+        </p>
       </div>
       <section className="mt-14 max-w-3xl" aria-labelledby="signup-heading">
         <h2 id="signup-heading" className="text-2xl font-bold sm:text-3xl">
