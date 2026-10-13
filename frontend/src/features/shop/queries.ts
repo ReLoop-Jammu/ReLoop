@@ -31,6 +31,7 @@ type SupabaseListing = {
   featured: boolean;
   grade: "A" | "B" | "C" | "D" | null;
   created_at: string;
+  is_sample: boolean;
 };
 
 type SupabaseCategory = {
@@ -71,7 +72,7 @@ async function supabaseFetch<T>(path: string): Promise<T> {
 async function getShopData(): Promise<ShopData> {
   const [listings, categories] = await Promise.all([
     supabaseFetch<SupabaseListing[]>(
-      "listings?select=id,title,description,category_id,brand,model,condition,price,stock,image_url,status,featured,grade,created_at&status=eq.Active&stock=gt.0&order=created_at.desc",
+      "listings?select=id,title,description,category_id,brand,model,condition,price,stock,image_url,status,featured,grade,created_at,is_sample&status=eq.Active&stock=gt.0&order=created_at.desc",
     ),
     supabaseFetch<SupabaseCategory[]>("categories?select=id,name&order=name.asc"),
   ]);
@@ -160,7 +161,7 @@ function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): S
     warrantyDays: null,
     shipsIndia: true,
     listedAt: listing.created_at,
-    sample: false,
+    sample: listing.is_sample === true,
   };
 }
 
@@ -242,7 +243,9 @@ export async function getAllShopIds(): Promise<string[]> {
   return items.map((item) => item.id);
 }
 
+/** True while everything in the shop is a sample (CI's sample file, or sample listings live). */
 export async function isSampleStock(): Promise<boolean> {
-  // Real Supabase inventory is never sample inventory; only CI shows the sample file.
-  return USE_SAMPLE_STOCK;
+  if (USE_SAMPLE_STOCK) return true;
+  const items = await getAllPublicShopItems();
+  return items.length > 0 && items.every((item) => item.sample);
 }

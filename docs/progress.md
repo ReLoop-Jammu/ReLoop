@@ -2,18 +2,45 @@
 
 Updated at the end of every task. Status is one of: done, in progress or not started.
 
-| Stage                                          | Status      | Date       | Note                                                                                                                                       |
-| ---------------------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                                       |
-| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.                                    |
-| PR #15 (`chore/prod-health`)                   | done        | 2026-10-13 | All checks green. The local branch was deleted after confirming nothing was left out of `main`.                                            |
-| Read-only script                               | done        | 2026-10-13 | Run by you. Results in `docs/live-check-2026-10-13.md`; schema dump committed.                                                             |
-| C. Database baseline and fixes                 | done        | 2026-10-13 | Baseline, fix script with checks, make-admin and backup scripts, and the runbook, all tested.                                              |
-| Merge PR #15                                   | done        | 2026-10-13 | Squash-merged as `c74134e`, before the fix (safe per the compatibility check). Production functions now run in `bom1`.                     |
-| Apply fix script                               | done        | 2026-10-13 | Backup taken; fix applied; checks 13 of 13; 1 admin set; 16 of 16 live tests; test data cleaned up.                                        |
-| D. Map page and QR code                        | not started | 2026-10-13 |                                                                                                                                            |
-| Tidy the admin account                         | in progress | 2026-10-13 | `admin` role applied live. Tidy script not run: the admin's shop row ("tyc", fake GSTIN) is verified, a safety stop; waiting for the team. |
-| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-13 | The hub tables now exist live, empty; the hub app still stores data in each browser.                                                       |
+| Stage                                          | Status      | Date       | Note                                                                                                                   |
+| ---------------------------------------------- | ----------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| A. Health check                                | done        | 2026-10-13 | `docs/health-check-2026-10-13.md`; the live-database results are in `docs/live-check-2026-10-13.md`.                   |
+| B. Analytics                                   | done        | 2026-10-13 | `VERCEL_ANALYTICS=on` and `NEXT_PUBLIC_SITE_URL` set for Production; redeployed; the script loads live.                |
+| PR #15 (`chore/prod-health`)                   | done        | 2026-10-13 | All checks green. The local branch was deleted after confirming nothing was left out of `main`.                        |
+| Read-only script                               | done        | 2026-10-13 | Run by you. Results in `docs/live-check-2026-10-13.md`; schema dump committed.                                         |
+| C. Database baseline and fixes                 | done        | 2026-10-13 | Baseline, fix script with checks, make-admin and backup scripts, and the runbook, all tested.                          |
+| Merge PR #15                                   | done        | 2026-10-13 | Squash-merged as `c74134e`, before the fix (safe per the compatibility check). Production functions now run in `bom1`. |
+| Apply fix script                               | done        | 2026-10-13 | Backup taken; fix applied; checks 13 of 13; 1 admin set; 16 of 16 live tests; test data cleaned up.                    |
+| D. Map page and QR code                        | not started | 2026-10-13 |                                                                                                                        |
+| Tidy the admin account                         | done        | 2026-10-13 | Placeholder shop row deleted; tidy script run: "ReLoop Admin", role `admin`, email confirmed.                          |
+| E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-13 | The hub tables now exist live, empty; the hub app still stores data in each browser.                                   |
+
+## Remaining-work plan (approved 2026-10-13)
+
+Run order: 0 → A → B → C → E+F → G → D, then update G after D. The full plan is in the approved plan file; this table is the resume point.
+
+| Batch | Branch                   | Status      | Note                                                                                           |
+| ----- | ------------------------ | ----------- | ---------------------------------------------------------------------------------------------- |
+| 0     | `chore/batch0-cleanup`   | in progress | Live data done (see below); PR pending.                                                        |
+| A     | `feat/admin-verify`      | not started | Admin page to verify or reject shop owners.                                                    |
+| B     | `feat/account-recovery`  | not started | Forgot password, reset, resend confirmation. Pause for the Auth URL settings and Gmail SMTP.   |
+| C     | `feat/locations`         | not started | `/locations` map from one data file, plus the QR code and `/go/drive` tracked link.            |
+| E+F   | `feat/launch-content`    | not started | Contact details, grievance officer (Harsh Raj), consistency audit.                             |
+| G     | `docs/known-limitations` | not started | Runs before D, and is updated after D.                                                         |
+| D     | `feat/hub-supabase`      | not started | Staff hub on Supabase; visitors see shop columns only; idempotent stock rules; staff-only CSV. |
+
+### Batch 0 live changes (2026-10-13)
+
+- Backup `~/ReLoop-backups/backup-2026-10-13-190406.sql`.
+- Migration `20261016000001` (`listings.is_sample`) applied live.
+- **Accounts:**
+  - deleted the admin account's placeholder "tyc" shop row;
+  - ran `tidy-admin-account.sql`: the account is now "ReLoop Admin", role `admin`, email confirmed;
+  - created Harsh Raj's missing profile (buyer);
+  - deleted the teammate's test "Raj Electronics" shop and its one submission, and set that account to buyer.
+- **Listings:** the 5 listings were retitled "Sample – …", marked `is_sample`, given an honest description and their correct categories, and their screenshot photo was unlinked.
+- **Checks:** 13 of 13 true. 0 shops and 0 submissions remain.
+- **Still for you:** delete the unused screenshot in Supabase → Storage → Images.
 
 ## Fix applied (2026-10-13)
 

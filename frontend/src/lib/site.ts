@@ -15,7 +15,7 @@ export const SITE = {
   legalName: null as string | null,
   /** Registered postal address. */
   address: null as string | null,
-  supportEmail: "ipm24051@iimj.ac.in" as string | null,
+  supportEmail: "noice2709@gmail.com" as string | null,
   /** WhatsApp number in international format without "+" or spaces, e.g. "919876543210". Sell-to-us forms send here. */
   whatsapp: "919871276179" as string | null,
   supportPhone: null as string | null,
