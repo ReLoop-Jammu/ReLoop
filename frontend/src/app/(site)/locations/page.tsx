@@ -1,6 +1,3 @@
-// Leaflet's styles load with the page as a normal stylesheet (imported here,
-// not in the client map, so the browser never preloads an unused file).
-import "leaflet/dist/leaflet.css";
 import { Clock, MapPin, QrCode, Recycle, Store, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
