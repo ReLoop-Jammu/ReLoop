@@ -85,6 +85,15 @@ select check_name, ok
         not has_column_privilege('anon', 'public.items', 'shop_submission_id', 'SELECT')),
     (20, 'Converting a submission into hub items is not possible for visitors',
         not has_function_privilege('anon',
-          'public.convert_submission(bigint, public.item_category, public.part_type, bigint)', 'EXECUTE'))
+          'public.convert_submission(bigint, public.item_category, public.part_type, bigint)', 'EXECUTE')),
+    (21, 'Partner map: the public view shows only name, market and an (approximate) position',
+        (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+          where table_schema = 'public' and table_name = 'map_partner_shops')
+          = array['name', 'market', 'lat', 'lng', 'approximate']),
+    (22, 'Partner map: only verified shops that agreed appear, and visitors still cannot read shop_owners',
+        (select pg_get_viewdef('public.map_partner_shops'::regclass) like '%show_on_map%'
+            and pg_get_viewdef('public.map_partner_shops'::regclass) like '%verified%')
+        and has_table_privilege('anon', 'public.map_partner_shops', 'SELECT')
+        and not has_table_privilege('anon', 'public.shop_owners', 'SELECT'))
   ) as c(n, check_name, ok)
  order by n;

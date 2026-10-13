@@ -1,3 +1,6 @@
+// Leaflet's styles load with the page as a normal stylesheet (imported here,
+// not in the client map, so the browser never preloads an unused file).
+import "leaflet/dist/leaflet.css";
 import { Clock, MapPin, QrCode, Recycle, Store, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -6,6 +9,10 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { LOCATIONS, visiblePartnerShops } from "@/config/locations";
 import { LocationsMap } from "@/features/locations/LocationsMap";
+import { mapPartnerShops } from "@/features/locations/partners";
+
+/** Partner shops come from the database; refresh the page at most every 5 minutes. */
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Map & locations",
@@ -14,9 +21,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/locations" },
 };
 
-export default function LocationsPage() {
+export default async function LocationsPage() {
   const { hub, route, recycler } = LOCATIONS;
-  const shops = visiblePartnerShops();
+  const shops = [...visiblePartnerShops(), ...(await mapPartnerShops())];
   const stops = route.stops;
 
   return (
@@ -28,7 +35,7 @@ export default function LocationsPage() {
         description="One hub in the old city, a twice-weekly pickup route through the repair markets, and one authorised recycler. Locations are approximate until the hub opens."
       />
 
-      <LocationsMap />
+      <LocationsMap partnerShops={shops} />
       <p className="mt-2 text-xs text-muted">
         Shaded areas are approximate. Map data © OpenStreetMap contributors.
       </p>
@@ -58,8 +65,9 @@ export default function LocationsPage() {
           ) : (
             <ul className="mt-2 space-y-2">
               {shops.map((s) => (
-                <li key={s.name}>
-                  <strong>{s.name}</strong>, {s.market}. {s.description}
+                <li key={`${s.name}-${s.market}`}>
+                  <strong>{s.name}</strong>, {s.market}
+                  {s.description && <>. {s.description}</>}
                 </li>
               ))}
             </ul>

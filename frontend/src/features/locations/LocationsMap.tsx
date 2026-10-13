@@ -1,8 +1,7 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
-import { LOCATIONS, visiblePartnerShops } from "@/config/locations";
+import { LOCATIONS, type PartnerShop } from "@/config/locations";
 
 const BRAND = "#0f766e";
 const ROUTE = "#b45309";
@@ -13,7 +12,7 @@ const RECYCLER = "#475569";
  * and the recycler. Leaflet loads in the browser only. Everything here is also
  * listed in text on the page, so the map is never the only way to read it.
  */
-export function LocationsMap() {
+export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerShop[] }) {
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,7 +59,7 @@ export function LocationsMap() {
         }).addTo(map!);
       });
 
-      for (const shop of visiblePartnerShops()) {
+      for (const shop of partnerShops) {
         L.circleMarker([shop.lat, shop.lng], { radius: 7, color: BRAND, fillOpacity: 0.9 })
           .bindTooltip(`${shop.name}, ${shop.market}`)
           .addTo(map);
@@ -87,7 +86,7 @@ export function LocationsMap() {
       cancelled = true;
       map?.remove();
     };
-  }, []);
+  }, [partnerShops]);
 
   return (
     <div

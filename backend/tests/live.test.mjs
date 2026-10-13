@@ -1113,3 +1113,68 @@ describe("closing the loop (20261020000001)", () => {
     );
   });
 });
+
+describe("partner shops on the map (20261021000001)", () => {
+  let db;
+  let admin;
+  let shop;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    shop = await shopOwner(db, "Sharma", { gstin: "01ABCDE1234F1Z5" });
+  });
+  const publicMap = async () =>
+    (await as(db, null, (tx) => tx.query("select * from public.map_partner_shops"))).rows;
+  const setMap = (fields) =>
+    as(db, admin, (tx) =>
+      tx.query(
+        `update public.shop_owners set ${Object.keys(fields)
+          .map((k, i) => `${k} = $${i + 2}`)
+          .join(", ")} where id = $1 returning id`,
+        [shop, ...Object.values(fields)],
+      ),
+    );
+
+  test("a shop can't be shown without a consent date and a position", async () => {
+    await assert.rejects(setMap({ show_on_map: true }), /shop_owners_map_needs_consent/);
+  });
+
+  test("only verified shops that agreed appear, with name, market and position only", async () => {
+    await setMap({
+      show_on_map: true,
+      map_consent_at: "2026-10-13T10:00:00Z",
+      map_market: "Raghunath Bazaar",
+      map_lat: 32.7302,
+      map_lng: 74.8641,
+    });
+    assert.deepEqual(await publicMap(), [], "not verified yet");
+    await db.query("update public.shop_owners set verification_status = 'verified' where id = $1", [
+      shop,
+    ]);
+    assert.deepEqual(await publicMap(), [
+      {
+        name: "Sharma Mobiles",
+        market: "Raghunath Bazaar",
+        lat: 32.7302,
+        lng: 74.8641,
+        approximate: true,
+      },
+    ]);
+    await setMap({ show_on_map: false });
+    assert.deepEqual(await publicMap(), [], "turning it off hides the shop at once");
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select phone from public.shop_owners")),
+      /permission denied/,
+    );
+  });
+
+  test("shop owners can't put themselves on the map", async () => {
+    const { rowCount } = await as(db, shop, (tx) =>
+      tx.query("update public.shop_owners set show_on_map = true where id = $1", [shop]),
+    );
+    assert.equal(rowCount, 0);
+  });
+});

@@ -17,10 +17,16 @@ export type ShopOwner = {
   verified_at: string | null;
   review_notes: string;
   created_at: string;
+  show_on_map: boolean;
+  map_consent_at: string | null;
+  map_market: string;
+  map_lat: number | null;
+  map_lng: number | null;
+  map_approximate: boolean;
 };
 
 const COLUMNS =
-  "id,shop_name,owner_name,phone,email,business_address,city,gstin,verification_status,verified_at,review_notes,created_at";
+  "id,shop_name,owner_name,phone,email,business_address,city,gstin,verification_status,verified_at,review_notes,created_at,show_on_map,map_consent_at,map_market,map_lat,map_lng,map_approximate";
 
 export type Review = {
   verification_status: "verified" | "rejected";
@@ -80,4 +86,49 @@ export async function reviewShop(
   if (rows.length !== 1)
     throw new Error("That change wasn't saved. Check you're logged in as an admin.");
   return rows[0];
+}
+
+export type MapListing =
+  | { show: false }
+  | {
+      show: true;
+      consentDate: string; // YYYY-MM-DD the shop agreed
+      market: string;
+      lat: number;
+      lng: number;
+      approximate: boolean;
+    };
+
+/** The fields a "show on map" decision writes (consent and position are required to show). */
+export function buildMapListing(m: MapListing) {
+  if (!m.show) return { show_on_map: false };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(m.consentDate))
+    throw new Error("Enter the date the shop agreed.");
+  if (!Number.isFinite(m.lat) || !Number.isFinite(m.lng))
+    throw new Error("Choose a market or enter a position.");
+  if (m.lat < 32.6 || m.lat > 32.85 || m.lng < 74.75 || m.lng > 75) {
+    throw new Error("That position isn't in Jammu. Check the numbers.");
+  }
+  return {
+    show_on_map: true,
+    map_consent_at: `${m.consentDate}T00:00:00Z`,
+    map_market: m.market.trim().slice(0, 80),
+    map_lat: Math.round(m.lat * 1e6) / 1e6,
+    map_lng: Math.round(m.lng * 1e6) / 1e6,
+    map_approximate: m.approximate,
+  };
+}
+
+/** Puts a verified shop on the public map, or takes it off. Admins only. */
+export async function setMapListing(id: string, m: MapListing): Promise<void> {
+  const response = await authenticatedFetch(
+    `/rest/v1/shop_owners?id=eq.${encodeURIComponent(id)}&select=id`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify(buildMapListing(m)),
+    },
+  );
+  const rows = response.ok ? ((await response.json()) as unknown[]) : [];
+  if (rows.length !== 1) throw new Error("That change wasn't saved.");
 }

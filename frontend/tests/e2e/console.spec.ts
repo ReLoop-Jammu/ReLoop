@@ -68,6 +68,8 @@ const PAGES = [
 test("every page loads without console errors, hydration warnings or failed requests", async ({
   page,
 }) => {
+  // Visits every page in turn, so it needs more than one page's time budget.
+  test.setTimeout(150_000);
   const problems = watch(page);
   for (const path of PAGES) {
     await page.goto(path);
