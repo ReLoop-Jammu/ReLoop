@@ -48,8 +48,7 @@ Runs on [PGlite](https://pglite.dev) (Postgres in WebAssembly), so no Docker is 
 1. The teammate creates the project (region: Mumbai). See `docs/team-setup.md`.
 2. `npx supabase link --workdir backend --project-ref <ref>`
 3. `npx supabase db push --workdir backend` applies the migrations.
-4. In the Supabase dashboard, enable **pg_cron** and run:
-   `select cron.schedule('reloop-stock-rules', '0 1 * * *', 'select public.apply_stock_rules()');`
+4. Schedule the daily jobs with pg_cron by running `supabase-fixes/2026-10-18-stock-rules-cron.sql` (00:30 UTC) and `supabase-fixes/2026-10-23-request-retention-cron.sql` (22:00 UTC).
 5. Add the first admin (after they sign up) in the SQL editor:
    `insert into public.staff (user_id, full_name, role) select id, 'Name', 'admin' from auth.users where email = '…';`
 6. Then the frontend's data layer (`frontend/src/features/inventory/store`) gets a Supabase adapter, and the hub gets a staff login.

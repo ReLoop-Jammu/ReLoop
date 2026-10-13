@@ -1,6 +1,6 @@
 # ReLoop
 
-E-waste / used-electronics marketplace, starting in Jammu and selling across India.
+E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades and resells at one hub (only laptops and boards ship outside Jammu).
 
 ## Read first, and follow
 

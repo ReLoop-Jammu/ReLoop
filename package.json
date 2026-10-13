@@ -6,7 +6,7 @@
     "backend"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "npm run dev -w frontend",
@@ -29,5 +29,8 @@
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1"
+  },
+  "overrides": {
+    "source-map-js": "^1.2.2"
   }
 }
