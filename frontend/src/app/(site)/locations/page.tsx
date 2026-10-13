@@ -32,6 +32,8 @@ export default async function LocationsPage() {
         description="One hub in the old city, a twice-weekly pickup route through the repair markets, and one authorised recycler. Locations are approximate until the hub opens."
       />
 
+      {/* The map's tiles are the page's largest paint: connect to the tile server early. */}
+      <link rel="preconnect" href="https://tile.openstreetmap.org" crossOrigin="anonymous" />
       <LocationsMap partnerShops={shops} />
       <p className="mt-2 text-xs text-muted">
         Shaded areas are approximate. Map data © OpenStreetMap contributors.

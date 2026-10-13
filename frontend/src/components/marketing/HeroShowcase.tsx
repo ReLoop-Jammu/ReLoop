@@ -70,17 +70,17 @@ function MiniCard({
         <div className="p-3">
           <div className="flex items-center justify-between gap-2">
             <GradeBadge grade={item.grade} size="sm" />
-            <span className="font-mono text-[10px] text-muted">{item.id}</span>
+            <span className="font-mono text-xs text-muted">{item.id}</span>
           </div>
           <p className="mt-2 truncate text-sm font-semibold text-ink">{item.title}</p>
           <div className="mt-1 flex items-center justify-between">
             <span className="font-display font-bold text-ink">{formatPrice(item.pricePaise)}</span>
             {large && item.warrantyDays ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-grade-a">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-grade-a">
                 <ShieldCheck className="size-3.5" /> {item.warrantyDays}-day warranty
               </span>
             ) : (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted">
+              <span className="inline-flex items-center gap-0.5 text-xs text-muted">
                 <MapPin className="size-3" /> Jammu
               </span>
             )}

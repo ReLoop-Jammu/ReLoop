@@ -24,8 +24,8 @@ The plan file is the reference. Email sending is off by decision, so password re
 | A     | `feat/admin-password-reset` | done        | PR #27 (`99f6749`). Live test 11/11: reset, forced change, flag cleared, audit row without password. |
 | B     | `feat/close-the-loop`       | done        | PR #28 plus fix #29 (`18df5bc`). Live test 18/18 after the fix. Test data removed; counter at 5.     |
 | C     | `feat/partner-map`          | done        | PR #30 (`b7628d2`). Live test 5/5 via the public view; test shop removed.                            |
-| D     | `feat/team`                 | in progress | Live: migration `20261022000001` applied, checks 37/37, 1 active admin. `/hub/team`.                 |
-| E     | `chore/quality`             | not started | Lighthouse mobile pass on six pages, before and after.                                               |
+| D     | `feat/team`                 | done        | PR #31 (`cd9f098`). Live test 6/6; audit rows logged; test accounts removed; 1 admin.                |
+| E     | `chore/quality`             | in progress | Lighthouse mobile: all pages ≥ 87 performance, 100 accessibility and best practices (see PR).        |
 | F     | `docs/round3`               | not started | Limitations, CLAUDE.md, progress; delete the Keychain entry.                                         |
 
 ## Remaining-work plan (approved 2026-10-13)
