@@ -40,7 +40,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
   - Fix: a per-IP limit at the edge (Vercel Firewall), or in the route.
 - **Preview deployments use the production database and keys.** Any branch preview reads and writes live data. Fix: a separate Supabase project for Preview.
 - **Photo links on shop submissions** are typed-in URLs (HTTPS only), not uploads, so they can point anywhere.
-- **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 39 of 39 true (round 4, batch 1). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
+- **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 43 of 43 true (end of round 4, 2026-10-14). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
 
 ## 4. The loop (submissions, requests, map, team)
 
@@ -85,4 +85,12 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
   - offline use;
   - more than one hub;
   - automatic Instagram posts for price cuts.
-- **The public "Sell to us" forms** still hand off to WhatsApp or email. They don't write to the database.
+- **The public forms** save to the database first: institution bookings, reservations and questions through `/api/requests`, and shop submissions through `/api/shop-submissions`. Then they hand off to WhatsApp or email.
+
+## 8. Outreach and reporting (round 4)
+
+- **Tracked links** (`/go/ig-bio`, `/go/ig-post`, `/go/ig-story`, `/go/wa`, `/go/drive`) are counted in `link_visits` and shown to admins on `/hub/shops`. Vercel Analytics receives the UTM tags, but the free Hobby plan can't break visits down by them (that needs Web Analytics Plus). See `docs/report/tracked-links.md`.
+- **The impact counter** on the home page reads the `impact_totals` view. "Active partner shops" counts hub partners marked active, not verified website accounts.
+- **What we don't take** (large appliances, non-electronics, leaking batteries except at the hub) is a team policy choice; the business plan doesn't list exclusions.
+- **Hindi** on `/help` and in `docs/report/shop-owner-guide.md` hasn't been checked by a native speaker yet. The printables are English-only until it has.
+- **Printables** (`/print`): regenerate the PDFs with `npm run build -w frontend && npm run print -w frontend` after editing the sheet pages. The flyer uses national figures only; no official Jammu figure exists for those years.

@@ -14,7 +14,7 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state (2026-10-14, after round 3)
+## Current state (2026-10-14, after round 4)
 
 Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
@@ -52,7 +52,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - visitors can't insert or read requests directly.
 - **Partner map:** admins put verified shops on `/locations` from `/hub/shops`, with a recorded consent date, through the `map_partner_shops` view (name, market and position only).
 - **Team:** `/hub/team` promotes or demotes staff and admins through `set_account_role()`. Triggers keep at least one admin. `supabase-fixes/make-admin.sql` is only for recovering the first admin.
-- **Read-only checks:** `supabase-fixes/2026-10-14-checks.sql` (13) plus `supabase-fixes/live-checks-extra.sql` (24) were 37 of 37 true on 2026-10-14. Run both after every database change; add a check for every new permission.
+- **Read-only checks:** `supabase-fixes/2026-10-14-checks.sql` (13) plus `supabase-fixes/live-checks-extra.sql` (30) were 43 of 43 true at the end of round 4 (2026-10-14). Run both after every database change; add a check for every new permission.
 - **Staff hub:** `/hub` (dashboard, intake, items, requests, shop submissions, shops & institutions, handovers, shop verification, users, team, data & exports) runs on **Supabase** behind a staff login, through `frontend/src/features/inventory/store/supabase.ts`.
   - Admins count as staff (`is_staff()`).
   - Without the Supabase variables (local dev, CI) it falls back to the device-only store.
@@ -69,7 +69,19 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
     - Account roles are `buyer`, `shop_owner` and (from migration `20261015000001`) `admin`. The role is a label; admin rights come from `is_admin()`. Sign-up can't choose `admin`. `supabase-fixes/tidy-admin-account.sql` confirms the shared admin account, renames it "ReLoop Admin", removes its leftover shop row and sets its role to `admin`. The `admin` role is live (2026-10-13), but the tidy script has **not** been run: the admin account's shop row turned out to be verified, which is one of its safety stops.
     - Back up before any live change with `scripts/backup-live-data.sh`.
   - `backend/tests/live.test.mjs` replays every query the site makes, on the live schema before and after the fix. Add new queries there.
-- **Locations and QR:** `/locations` reads everything from `frontend/src/config/locations.ts`. The printed awareness-drive QR codes point at `https://re-loop-ochre.vercel.app/go/drive`, so **that domain must stay assigned to the Vercel project**: printed codes depend on it. Scans are counted in `qr_scans` (campaign and time only).
+- **Locations and QR:** `/locations` reads everything from `frontend/src/config/locations.ts`. The printed awareness-drive QR codes point at `https://re-loop-ochre.vercel.app/go/drive`, so **that domain must stay assigned to the Vercel project**: printed codes depend on it. Clicks on every short link (`/go/<slug>`, from `frontend/src/config/tracked-links.ts`) are counted in `link_visits` (link, source, medium, time only); `qr_scans` is no longer written.
+- **Round 4 (2026-10-14):**
+  - **Retention:** the `reloop-request-retention` pg_cron job (03:30 IST) deletes requests 12 months after they were closed; the privacy page states the same rule.
+  - **Outreach:**
+    - `/what-we-accept`;
+    - WhatsApp chat buttons (item pages except samples, sell pages);
+    - the home-page impact counter (`impact_totals` view, "Pilot starts November 2026" until a total is above zero);
+    - printable A4 poster and flyer (`/print`, PDFs in `frontend/public/print/`, `npm run print -w frontend`).
+  - **Guides:**
+    - `/help` for shop owners in English and Hindi (from `frontend/src/features/help/guide.json`; `npm run help-guide -w frontend` regenerates `docs/report/shop-owner-guide.md`);
+    - `docs/report/staff-guide.md`;
+    - `docs/report/platform-section.md` for the report;
+    - `docs/report/tracked-links.md`.
 - **What's not done yet:** see `docs/known-limitations.md` (launch items, email, sessions, rate limiting, test database, backups).
 - Pushing to `main` deploys to production through Vercel. Work on a branch and open a PR.
 
