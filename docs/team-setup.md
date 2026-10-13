@@ -37,7 +37,7 @@ The repo is `ReLoop-Jammu/ReLoop`. Someone with **admin** rights should:
 6. **Copy keys** from Project Settings → API Keys into Vercel and `.env.local` (names below):
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - Publishable key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-   - Secret key → `SUPABASE_SECRET_KEY` (**server only**; never in browser code, never prefixed `NEXT_PUBLIC_`)
+   - Service-role (secret) key → `SUPABASE_SERVICE_ROLE_KEY` (**server only**; never in browser code, never prefixed `NEXT_PUBLIC_`)
 7. **Apply the database schema** (one developer, from the repo root):
    ```sh
    npx supabase login
@@ -71,7 +71,7 @@ The project lives on one teammate's **Hobby** (free) Vercel account, as `re-loop
    | `NEXT_PUBLIC_SITE_URL`                 | the production URL (Vercel → Project → Domains) | now           |
    | `NEXT_PUBLIC_SUPABASE_URL`             | from Supabase                                   | Supabase step |
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | from Supabase                                   | Supabase step |
-   | `SUPABASE_SECRET_KEY`                  | from Supabase (mark **Sensitive**)              | Supabase step |
+   | `SUPABASE_SERVICE_ROLE_KEY`            | from Supabase (mark **Sensitive**)              | Supabase step |
 
 4. **Analytics:** Project → **Analytics** → enable **Web Analytics**, and **Speed Insights** → enable (free on Hobby). Then add the environment variable `VERCEL_ANALYTICS` = `on` (Production) and redeploy. The site only loads the analytics scripts when this is `on`, so visitors never see errors before Analytics is enabled.
 5. After any settings change, redeploy: Deployments → latest → **⋯ → Redeploy**.
