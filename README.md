@@ -22,6 +22,10 @@ npm install            # installs frontend and backend (npm workspaces)
 npm run dev            # website on http://localhost:3000
 ```
 
+## Configuration
+
+Copy `frontend/.env.example` to `frontend/.env.local`. With nothing set, the site runs on sample stock, the forms say they are not available yet and the staff hub is locked. To open the hub locally without Supabase, add `INSECURE_OPEN_HUB=true` to `.env.local` (never on a deployed site). Connecting Supabase, staff access and business details are covered in `ACCOUNT_SETUP.md`, `backend/README.md` and `docs/team-setup.md`.
+
 ## Editor
 
 Open the repo root in VS Code and install the recommended extensions when prompted (Tailwind CSS, ESLint, Prettier). The shared settings in `.vscode/` make the editor understand Tailwind's `@theme` / `@apply` rules and format on save.
@@ -40,4 +44,4 @@ Commits follow [Conventional Commits](https://www.conventionalcommits.org) (`fea
 
 ## Deploying
 
-On Vercel, set the project's **Root Directory** to `frontend`.
+On Vercel, set the project's **Root Directory** to `frontend`, then add the variables from `frontend/.env.example`. Do **not** set `INSECURE_OPEN_HUB`.

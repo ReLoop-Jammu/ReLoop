@@ -48,6 +48,7 @@ export function RequestForm({
   const [sent, setSent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [website, setWebsite] = useState("");
 
   const set = (name: string, value: string) => {
     setValues((current) => ({ ...current, [name]: value }));
@@ -124,38 +125,21 @@ export function RequestForm({
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              institutionName:
-                values.institution ??
-                values.institutionName ??
-                values.institution_name ??
-                "",
-              contactName:
-                values.contactPerson ??
-                values.contactName ??
-                values.contact_name ??
-                "",
-              phone: values.phone ?? values.mobile ?? "",
+              institutionName: values.institution ?? "",
+              contactName: values.contact ?? "",
+              phone: values.phone ?? "",
               email: values.email ?? "",
               details: {
                 type: values.type ?? "",
-                preferredDate:
-                  values.preferredDate ??
-                  values.preferred_date ??
-                  values.date ??
-                  "",
-                lotDescription:
-                  values.lotDescription ??
-                  values.lot_description ??
-                  values.lot ??
-                  values.details ??
-                  "",
-                formValues: values,
+                preferredDate: values.date ?? "",
+                lotDescription: values.items ?? "",
               },
+              website,
             }),
           },
         );
 
-        const result = await response.json();
+        const result = (await response.json().catch(() => ({}))) as { error?: string };
 
         if (!response.ok) {
           throw new Error(
@@ -312,6 +296,17 @@ export function RequestForm({
             {submitError}
           </p>
         )}
+
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor={`${formId}-website`}>Website</label>
+          <input
+            id={`${formId}-website`}
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(event) => setWebsite(event.target.value)}
+          />
+        </div>
 
         <Button type="submit" size="lg" disabled={saving}>
           {saving ? "Submitting..." : submitLabel}

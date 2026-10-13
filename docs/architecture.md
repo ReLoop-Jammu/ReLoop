@@ -4,7 +4,7 @@ _Status: Updated 2026-10-07 for the business plan ([ADR 0004](adr/0004-reloop-ow
 
 ## Context
 
-ReLoop is currently one ~200KB `index.html` (plain HTML/CSS/JS, localStorage "data layer", no backend). The goal is a real, production-grade marketplace for used electronics / e-waste, starting in Jammu and selling across India. Before any code, we fix the architecture, the data model, the standards and a phased roadmap, and the user signs off. After that, we build it in parts, one phase at a time, each phase reviewed before the next.
+ReLoop started as one ~200KB `index.html` (plain HTML/CSS/JS, localStorage "data layer", no backend); it is now a Next.js site with a Supabase schema, cookie-based accounts and a staff-only hub (see ADR 0005). The goal is a real, production-grade marketplace for used electronics / e-waste, starting in Jammu and selling across India. Before any code, we fix the architecture, the data model, the standards and a phased roadmap, and the user signs off. After that, we build it in parts, one phase at a time, each phase reviewed before the next.
 
 **Decisions already made by the user**
 

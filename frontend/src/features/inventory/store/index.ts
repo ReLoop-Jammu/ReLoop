@@ -6,6 +6,7 @@
  * storage in ./local for Supabase changes nothing in the callers.
  */
 
+import { z } from "zod";
 import type {
   Handover,
   Institution,
@@ -220,9 +221,19 @@ export async function exportAll(): Promise<Backup> {
   };
 }
 
+const backupSchema = z.object({
+  version: z.literal(1),
+  exportedAt: z.string().optional(),
+  data: z.record(z.string(), z.array(z.looseObject({ id: z.string().min(1) }))),
+});
+
+/** Replaces the hub data with a backup file. The file is checked before anything is overwritten. */
 export async function importAll(backup: Backup): Promise<void> {
-  if (backup?.version !== 1 || typeof backup.data !== "object")
-    throw new Error("This is not a ReLoop backup file.");
-  for (const name of ALL)
-    writeCollection(name, Array.isArray(backup.data[name]) ? backup.data[name] : []);
+  const parsed = backupSchema.safeParse(backup);
+  if (!parsed.success)
+    throw new Error(
+      "This is not a ReLoop backup file, or it is damaged. Nothing was changed.",
+    );
+  const { data } = parsed.data;
+  for (const name of ALL) writeCollection(name, data[name] ?? []);
 }
