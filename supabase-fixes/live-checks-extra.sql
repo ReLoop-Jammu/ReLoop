@@ -94,6 +94,12 @@ select check_name, ok
         (select pg_get_viewdef('public.map_partner_shops'::regclass) like '%show_on_map%'
             and pg_get_viewdef('public.map_partner_shops'::regclass) like '%verified%')
         and has_table_privilege('anon', 'public.map_partner_shops', 'SELECT')
-        and not has_table_privilege('anon', 'public.shop_owners', 'SELECT'))
+        and not has_table_privilege('anon', 'public.shop_owners', 'SELECT')),
+    (23, 'Team: ReLoop has at least one admin, and triggers keep it that way',
+        public.active_admin_count() >= 1
+        and exists (select 1 from pg_trigger where tgname = 'admin_users_keep_one_admin')
+        and exists (select 1 from pg_trigger where tgname = 'staff_keep_one_admin')),
+    (24, 'Team: visitors cannot change roles',
+        not has_function_privilege('anon', 'public.set_account_role(uuid, boolean, boolean)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;
