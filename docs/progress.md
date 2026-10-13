@@ -15,13 +15,27 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 | Tidy the admin account                         | done        | 2026-10-13 | Placeholder shop row deleted; tidy script run: "ReLoop Admin", role `admin`, email confirmed.                          |
 | E. Hub on Supabase, staff login, KPI dashboard | not started | 2026-10-13 | The hub tables now exist live, empty; the hub app still stores data in each browser.                                   |
 
+## Round 4 (approved 2026-10-13): retention, outreach, guides and report
+
+The plan file is the reference. Defaults were used for every question.
+
+| Batch | Branch                | Status      | Note                                                                                                          |
+| ----- | --------------------- | ----------- | ------------------------------------------------------------------------------------------------------------- |
+| 1     | `feat/retention`      | done        | Migration `20261023000001` and the daily job applied live. Checks 39 of 39 true. Live test 5/5 (rolled back). |
+| 2     | `feat/tracked-links`  | not started |                                                                                                               |
+| 3     | `feat/what-we-accept` | not started |                                                                                                               |
+| 4     | `feat/impact-counter` | not started |                                                                                                               |
+| 5     | `feat/print`          | not started |                                                                                                               |
+| 6     | `feat/help`           | not started |                                                                                                               |
+| 7     | `docs/report`         | not started |                                                                                                               |
+
 ## Round 3 (approved 2026-10-13): close the loop
 
 **All six batches are done (2026-10-14).** Live checks are 37 of 37 true, the next tag is `RL-JMU-0006`, and 1 admin.
 
 - **Left for the team:**
   - give each person their own account on `/hub/team`;
-  - delete closed requests by hand after 12 months;
+  - ~~delete closed requests by hand after 12 months~~ (automatic since round 4);
   - the earlier open items in `docs/known-limitations.md`.
 - **New real account:** a shop owner (Gmail, verified) registered on 2026-10-13 at 22:46 IST. It was left untouched.
 

@@ -100,6 +100,13 @@ select check_name, ok
         and exists (select 1 from pg_trigger where tgname = 'admin_users_keep_one_admin')
         and exists (select 1 from pg_trigger where tgname = 'staff_keep_one_admin')),
     (24, 'Team: visitors cannot change roles',
-        not has_function_privilege('anon', 'public.set_account_role(uuid, boolean, boolean)', 'EXECUTE'))
+        not has_function_privilege('anon', 'public.set_account_role(uuid, boolean, boolean)', 'EXECUTE')),
+    (25, 'Retention: closing a request starts its clock, and only the database can run the clean-up',
+        exists (select 1 from pg_trigger where tgname = 'submissions_track_closed')
+        and not has_function_privilege('anon', 'public.purge_closed_requests(timestamptz)', 'EXECUTE')
+        and not has_function_privilege('authenticated', 'public.purge_closed_requests(timestamptz)', 'EXECUTE')),
+    (26, 'Retention: the daily clean-up job is scheduled',
+        exists (select 1 from cron.job where jobname = 'reloop-request-retention' and active
+                  and command like '%purge_closed_requests%'))
   ) as c(n, check_name, ok)
  order by n;

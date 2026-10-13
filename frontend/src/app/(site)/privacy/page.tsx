@@ -75,9 +75,10 @@ export default function PrivacyPage() {
           (for example, tax or e-waste compliance records).
         </p>
         <p>
-          Requests you send us through the site (reservations, questions about an item and pickup
-          bookings) are seen only by ReLoop&apos;s hub staff. We keep them while we handle them and
-          delete them within 12 months after they are closed.
+          Requests you send through the site (reservations, questions about an item and institution
+          pickup bookings) are seen only by ReLoop&apos;s hub staff. Open requests are kept until we
+          close them. A closed request (sold, cancelled or done) is deleted automatically 12 months
+          after it was closed, together with the name, phone number and other details in it.
         </p>
       </section>
 

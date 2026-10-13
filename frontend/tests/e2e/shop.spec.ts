@@ -231,6 +231,20 @@ test.describe("contact details", () => {
       page.getByRole("main").getByRole("link", { name: "+91 98712 76179" }),
     ).toBeVisible();
   });
+
+  test("the privacy policy states the retention rule the daily clean-up job applies", async ({
+    page,
+  }) => {
+    // Must match public.purge_closed_requests (20261023000001): closed = sold,
+    // cancelled or done; deleted 12 months after closing; open requests kept.
+    await page.goto("/privacy");
+    await expect(
+      page.getByText(
+        "Open requests are kept until we close them. A closed request (sold, cancelled or done) is deleted automatically 12 months after it was closed, together with the name, phone number and other details in it.",
+        { exact: false },
+      ),
+    ).toBeVisible();
+  });
 });
 
 test.describe("institution pickup booking", () => {

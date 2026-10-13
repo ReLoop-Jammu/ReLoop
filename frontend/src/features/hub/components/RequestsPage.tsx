@@ -42,7 +42,7 @@ export function RequestsPage() {
     <>
       <PageTitle
         title="Requests"
-        description="Reservations, questions about items and institution pickup bookings from the public site. Contact people by WhatsApp, then update the status."
+        description="Reservations, questions about items and institution pickup bookings from the public site. Contact people by WhatsApp, then update the status. Closed requests (sold, cancelled or done) are deleted automatically 12 months after closing."
       />
       {!SHARED_DATABASE ? (
         <p className="text-sm text-muted">Requests are kept in the shared database.</p>

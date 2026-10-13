@@ -47,3 +47,19 @@ grant all on storage.objects to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+
+-- pg_cron (Supabase has it; PGlite doesn't): just enough for the job scripts.
+create schema if not exists cron;
+create table if not exists cron.job (
+  jobid bigint generated always as identity primary key,
+  jobname text unique,
+  schedule text not null,
+  command text not null,
+  active boolean not null default true
+);
+create or replace function cron.schedule(job_name text, schedule text, command text)
+returns bigint language sql as $$
+  insert into cron.job (jobname, schedule, command) values (job_name, schedule, command)
+  on conflict (jobname) do update set schedule = excluded.schedule, command = excluded.command
+  returning jobid;
+$$;
