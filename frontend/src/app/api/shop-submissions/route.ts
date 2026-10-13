@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         { status: 401 },
       );
     const profileResponse = await fetch(
-      `${base}/rest/v1/profiles?user_id=eq.${encodeURIComponent(user.id)}&select=role`,
+      `${base}/rest/v1/profiles?user_id=eq.${encodeURIComponent(user.id)}&select=role,must_change_password`,
       { headers: adminHeaders, cache: "no-store" },
     );
     if (!profileResponse.ok) {
@@ -106,7 +106,15 @@ export async function POST(request: Request) {
         { status: 503 },
       );
     }
-    const profiles = (await profileResponse.json()) as Array<{ role: string }>;
+    const profiles = (await profileResponse.json()) as Array<{
+      role: string;
+      must_change_password?: boolean;
+    }>;
+    if (profiles[0]?.must_change_password)
+      return NextResponse.json(
+        { error: "Choose a new password first (Account → Change password), then submit again." },
+        { status: 403 },
+      );
     if (profiles[0]?.role !== "shop_owner")
       return NextResponse.json(
         { error: "Only registered shop-owner accounts can submit items." },

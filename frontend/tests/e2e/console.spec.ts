@@ -58,6 +58,8 @@ const PAGES = [
   "/hub/handovers",
   "/hub/data",
   "/hub/shops",
+  "/hub/users",
+  "/account/change-password",
   "/hub/items/RL-JMU-0042",
 ];
 

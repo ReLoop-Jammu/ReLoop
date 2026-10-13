@@ -9,6 +9,7 @@ import {
   PackagePlus,
   Recycle,
   Store,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/hub/partners", label: "Shops & institutions", icon: Store },
   { href: "/hub/handovers", label: "Recycler handovers", icon: Recycle },
   { href: "/hub/shops", label: "Shop verification", icon: BadgeCheck },
+  { href: "/hub/users", label: "Users", icon: Users },
   { href: "/hub/data", label: "Data & exports", icon: Database },
 ];
 

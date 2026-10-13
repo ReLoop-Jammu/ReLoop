@@ -30,6 +30,8 @@ const PAGES = [
   "/hub/handovers",
   "/hub/data",
   "/hub/shops",
+  "/hub/users",
+  "/account/change-password",
   "/this-page-does-not-exist",
 ];
 

@@ -871,3 +871,80 @@ describe("item notes (20261018000001)", () => {
     assert.equal(history.rows[1].mine, true);
   });
 });
+
+describe("admin password reset (20261019000001)", () => {
+  let db;
+  let admin;
+  let staff;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    staff = await createUser(db, "Staff", { staff: true });
+  });
+  const flag = (id, on) =>
+    db.query("update public.profiles set must_change_password = $2 where user_id = $1", [id, on]);
+  const roles = async (id) =>
+    (await as(db, id, (tx) => tx.query("select public.is_admin() as a, public.is_staff() as s")))
+      .rows[0];
+
+  test("users can't clear their own flag", async () => {
+    await flag(staff, true);
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.profiles set must_change_password = false where user_id = $1", [
+          staff,
+        ]),
+      ),
+      /permission denied/,
+    );
+    const { rows } = await as(db, staff, (tx) =>
+      tx.query("select must_change_password from public.profiles"),
+    );
+    assert.equal(rows[0].must_change_password, true, "they can read it");
+    await flag(staff, false);
+  });
+
+  test("while the flag is set, staff and admins are neither", async () => {
+    assert.deepEqual(await roles(admin), { a: true, s: true });
+    assert.deepEqual(await roles(staff), { a: false, s: true });
+    await flag(admin, true);
+    await flag(staff, true);
+    assert.deepEqual(await roles(admin), { a: false, s: false });
+    assert.deepEqual(await roles(staff), { a: false, s: false });
+    const items = await as(db, staff, (tx) =>
+      tx.query("select count(*)::int as n from public.partners"),
+    );
+    assert.equal(items.rows[0].n, 0, "RLS shuts the hub's data");
+    await flag(admin, false);
+    await flag(staff, false);
+    assert.deepEqual(await roles(staff), { a: false, s: true });
+  });
+
+  test("only admins read the audit log, nobody signed in writes it, and it has no password column", async () => {
+    await asService(db, (tx) =>
+      tx.query(
+        "insert into public.admin_audit_log (admin_id, target_user_id, action) values ($1, $2, 'password_reset')",
+        [admin, staff],
+      ),
+    );
+    const a = await as(db, admin, (tx) => tx.query("select action from public.admin_audit_log"));
+    assert.equal(a.rows.length, 1);
+    const s = await as(db, staff, (tx) => tx.query("select action from public.admin_audit_log"));
+    assert.equal(s.rows.length, 0);
+    await assert.rejects(
+      as(db, admin, (tx) =>
+        tx.query("insert into public.admin_audit_log (action) values ('password_reset')"),
+      ),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select id from public.admin_audit_log")),
+      /permission denied/,
+    );
+    const cols = await db.query(
+      "select column_name from information_schema.columns where table_name = 'admin_audit_log'",
+    );
+    assert.ok(cols.rows.every((c) => !/pass/i.test(c.column_name)));
+  });
+});
