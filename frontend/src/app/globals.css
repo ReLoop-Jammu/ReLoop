@@ -141,9 +141,9 @@
   }
 }
 
-/* Printing a hub tag prints only the tag. */
+/* Printing a hub tag prints only the tag (pages without one print normally). */
 @media print {
-  body * {
+  body:has(.print-tag) * {
     visibility: hidden;
   }
   .print-tag,
