@@ -19,14 +19,14 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 The plan file is the reference. Email sending is off by decision, so password recovery is admin-only.
 
-| Batch | Branch                      | Status      | Note                                                                                                   |
-| ----- | --------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
-| A     | `feat/admin-password-reset` | done        | PR #27 (`99f6749`). Live test 11/11: reset, forced change, flag cleared, audit row without password.   |
-| B     | `feat/close-the-loop`       | in progress | Live: migration `20261020000001` applied, checks 33/33. Hub requests and submissions, offers, convert. |
-| C     | `feat/partner-map`          | not started | "Show on map" for verified shops, with consent recorded; `map_partner_shops` view.                     |
-| D     | `feat/team`                 | not started | `/hub/team`: promote or demote staff and admins; never zero admins.                                    |
-| E     | `chore/quality`             | not started | Lighthouse mobile pass on six pages, before and after.                                                 |
-| F     | `docs/round3`               | not started | Limitations, CLAUDE.md, progress; delete the Keychain entry.                                           |
+| Batch | Branch                      | Status      | Note                                                                                                            |
+| ----- | --------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
+| A     | `feat/admin-password-reset` | done        | PR #27 (`99f6749`). Live test 11/11: reset, forced change, flag cleared, audit row without password.            |
+| B     | `feat/close-the-loop`       | done        | PR #28 plus fix #29 (`18df5bc`). Live test 18/18 after the fix. Test data removed; counter at 5.                |
+| C     | `feat/partner-map`          | in progress | Live: migration `20261021000001` applied, checks 35/35. `map_partner_shops` view; admin switch on `/hub/shops`. |
+| D     | `feat/team`                 | not started | `/hub/team`: promote or demote staff and admins; never zero admins.                                             |
+| E     | `chore/quality`             | not started | Lighthouse mobile pass on six pages, before and after.                                                          |
+| F     | `docs/round3`               | not started | Limitations, CLAUDE.md, progress; delete the Keychain entry.                                                    |
 
 ## Remaining-work plan (approved 2026-10-13)
 

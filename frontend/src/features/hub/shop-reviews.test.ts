@@ -47,3 +47,50 @@ describe("role gate", () => {
     }
   });
 });
+
+describe("putting a shop on the map", async () => {
+  const { buildMapListing } = await import("./shop-reviews");
+  it("needs a consent date and a position in Jammu", () => {
+    expect(() =>
+      buildMapListing({
+        show: true,
+        consentDate: "",
+        market: "x",
+        lat: 32.73,
+        lng: 74.86,
+        approximate: true,
+      }),
+    ).toThrow(/date the shop agreed/);
+    expect(() =>
+      buildMapListing({
+        show: true,
+        consentDate: "2026-10-13",
+        market: "x",
+        lat: 28.6,
+        lng: 77.2,
+        approximate: false,
+      }),
+    ).toThrow(/isn't in Jammu/);
+    expect(
+      buildMapListing({
+        show: true,
+        consentDate: "2026-10-13",
+        market: "Raghunath Bazaar",
+        lat: 32.7302,
+        lng: 74.8641,
+        approximate: true,
+      }),
+    ).toEqual({
+      show_on_map: true,
+      map_consent_at: "2026-10-13T00:00:00Z",
+      map_market: "Raghunath Bazaar",
+      map_lat: 32.7302,
+      map_lng: 74.8641,
+      map_approximate: true,
+    });
+  });
+
+  it("taking a shop off the map needs nothing else", () => {
+    expect(buildMapListing({ show: false })).toEqual({ show_on_map: false });
+  });
+});

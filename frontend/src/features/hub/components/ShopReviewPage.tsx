@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/Button";
 import {
   listShopOwners,
   reviewShop,
+  setMapListing,
   type ShopOwner,
   type VerificationStatus,
 } from "../shop-reviews";
 import { countDriveScans } from "@/features/locations/scans";
+import { LOCATIONS } from "@/config/locations";
 import { DRIVE_LINK } from "@/config/locations";
 import { RequireRole } from "./RequireRole";
 import { hubInput, PageTitle, Panel } from "./ui";
@@ -146,6 +148,7 @@ function ShopRow({ shop, onSaved }: { shop: ShopOwner; onSaved: (s: ShopOwner) =
           {error}
         </p>
       )}
+      {shop.verification_status === "verified" && <MapControls shop={shop} onSaved={onSaved} />}
     </li>
   );
 }
@@ -175,5 +178,141 @@ function DriveScans() {
         Counts visits to {DRIVE_LINK.publicUrl}. Link previews and crawlers aren&apos;t counted.
       </p>
     </Panel>
+  );
+}
+
+/** The pickup-route markets, as approximate positions for the map. */
+const MARKETS = LOCATIONS.route.stops.filter((s) => s.name !== LOCATIONS.hub.name);
+const today = () => new Date().toISOString().slice(0, 10);
+
+function MapControls({ shop, onSaved }: { shop: ShopOwner; onSaved: (s: ShopOwner) => void }) {
+  const [agreed, setAgreed] = useState(shop.show_on_map);
+  const [date, setDate] = useState(shop.map_consent_at?.slice(0, 10) ?? today());
+  const [market, setMarket] = useState(shop.map_market || MARKETS[0].name);
+  const [lat, setLat] = useState(String(shop.map_lat ?? ""));
+  const [lng, setLng] = useState(String(shop.map_lng ?? ""));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const preset = MARKETS.find((m) => m.name === market);
+  const id = `map-${shop.id}`;
+
+  async function save(show: boolean) {
+    setError("");
+    setBusy(true);
+    try {
+      const position =
+        preset && !lat
+          ? { lat: preset.lat, lng: preset.lng }
+          : { lat: Number(lat), lng: Number(lng) };
+      await setMapListing(
+        shop.id,
+        show
+          ? { show: true, consentDate: date, market, ...position, approximate: !lat }
+          : { show: false },
+      );
+      onSaved({
+        ...shop,
+        show_on_map: show,
+        ...(show && {
+          map_consent_at: `${date}T00:00:00Z`,
+          map_market: market,
+          map_lat: position.lat,
+          map_lng: position.lng,
+          map_approximate: !lat,
+        }),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "That change wasn't saved.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-line p-3 text-sm">
+      <p className="font-semibold">
+        Public map:{" "}
+        {shop.show_on_map ? `shown (agreed ${shop.map_consent_at?.slice(0, 10)})` : "not shown"}
+      </p>
+      {shop.show_on_map ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          className="mt-2"
+          disabled={busy}
+          onClick={() => void save(false)}
+        >
+          Take off the map
+        </Button>
+      ) : (
+        <div className="mt-2 grid gap-2">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+            />
+            The shop agreed to be shown on ReLoop&apos;s public map.
+          </label>
+          <div className="flex flex-wrap items-end gap-2">
+            <label htmlFor={`${id}-date`} className="grid gap-1 text-xs font-medium">
+              Agreed on
+              <input
+                id={`${id}-date`}
+                type="date"
+                className={hubInput}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </label>
+            <label htmlFor={`${id}-market`} className="grid gap-1 text-xs font-medium">
+              Market
+              <select
+                id={`${id}-market`}
+                className={hubInput}
+                value={market}
+                onChange={(e) => setMarket(e.target.value)}
+              >
+                {MARKETS.map((m) => (
+                  <option key={m.name}>{m.name}</option>
+                ))}
+              </select>
+            </label>
+            <label htmlFor={`${id}-lat`} className="grid gap-1 text-xs font-medium">
+              Exact latitude (optional)
+              <input
+                id={`${id}-lat`}
+                inputMode="decimal"
+                className={`${hubInput} w-36`}
+                value={lat}
+                onChange={(e) => setLat(e.target.value)}
+              />
+            </label>
+            <label htmlFor={`${id}-lng`} className="grid gap-1 text-xs font-medium">
+              Exact longitude (optional)
+              <input
+                id={`${id}-lng`}
+                inputMode="decimal"
+                className={`${hubInput} w-36`}
+                value={lng}
+                onChange={(e) => setLng(e.target.value)}
+              />
+            </label>
+            <Button size="sm" disabled={busy || !agreed} onClick={() => void save(true)}>
+              Show on map
+            </Button>
+          </div>
+          <p className="text-xs text-muted">
+            Without exact coordinates the shop is placed at its market, marked approximate.
+          </p>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-danger">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
