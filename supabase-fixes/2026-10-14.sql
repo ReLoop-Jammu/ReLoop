@@ -1,4 +1,5 @@
--- ReLoop live database fixes, 2026-10-14. NOT YET RUN. Review before applying.
+-- ReLoop live database fixes, 2026-10-14. APPLIED to the live database on
+-- 2026-10-13 (see docs/runbooks/apply-fix-2026-10-14.md). Safe to run again.
 --
 -- How to apply: follow docs/runbooks/apply-fix-2026-10-14.md. In short: back up
 -- with scripts/backup-live-data.sh, then Supabase dashboard -> SQL Editor ->
