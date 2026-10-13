@@ -17,16 +17,24 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 ## Round 3 (approved 2026-10-13): close the loop
 
+**All six batches are done (2026-10-14).** Live checks are 37 of 37 true, the next tag is `RL-JMU-0006`, and 1 admin.
+
+- **Left for the team:**
+  - give each person their own account on `/hub/team`;
+  - delete closed requests by hand after 12 months;
+  - the earlier open items in `docs/known-limitations.md`.
+- **New real account:** a shop owner (Gmail, verified) registered on 2026-10-13 at 22:46 IST. It was left untouched.
+
 The plan file is the reference. Email sending is off by decision, so password recovery is admin-only.
 
-| Batch | Branch                      | Status      | Note                                                                                                 |
-| ----- | --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
-| A     | `feat/admin-password-reset` | done        | PR #27 (`99f6749`). Live test 11/11: reset, forced change, flag cleared, audit row without password. |
-| B     | `feat/close-the-loop`       | done        | PR #28 plus fix #29 (`18df5bc`). Live test 18/18 after the fix. Test data removed; counter at 5.     |
-| C     | `feat/partner-map`          | done        | PR #30 (`b7628d2`). Live test 5/5 via the public view; test shop removed.                            |
-| D     | `feat/team`                 | done        | PR #31 (`cd9f098`). Live test 6/6; audit rows logged; test accounts removed; 1 admin.                |
-| E     | `chore/quality`             | in progress | Lighthouse mobile: all pages ≥ 87 performance, 100 accessibility and best practices (see PR).        |
-| F     | `docs/round3`               | not started | Limitations, CLAUDE.md, progress; delete the Keychain entry.                                         |
+| Batch | Branch                      | Status | Note                                                                                                                       |
+| ----- | --------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| A     | `feat/admin-password-reset` | done   | PR #27 (`99f6749`). Live test 11/11: reset, forced change, flag cleared, audit row without password.                       |
+| B     | `feat/close-the-loop`       | done   | PR #28 plus fix #29 (`18df5bc`). Live test 18/18 after the fix. Test data removed; counter at 5.                           |
+| C     | `feat/partner-map`          | done   | PR #30 (`b7628d2`). Live test 5/5 via the public view; test shop removed.                                                  |
+| D     | `feat/team`                 | done   | PR #31 (`cd9f098`). Live test 6/6; audit rows logged; test accounts removed; 1 admin.                                      |
+| E     | `chore/quality`             | done   | PR #32 (`c4d935e`). Local 87–96 performance, 100 accessibility and best practices; production home 93, `/locations` 91–92. |
+| F     | `docs/round3`               | done   | Limitations, CLAUDE.md and progress updated; privacy wording on request retention; Keychain entry deleted.                 |
 
 ## Remaining-work plan (approved 2026-10-13)
 
