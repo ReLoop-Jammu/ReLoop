@@ -8,11 +8,7 @@ backend/
 │  ├─ config.toml                          # Supabase CLI settings (local dev)
 │  ├─ migrations/
 │  │  ├─ …_hub_inventory.sql               # tables, rules, triggers, Row Level Security
-│  │  ├─ …_item_photos_storage.sql         # photo bucket (public read, staff write; repeatable)
-│  │  ├─ …_marketplace_base_tables.sql     # shop_owners, shop_submissions, institution_submissions
-│  │  ├─ …_accounts_and_shop_verification.sql  # profiles, GSTIN, verification, signup trigger
-│  │  ├─ …_purchase_only_supplier_records.sql  # supplier/payment columns on items
-│  │  └─ …_harden_accounts_and_reviews.sql # safe signup, staff review, constraints, rate limiter
+│  │  └─ …_item_photos_storage.sql         # photo bucket (public read, staff write)
 │  └─ seed.sql                             # local only: a hub admin + the 12 sample items
 └─ tests/                                  # runs the real migrations in PGlite; checks every rule
 ```
@@ -29,22 +25,6 @@ backend/
 | `repair_jobs` | B-grade repairs by partner shops. Accepted items are purchased outright by ReLoop.                                      |
 | `handovers`                   | Recycler pickups: kg by category, batteries, items included, receipt number, amount.                                 |
 | `submissions`                 | Public "Sell to us" and reservation requests.                                                                        |
-| `profiles`                    | One row per account: name, phone, role (`buyer` / `shop_owner`). Users cannot change their own role.                 |
-| `shop_owners`                 | Shop-owner business details, GSTIN and verification status. Only staff change verification (see below).              |
-| `shop_submissions`            | Private stock offers from verified shops. Owners read their own; staff read and triage all.                          |
-| `institution_submissions`     | Institution pickup bookings, written by the server only; staff read and triage.                                      |
-| `rate_limits`                 | Counters behind `hit_rate_limit()`, used by the website's public endpoints (service role only).                      |
-
-## Reviewing shops
-
-Staff verify a shop in the SQL editor (or from a future hub screen) with:
-
-```sql
-select public.review_shop_owner('<shop owner id>', 'verified', 'GSTIN checked on the GST portal');
--- statuses: 'pending' | 'verified' | 'rejected'
-```
-
-A GSTIN is unique only among **verified** shops, so a pending sign-up cannot block the real owner.
 
 ## Rules the database enforces (not just the UI)
 
@@ -72,5 +52,4 @@ Runs on [PGlite](https://pglite.dev) (Postgres in WebAssembly), so no Docker is 
    `select cron.schedule('reloop-stock-rules', '0 1 * * *', 'select public.apply_stock_rules()');`
 5. Add the first admin (after they sign up) in the SQL editor:
    `insert into public.staff (user_id, full_name, role) select id, 'Name', 'admin' from auth.users where email = '…';`
-6. Sign-in is already wired: the website's `/login` signs staff in, and `/hub` opens for anyone listed in `staff`.
-7. Then the frontend's data layer (`frontend/src/features/inventory/store`) gets a Supabase adapter, and the hub gets a staff login.
+6. Then the frontend's data layer (`frontend/src/features/inventory/store`) gets a Supabase adapter, and the hub gets a staff login.

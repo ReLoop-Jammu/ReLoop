@@ -101,11 +101,4 @@ describe("hub data layer (browser storage)", () => {
     expect((await getItems())[0].id).toBe("RL-JMU-0001");
     await expect(importAll({ nope: true } as never)).rejects.toThrow(/not a ReLoop backup/);
   });
-
-  it("refuses a damaged backup without touching existing data", async () => {
-    await createItem(intake());
-    const damaged = { version: 1, data: { items: [{ brand: "no id" }] } };
-    await expect(importAll(damaged as never)).rejects.toThrow(/not a ReLoop backup/);
-    expect(await getItems()).toHaveLength(1);
-  });
 });

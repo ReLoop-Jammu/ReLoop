@@ -55,12 +55,7 @@ export const shopSnapshotSchema = z.object({
         pricePaise: z.number().int().positive(),
         wasPaise: z.number().int().positive().optional(),
         description: z.string().max(2000),
-        photo: z
-          .string()
-          .startsWith("data:image/")
-          .or(z.string().startsWith("/"))
-          .or(z.string().startsWith("https://"))
-          .optional(),
+        photo: z.string().startsWith("data:image/").or(z.string().startsWith("/")).optional(),
         checks: z.array(z.string().max(60)),
         dataWiped: z.boolean(),
         warrantyDays: z.number().int().positive().nullable(),

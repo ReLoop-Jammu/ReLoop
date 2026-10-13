@@ -17,9 +17,6 @@ export default defineConfig({
     command: `npm run build && npm run start -- -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    // The hub normally needs a staff login; the browser tests run without
-    // Supabase, so they open it explicitly. Never set this on a deployed site.
-    env: { INSECURE_OPEN_HUB: "true" },
     timeout: 180_000,
   },
 });
