@@ -118,6 +118,15 @@ select check_name, ok
         not has_function_privilege('anon', 'public.link_visit_counts()', 'EXECUTE')
         and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
               where table_schema = 'public' and table_name = 'link_visits')
-            = array['id', 'slug', 'source', 'medium', 'visited_at'])
+            = array['id', 'slug', 'source', 'medium', 'visited_at']),
+    (29, 'Impact counter: the public view shows only the three totals',
+        has_table_privilege('anon', 'public.impact_totals', 'SELECT')
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'impact_totals')
+            = array['items_reused', 'kg_recycled', 'active_partner_shops']),
+    (30, 'Impact counter: visitors still cannot read items cost, handovers or partners',
+        not has_column_privilege('anon', 'public.items', 'buy_paise', 'SELECT')
+        and not has_table_privilege('anon', 'public.handovers', 'SELECT')
+        and not has_table_privilege('anon', 'public.partners', 'SELECT'))
   ) as c(n, check_name, ok)
  order by n;
