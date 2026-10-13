@@ -74,6 +74,11 @@ export default function PrivacyPage() {
           delete them, we do so within a reasonable period, except where we must keep records by law
           (for example, tax or e-waste compliance records).
         </p>
+        <p>
+          Requests you send us through the site (reservations, questions about an item and pickup
+          bookings) are seen only by ReLoop&apos;s hub staff. We keep them while we handle them and
+          delete them within 12 months after they are closed.
+        </p>
       </section>
 
       <section>

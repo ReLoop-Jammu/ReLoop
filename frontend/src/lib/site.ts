@@ -40,7 +40,7 @@ export const SITE = {
     phone: PUBLIC_PHONE,
   } as { name: string; designation: string; email: string; phone: string } | null,
   /** Date the legal pages were last updated (YYYY-MM-DD). */
-  legalUpdated: "2026-10-13",
+  legalUpdated: "2026-10-14",
 } as const;
 
 /** True once at least one channel exists for sell-to-us requests to reach ReLoop. */

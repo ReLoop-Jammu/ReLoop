@@ -14,7 +14,7 @@ E-waste / used-electronics marketplace, starting in Jammu and selling across Ind
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state (2026-10-13, after the database fix)
+## Current state (2026-10-14, after round 3)
 
 Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
@@ -41,7 +41,19 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - `/api/shop-submissions` checks the session and verification on the server before using the service-role key.
   - The form's conditions (Working, Broken, …) are mapped in `frontend/src/features/sell/conditions.ts` to the values `shop_submissions.condition` allows. On `main`, every condition but "Working" is rejected by the database.
   - To make someone an admin, use `supabase-fixes/make-admin.sql`.
-- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, shop verification, data & exports) runs on **Supabase** behind a staff login, through `frontend/src/features/inventory/store/supabase.ts`.
+- **No email sending, by decision.** Password recovery is admin-only.
+  - Admins reset passwords on `/hub/users` after confirming the person by phone. The server route generates a temporary password, shows it once and logs the reset in `admin_audit_log`, never the password.
+  - `profiles.must_change_password` makes `is_admin()` and `is_staff()` false until the user sets a new password at `/account/change-password`.
+  - `/resend-confirmation` is unlinked (the code is kept).
+- **The loop:**
+  - shop submissions are reviewed on `/hub/submissions` (offer or reject), and `convert_submission()` turns an accepted offer into linked hub items;
+  - shop owners see their offers on `/account`;
+  - reservations, questions and institution pickups are saved through `/api/requests` (service key, validated) and handled on `/hub/requests`;
+  - visitors can't insert or read requests directly.
+- **Partner map:** admins put verified shops on `/locations` from `/hub/shops`, with a recorded consent date, through the `map_partner_shops` view (name, market and position only).
+- **Team:** `/hub/team` promotes or demotes staff and admins through `set_account_role()`. Triggers keep at least one admin. `supabase-fixes/make-admin.sql` is only for recovering the first admin.
+- **Read-only checks:** `supabase-fixes/2026-10-14-checks.sql` (13) plus `supabase-fixes/live-checks-extra.sql` (24) were 37 of 37 true on 2026-10-14. Run both after every database change; add a check for every new permission.
+- **Staff hub:** `/hub` (dashboard, intake, items, requests, shop submissions, shops & institutions, handovers, shop verification, users, team, data & exports) runs on **Supabase** behind a staff login, through `frontend/src/features/inventory/store/supabase.ts`.
   - Admins count as staff (`is_staff()`).
   - Without the Supabase variables (local dev, CI) it falls back to the device-only store.
   - Tags come from the database (next real item `RL-JMU-0006`).
