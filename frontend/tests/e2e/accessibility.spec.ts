@@ -17,6 +17,8 @@ const PAGES = [
   "/contact",
   "/privacy",
   "/terms",
+  "/locations",
+  "/locations/qr",
   "/login",
   "/forgot-password",
   "/reset-password",

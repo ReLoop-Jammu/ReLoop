@@ -18,6 +18,7 @@ const SELL_LINKS = [
 const COMPANY_LINKS = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/where-scrap-goes", label: "Where scrap goes" },
+  { href: "/locations", label: "Map & locations" },
   { href: "/impact", label: "Our impact" },
   { href: "/contact", label: "Contact" },
 ];

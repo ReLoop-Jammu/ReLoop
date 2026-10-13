@@ -644,3 +644,59 @@ describe("admin shop verification (/hub/shops)", () => {
     assert.equal(none.rows.length, 0);
   });
 });
+
+describe("awareness-drive QR scans (20261017000001)", () => {
+  let db;
+  let admin;
+  let user;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    for (const m of MIGRATIONS.filter((m) => m > "20261014999999")) await db.exec(readSql(m));
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    user = await createUser(db, "Visitor");
+  });
+  const scan = (tx) =>
+    tx.query("insert into public.qr_scans (campaign) values ('awareness-drive-2026')");
+
+  test("only the server (service role) records scans, with a valid campaign", async () => {
+    await asService(db, scan);
+    await asService(db, scan);
+    await assert.rejects(
+      asService(db, (tx) =>
+        tx.query("insert into public.qr_scans (campaign) values ('Bad Campaign!')"),
+      ),
+      /check constraint/,
+    );
+    await assert.rejects(as(db, null, scan), /permission denied/);
+    await assert.rejects(as(db, user, scan), /permission denied/);
+  });
+
+  test("admins read the count; visitors and other users read nothing", async () => {
+    const a = await as(db, admin, (tx) =>
+      tx.query("select count(*)::int as n from public.qr_scans"),
+    );
+    assert.equal(a.rows[0].n, 2);
+    const u = await as(db, user, (tx) =>
+      tx.query("select count(*)::int as n from public.qr_scans"),
+    );
+    assert.equal(u.rows[0].n, 0);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select id from public.qr_scans")),
+      /permission denied/,
+    );
+  });
+});
+
+describe("supabase-fixes/live-checks-extra.sql", () => {
+  test("every check is true on the repo schema", async () => {
+    const db = await createTestDb({ seed: false });
+    const { rows } = await db.query(readSql("../supabase-fixes/live-checks-extra.sql"));
+    assert.ok(rows.length > 0);
+    assert.deepEqual(
+      rows.filter((r) => !r.ok).map((r) => r.check_name),
+      [],
+    );
+  });
+});

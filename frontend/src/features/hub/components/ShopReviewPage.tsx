@@ -8,6 +8,8 @@ import {
   type ShopOwner,
   type VerificationStatus,
 } from "../shop-reviews";
+import { countDriveScans } from "@/features/locations/scans";
+import { DRIVE_LINK } from "@/config/locations";
 import { RequireRole } from "./RequireRole";
 import { hubInput, PageTitle, Panel } from "./ui";
 
@@ -21,6 +23,7 @@ export function ShopReviewPage() {
   return (
     <RequireRole role="admin">
       <ShopReviews />
+      <DriveScans />
     </RequireRole>
   );
 }
@@ -153,5 +156,24 @@ function Detail({ label, value }: { label: string; value: string | null }) {
       <dt className="text-muted">{label}</dt>
       <dd className="min-w-0 break-words">{value || "—"}</dd>
     </div>
+  );
+}
+
+function DriveScans() {
+  const [scans, setScans] = useState<number | null>(null);
+  useEffect(() => {
+    countDriveScans()
+      .then(setScans)
+      .catch(() => setScans(null));
+  }, []);
+  return (
+    <Panel title="Awareness drive" className="mb-6">
+      <p className="text-sm">
+        QR code scans ({DRIVE_LINK.campaign}): <strong>{scans ?? "—"}</strong>
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        Counts visits to {DRIVE_LINK.publicUrl}. Link previews and crawlers aren&apos;t counted.
+      </p>
+    </Panel>
   );
 }
