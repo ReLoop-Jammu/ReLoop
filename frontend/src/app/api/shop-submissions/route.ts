@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { storedCondition } from "@/features/sell/conditions";
 
 export const runtime = "nodejs";
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -45,7 +46,8 @@ export async function POST(request: Request) {
       category: text(item.category, 80),
       brand: text(item.brand, 100),
       model: text(item.model, 100),
-      condition: text(item.condition, 40) === "Working" ? "Good" : text(item.condition, 40),
+      reportedCondition: text(item.condition, 40),
+      condition: storedCondition(text(item.condition, 40)),
       quantity,
       asking_price: askingPrice,
       image_url: imageUrl,
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Each item needs a name, condition and positive whole-number quantity. Image links must use HTTPS.",
+          "Each item needs a name, a condition from the list and a positive whole-number quantity. Image links must use HTTPS.",
       },
       { status: 400 },
     );
@@ -142,7 +144,11 @@ export async function POST(request: Request) {
           brand: item.brand || null,
           model: item.model || null,
           description:
-            [item.category ? `Category: ${item.category}` : "", item.description]
+            [
+              item.category ? `Category: ${item.category}` : "",
+              `Condition reported: ${item.reportedCondition}`,
+              item.description,
+            ]
               .filter(Boolean)
               .join("\n") || null,
           quantity: item.quantity,

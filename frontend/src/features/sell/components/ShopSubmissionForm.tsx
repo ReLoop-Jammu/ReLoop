@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { inputClass } from "./RequestForm";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-client";
+import { SUBMISSION_CONDITIONS } from "../conditions";
 
 type ItemDraft = {
   itemName: string;
@@ -304,11 +305,9 @@ export function ShopSubmissionForm() {
                   value={item.condition}
                   onChange={(e) => updateItem(index, "condition", e.target.value)}
                 >
-                  <option>Working</option>
-                  <option>Partially working</option>
-                  <option>Broken</option>
-                  <option>Dead / scrap</option>
-                  <option>Untested</option>
+                  {Object.keys(SUBMISSION_CONDITIONS).map((condition) => (
+                    <option key={condition}>{condition}</option>
+                  ))}
                 </select>
               </Field>
               <Field label="Quantity *">
