@@ -1,9 +1,13 @@
 -- ReLoop live database fixes, 2026-10-14. NOT YET RUN. Review before applying.
 --
--- How to apply: Supabase dashboard -> SQL Editor -> paste this whole file -> Run.
--- It is one transaction: if any statement fails, nothing is changed. It is also
--- safe to run twice. Take a backup first (Database -> Backups) and apply it to a
--- branch or a copy of the project before production if you can.
+-- How to apply: follow docs/runbooks/apply-fix-2026-10-14.md. In short: back up
+-- with scripts/backup-live-data.sh, then Supabase dashboard -> SQL Editor ->
+-- paste this whole file -> Run.
+--
+-- It is one transaction: if any statement fails, or any check in block 5 is
+-- false, nothing is changed. It is also safe to run twice. It changes
+-- permissions, policies and functions and adds tables. Of the existing data it
+-- only edits the storage bucket settings (block 4i); it deletes nothing.
 --
 -- Made from the repo migrations 20261007000001, 20261007000002, 20261012000001
 -- and 20261014000001, so the live database ends up matching the repo. Not
@@ -600,8 +604,9 @@ end $$;
 --   g. Sign-up: GSTIN becomes optional, checked only when given. Could break:
 --      nothing for existing accounts; new shop owners may now have no GSTIN.
 --   h. Trigger functions can no longer be called through the API.
---   i. Images bucket: stays public, limited to 5 MB JPEG/PNG/WebP. Could break:
---      uploading a larger photo, or another format, to that bucket.
+--   i. Storage buckets: stay public, limited to 5 MB JPEG/PNG/WebP (smaller
+--      limits are kept). Could break: uploading a larger photo, or another
+--      format, such as a PDF or HEIC photo straight from an iPhone.
 -- ===========================================================================
 
 -- Listings: visitors and signed-in users see only the public columns, never
@@ -760,11 +765,142 @@ $$;
 revoke execute on function public.handle_new_reloop_user() from public, anon, authenticated;
 revoke execute on function public.protect_shop_verification() from public, anon, authenticated;
 
--- The public Images bucket (listing photos): keep it public, but cap uploads
--- at 5 MB and to common image types. No-op where the bucket doesn't exist.
+-- Storage buckets (the public Images bucket for listing photos, and
+-- item-photos): stay public, but every upload is at most 5 MB and a JPEG, PNG
+-- or WebP image. A bucket that already has a smaller limit keeps it.
 update storage.buckets
-   set file_size_limit = 5242880,
+   set file_size_limit = least(coalesce(file_size_limit, 5242880), 5242880),
        allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
- where id = 'Images';
+ where file_size_limit is null
+    or file_size_limit > 5242880
+    or allowed_mime_types is null
+    or not (allowed_mime_types <@ array['image/jpeg', 'image/png', 'image/webp']);
+
+-- ===========================================================================
+-- Block 5. Checks (read-only).
+--
+-- What it does: one SELECT that lists every hole from the security report with
+-- ok = true once it is closed. The SQL Editor shows this table. Then a guard
+-- cancels the whole script (nothing is changed) if any check is false, with
+-- the failed checks in the error message. The same SELECT is in
+-- supabase-fixes/2026-10-14-checks.sql to re-run at any time.
+-- What could break: nothing; it only reads.
+-- ===========================================================================
+
+select check_name, ok
+  from (values
+    (1,  'Visitors can still read listing titles and prices (the shop works)',
+         has_column_privilege('anon', 'public.listings', 'title', 'SELECT')
+         and has_column_privilege('anon', 'public.listings', 'price', 'SELECT')),
+    (2,  'Visitors cannot read listing purchase_cost, processing_cost or internal_notes',
+         not has_column_privilege('anon', 'public.listings', 'purchase_cost', 'SELECT')
+         and not has_column_privilege('anon', 'public.listings', 'processing_cost', 'SELECT')
+         and not has_column_privilege('anon', 'public.listings', 'internal_notes', 'SELECT')),
+    (3,  'Signed-in users cannot read listing purchase_cost, processing_cost or internal_notes',
+         not has_column_privilege('authenticated', 'public.listings', 'purchase_cost', 'SELECT')
+         and not has_column_privilege('authenticated', 'public.listings', 'processing_cost', 'SELECT')
+         and not has_column_privilege('authenticated', 'public.listings', 'internal_notes', 'SELECT')),
+    (4,  'Shop owners (verified or not) cannot insert submissions directly',
+         not has_table_privilege('authenticated', 'public.shop_submissions', 'INSERT')
+         and not has_table_privilege('anon', 'public.shop_submissions', 'INSERT')
+         and not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'shop_submissions'
+                           and cmd in ('INSERT', 'ALL') and roles && array['anon', 'authenticated']::name[])),
+    (5,  'Shop owners cannot read internal notes on their submissions',
+         not has_column_privilege('authenticated', 'public.shop_submissions', 'internal_notes', 'SELECT')),
+    (6,  'Visitors cannot create orders or enquiries',
+         not has_table_privilege('anon', 'public.orders', 'INSERT')
+         and not has_table_privilege('anon', 'public.enquiries', 'INSERT')
+         and not exists (select 1 from pg_policies where schemaname = 'public' and tablename in ('orders', 'enquiries')
+                           and cmd in ('INSERT', 'ALL') and roles && array['anon']::name[])),
+    (7,  'Visitors cannot change or delete orders or enquiries',
+         not exists (select 1 from pg_policies where schemaname = 'public' and tablename in ('orders', 'enquiries')
+                       and cmd in ('UPDATE', 'DELETE', 'ALL') and roles && array['anon']::name[])),
+    (8,  'Shop verification is guarded by a trigger',
+         exists (select 1 from pg_trigger where tgname = 'shop_owners_protect_verification'
+                   and tgrelid = 'public.shop_owners'::regclass)),
+    (9,  'Sign-up accepts shop owners without a GSTIN',
+         exists (select 1 from pg_proc where proname = 'handle_new_reloop_user'
+                   and prosrc like '%supplied_gstin is not null and%')),
+    (10, 'Trigger functions cannot be called through the API',
+         not has_function_privilege('anon', 'public.handle_new_reloop_user()', 'EXECUTE')
+         and not has_function_privilege('authenticated', 'public.handle_new_reloop_user()', 'EXECUTE')),
+    (11, 'No API role has TRUNCATE on any public table',
+         not exists (select 1 from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r'
+                       and (has_table_privilege('anon', oid, 'TRUNCATE')
+                            or has_table_privilege('authenticated', oid, 'TRUNCATE')))),
+    (12, 'Every storage bucket allows at most 5 MB of JPEG, PNG or WebP',
+         not exists (select 1 from storage.buckets
+                      where file_size_limit is null or file_size_limit > 5242880 or allowed_mime_types is null
+                         or not (allowed_mime_types <@ array['image/jpeg', 'image/png', 'image/webp']))),
+    (13, 'The 11 hub tables exist, each with Row Level Security on',
+         (select count(*) from pg_class
+           where relnamespace = 'public'::regnamespace and relkind = 'r' and relrowsecurity
+             and relname in ('items', 'item_events', 'item_photos', 'item_counters', 'staff', 'partners',
+                             'institutions', 'repair_jobs', 'consignments', 'handovers', 'submissions')) = 11)
+  ) as c(n, check_name, ok)
+ order by n;
+
+do $$
+declare
+  failed text;
+begin
+  select string_agg(check_name, '; ') into failed
+    from (select check_name, ok
+  from (values
+    (1,  'Visitors can still read listing titles and prices (the shop works)',
+         has_column_privilege('anon', 'public.listings', 'title', 'SELECT')
+         and has_column_privilege('anon', 'public.listings', 'price', 'SELECT')),
+    (2,  'Visitors cannot read listing purchase_cost, processing_cost or internal_notes',
+         not has_column_privilege('anon', 'public.listings', 'purchase_cost', 'SELECT')
+         and not has_column_privilege('anon', 'public.listings', 'processing_cost', 'SELECT')
+         and not has_column_privilege('anon', 'public.listings', 'internal_notes', 'SELECT')),
+    (3,  'Signed-in users cannot read listing purchase_cost, processing_cost or internal_notes',
+         not has_column_privilege('authenticated', 'public.listings', 'purchase_cost', 'SELECT')
+         and not has_column_privilege('authenticated', 'public.listings', 'processing_cost', 'SELECT')
+         and not has_column_privilege('authenticated', 'public.listings', 'internal_notes', 'SELECT')),
+    (4,  'Shop owners (verified or not) cannot insert submissions directly',
+         not has_table_privilege('authenticated', 'public.shop_submissions', 'INSERT')
+         and not has_table_privilege('anon', 'public.shop_submissions', 'INSERT')
+         and not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'shop_submissions'
+                           and cmd in ('INSERT', 'ALL') and roles && array['anon', 'authenticated']::name[])),
+    (5,  'Shop owners cannot read internal notes on their submissions',
+         not has_column_privilege('authenticated', 'public.shop_submissions', 'internal_notes', 'SELECT')),
+    (6,  'Visitors cannot create orders or enquiries',
+         not has_table_privilege('anon', 'public.orders', 'INSERT')
+         and not has_table_privilege('anon', 'public.enquiries', 'INSERT')
+         and not exists (select 1 from pg_policies where schemaname = 'public' and tablename in ('orders', 'enquiries')
+                           and cmd in ('INSERT', 'ALL') and roles && array['anon']::name[])),
+    (7,  'Visitors cannot change or delete orders or enquiries',
+         not exists (select 1 from pg_policies where schemaname = 'public' and tablename in ('orders', 'enquiries')
+                       and cmd in ('UPDATE', 'DELETE', 'ALL') and roles && array['anon']::name[])),
+    (8,  'Shop verification is guarded by a trigger',
+         exists (select 1 from pg_trigger where tgname = 'shop_owners_protect_verification'
+                   and tgrelid = 'public.shop_owners'::regclass)),
+    (9,  'Sign-up accepts shop owners without a GSTIN',
+         exists (select 1 from pg_proc where proname = 'handle_new_reloop_user'
+                   and prosrc like '%supplied_gstin is not null and%')),
+    (10, 'Trigger functions cannot be called through the API',
+         not has_function_privilege('anon', 'public.handle_new_reloop_user()', 'EXECUTE')
+         and not has_function_privilege('authenticated', 'public.handle_new_reloop_user()', 'EXECUTE')),
+    (11, 'No API role has TRUNCATE on any public table',
+         not exists (select 1 from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r'
+                       and (has_table_privilege('anon', oid, 'TRUNCATE')
+                            or has_table_privilege('authenticated', oid, 'TRUNCATE')))),
+    (12, 'Every storage bucket allows at most 5 MB of JPEG, PNG or WebP',
+         not exists (select 1 from storage.buckets
+                      where file_size_limit is null or file_size_limit > 5242880 or allowed_mime_types is null
+                         or not (allowed_mime_types <@ array['image/jpeg', 'image/png', 'image/webp']))),
+    (13, 'The 11 hub tables exist, each with Row Level Security on',
+         (select count(*) from pg_class
+           where relnamespace = 'public'::regnamespace and relkind = 'r' and relrowsecurity
+             and relname in ('items', 'item_events', 'item_photos', 'item_counters', 'staff', 'partners',
+                             'institutions', 'repair_jobs', 'consignments', 'handovers', 'submissions')) = 11)
+  ) as c(n, check_name, ok)
+ order by n) as checks
+   where not ok;
+  if failed is not null then
+    raise exception 'ReLoop fix checks failed, so nothing was changed: %', failed;
+  end if;
+end $$;
 
 commit;

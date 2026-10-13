@@ -294,3 +294,190 @@ describe("sign-up with optional GSTIN (all migrations)", () => {
     );
   });
 });
+
+/*
+ * Every query the site makes, replayed as the role PostgREST would use, on the
+ * live schema before and after the fix script. Mirrors:
+ *   frontend/src/features/shop/queries.ts         (anon)
+ *   frontend/src/app/(site)/account/page.tsx      (signed-in user)
+ *   frontend/src/app/api/shop-submissions/route.ts (service role)
+ *   sign-up through Supabase Auth                 (the auth.users trigger)
+ */
+async function asService(db, fn) {
+  return db.transaction(async (tx) => {
+    await tx.exec("set local role service_role");
+    return fn(tx);
+  });
+}
+
+// The values route.ts maps the form's conditions to (see frontend/src/features/sell/conditions.ts).
+const SUBMITTED_CONDITIONS = ["Good", "Used", "Damaged", "For Parts"];
+
+for (const [label, fixed] of [
+  ["before", false],
+  ["after", true],
+]) {
+  describe(`site queries ${label} the fix script`, () => {
+    let db;
+    let owner;
+    before(async () => {
+      db = await createTestDb({ migrations: LIVE, seed: false });
+      await db.exec("insert into public.categories (name) values ('Mobiles')");
+      await addListing(db);
+      owner = await shopOwner(db, "Query", { gstin: "01ABCDE1234F1Z5" });
+      await db.query(
+        "update public.shop_owners set verification_status = 'verified' where id = $1",
+        [owner],
+      );
+      if (fixed) await db.exec(readSql(FIX_SCRIPT));
+    });
+
+    test("shop: listings and categories load for visitors", async () => {
+      const { rows } = await as(db, null, (tx) =>
+        tx.query(`select id, title, description, category_id, brand, model, condition, price, stock, image_url,
+                         status, featured, grade, created_at
+                    from public.listings where status = 'Active' and stock > 0 order by created_at desc`),
+      );
+      assert.equal(rows.length, 1);
+      const cats = await as(db, null, (tx) =>
+        tx.query("select id, name from public.categories order by name"),
+      );
+      assert.equal(cats.rows.length, 1);
+    });
+
+    test("account page: a signed-in user reads their profile and shop", async () => {
+      const p = await as(db, owner, (tx) =>
+        tx.query("select full_name, role from public.profiles limit 1"),
+      );
+      assert.equal(p.rows[0].role, "shop_owner");
+      const s = await as(db, owner, (tx) =>
+        tx.query("select shop_name, gstin, verification_status from public.shop_owners limit 1"),
+      );
+      assert.equal(s.rows[0].verification_status, "verified");
+    });
+
+    test("submission route: checks role and verification, then inserts", async () => {
+      await asService(db, async (tx) => {
+        const role = await tx.query("select role from public.profiles where user_id = $1", [owner]);
+        assert.equal(role.rows[0].role, "shop_owner");
+        const v = await tx.query(
+          "select verification_status from public.shop_owners where id = $1",
+          [owner],
+        );
+        assert.equal(v.rows[0].verification_status, "verified");
+        for (const condition of SUBMITTED_CONDITIONS) {
+          await tx.query(
+            `insert into public.shop_submissions
+               (shop_owner_id, item_name, category_id, brand, model, description, quantity, condition, asking_price, image_url, status)
+             values ($1, 'TV', null, null, null, 'Category: TVs', 2, $2, null, null, 'Pending') returning *`,
+            [owner, condition],
+          );
+        }
+      });
+    });
+
+    test("sign-up: buyers and shop owners with a GSTIN", async () => {
+      await createUser(db, `Buyer ${label}`);
+      await shopOwner(db, `Gst ${label}`, {
+        gstin: label === "before" ? "02ABCDE1234F1Z5" : "03ABCDE1234F1Z5",
+      });
+    });
+
+    test(`sign-up: a shop owner without a GSTIN ${fixed ? "works" : "is refused"}`, async () => {
+      const signUp = shopOwner(db, `NoGst ${label}`);
+      if (fixed) await signUp;
+      else await assert.rejects(signUp, /GSTIN must contain exactly 15/);
+    });
+  });
+}
+
+describe("the fix script's checks", () => {
+  const CHECKS = "../supabase-fixes/2026-10-14-checks.sql";
+  const checks = async (db) => (await db.query(readSql(CHECKS))).rows;
+
+  test("show the holes open before the fix and closed after it", async () => {
+    const db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(
+      "insert into storage.buckets (id, name, public) values ('Images', 'Images', true)",
+    );
+    const before = await checks(db);
+    assert.equal(before.length, 13);
+    const open = before.filter((c) => !c.ok).map((c) => c.check_name);
+    assert.ok(open.some((n) => n.startsWith("Visitors cannot read listing purchase_cost")));
+    assert.ok(open.some((n) => n.startsWith("Shop owners (verified or not) cannot insert")));
+    assert.ok(open.some((n) => n.startsWith("Visitors cannot create orders")));
+    assert.ok(open.some((n) => n.startsWith("Every storage bucket")));
+
+    await db.exec(readSql(FIX_SCRIPT));
+    const after = await checks(db);
+    assert.deepEqual(
+      after.filter((c) => !c.ok).map((c) => c.check_name),
+      [],
+    );
+    const { rows } = await db.query(
+      "select file_size_limit, allowed_mime_types from storage.buckets where id = 'Images'",
+    );
+    assert.deepEqual(rows[0], {
+      file_size_limit: 5242880,
+      allowed_mime_types: ["image/jpeg", "image/png", "image/webp"],
+    });
+  });
+
+  test("the guard refuses to commit when a check fails", async () => {
+    const db = await createTestDb({ migrations: LIVE, seed: false });
+    const script = readSql(FIX_SCRIPT);
+    const guard = script.slice(
+      script.lastIndexOf("do $$\ndeclare\n  failed"),
+      script.lastIndexOf("commit;"),
+    );
+    await assert.rejects(
+      db.exec(guard),
+      /ReLoop fix checks failed, so nothing was changed: .*purchase_cost/,
+    );
+  });
+
+  test("the fix script and the checks file run the same checks", () => {
+    const select = readSql(CHECKS).slice(readSql(CHECKS).indexOf("select check_name"));
+    assert.ok(readSql(FIX_SCRIPT).includes(select.trim()));
+  });
+});
+
+describe("supabase-fixes/make-admin.sql", () => {
+  const MAKE_ADMIN = "../supabase-fixes/make-admin.sql";
+  const withEmail = (email) =>
+    readSql(MAKE_ADMIN).replace("'PUT-THE-ADMIN-EMAIL-HERE'::text", `'${email}'::text`);
+  // A failed script leaves its transaction open here; the SQL Editor ends it itself.
+  const failing = async (sql, message) => {
+    await assert.rejects(db.exec(sql), message);
+    await db.exec("rollback");
+  };
+  let db;
+  let admin;
+  before(async () => {
+    db = await createTestDb({ migrations: LIVE, seed: false });
+    await db.exec(readSql(FIX_SCRIPT));
+    admin = await createUser(db, "Asha");
+  });
+
+  test("refuses to run with the placeholder still in place", async () => {
+    await failing(readSql(MAKE_ADMIN), /put the admin's email on the line marked CHANGE THIS/);
+  });
+
+  test("fails clearly, changing nothing, when no account uses the email", async () => {
+    await failing(
+      withEmail("nobody@example.com"),
+      /no ReLoop account uses the email nobody@example\.com/,
+    );
+    const { rows } = await db.query("select count(*)::int as n from public.admin_users");
+    assert.equal(rows[0].n, 0);
+  });
+
+  test("makes the account an admin, matching the email in any case, and can run twice", async () => {
+    await db.exec(withEmail("  ASHA@Test.Local "));
+    await db.exec(withEmail("asha@test.local"));
+    const { rows } = await db.query("select id, name, is_active from public.admin_users");
+    assert.deepEqual(rows, [{ id: admin, name: "Asha", is_active: true }]);
+    const isAdmin = await as(db, admin, (tx) => tx.query("select public.is_admin() as yes"));
+    assert.equal(isAdmin.rows[0].yes, true);
+  });
+});

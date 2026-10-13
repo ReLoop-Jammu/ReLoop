@@ -158,9 +158,13 @@ $$;
 revoke execute on function public.handle_new_reloop_user() from public, anon, authenticated;
 revoke execute on function public.protect_shop_verification() from public, anon, authenticated;
 
--- The public Images bucket (listing photos): keep it public, but cap uploads
--- at 5 MB and to common image types. No-op where the bucket doesn't exist.
+-- Storage buckets (the public Images bucket for listing photos, and
+-- item-photos): stay public, but every upload is at most 5 MB and a JPEG, PNG
+-- or WebP image. A bucket that already has a smaller limit keeps it.
 update storage.buckets
-   set file_size_limit = 5242880,
+   set file_size_limit = least(coalesce(file_size_limit, 5242880), 5242880),
        allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
- where id = 'Images';
+ where file_size_limit is null
+    or file_size_limit > 5242880
+    or allowed_mime_types is null
+    or not (allowed_mime_types <@ array['image/jpeg', 'image/png', 'image/webp']);
