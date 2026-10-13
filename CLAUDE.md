@@ -41,11 +41,16 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - `/api/shop-submissions` checks the session and verification on the server before using the service-role key.
   - The form's conditions (Working, Broken, …) are mapped in `frontend/src/features/sell/conditions.ts` to the values `shop_submissions.condition` allows. On `main`, every condition but "Working" is rejected by the database.
   - To make someone an admin, use `supabase-fixes/make-admin.sql`.
-- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, backup & publish) stores its data **in each browser only**. It has no login and is not connected to Supabase.
+- **Staff hub:** `/hub` (dashboard, intake, items, shops & institutions, handovers, shop verification, data & exports) runs on **Supabase** behind a staff login, through `frontend/src/features/inventory/store/supabase.ts`.
+  - Admins count as staff (`is_staff()`).
+  - Without the Supabase variables (local dev, CI) it falls back to the device-only store.
+  - Tags come from the database (next real item `RL-JMU-0006`).
+  - The day-45/75 rules run daily at 06:00 IST (`pg_cron`) and are idempotent.
+  - Visitors read only shop-facing item columns; checked by `supabase-fixes/live-checks-extra.sql`, run alongside the 13 checks.
 - **Database:**
   - Live tables: `admin_users`, `categories`, `enquiries`, `institution_submissions`, `listings`, `orders`, `processing_records`, `profiles`, `shop_owners`, `shop_submissions`. All have RLS on.
   - They were made by hand; `20261010000001_live_baseline.sql` now describes them, and is guarded so it changes nothing live.
-  - The repo's hub tables (`items`, `item_events` and the rest) now exist live, with RLS on, but are empty: the hub app still stores data in each browser.
+  - The repo's hub tables (`items`, `item_events` and the rest) are live and used by the hub; listed hub items appear in the shop, and the sample listings hide once real stock exists.
   - **The 2026-10-14 fix is applied** (2026-10-13; see the execution record in `docs/runbooks/apply-fix-2026-10-14.md`). Every hole the SQL could fix is closed (the High one and two Mediums, plus the Lows), and `supabase-fixes/2026-10-14-checks.sql` shows 13 of 13 true; re-run it after any database change. Still open: email confirmation is off, and Preview shares the production database.
     - Live and repo schemas match: migrations `20261010000001` (baseline) and `20261014000001` describe what the fix applied.
     - There is 1 admin, the shared ReLoop admin account (`admin_users`). Add more with `supabase-fixes/make-admin.sql`.

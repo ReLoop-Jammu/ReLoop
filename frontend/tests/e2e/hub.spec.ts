@@ -125,3 +125,35 @@ test.describe("shop verification (admin only)", () => {
     await expect(page.getByRole("heading", { name: "Shop verification" })).toHaveCount(0);
   });
 });
+
+test.describe("KPI dashboard exports", () => {
+  test("the items CSV leaves out supplier contact names and phone numbers", async ({ page }) => {
+    await page.goto("/hub/intake");
+    await page.getByLabel("Seller name", { exact: true }).fill("Sharma Mobiles");
+    await page.getByLabel("Supplier contact name").fill("Ravi Sharma");
+    await page.getByLabel("Supplier phone / WhatsApp").fill("98765 43210");
+    await page.getByLabel("Brand").fill("Nokia");
+    await page.getByLabel("Grade (if tested now)").selectOption("A");
+    await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
+
+    await page.goto("/hub");
+    await expect(page.getByText(/Grade A: 1/)).toBeVisible();
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Items (CSV)" }).click();
+    const file = await (await download).path();
+    const csv = (await import("node:fs")).readFileSync(file, "utf8");
+    expect(csv).toContain("Sharma Mobiles");
+    expect(csv).toContain("Nokia");
+    expect(csv).not.toContain("Ravi Sharma");
+    expect(csv).not.toMatch(/98765\s?43210/);
+
+    const kpis = page.waitForEvent("download");
+    await page.getByRole("button", { name: "KPIs (CSV)" }).click();
+    const kpiCsv = (await import("node:fs")).readFileSync(await (await kpis).path(), "utf8");
+    expect(kpiCsv.split("\r\n")[0]).toBe(
+      "month,items_in,graded,grade_a,grade_b,grade_c,grade_d,reuse_pct,sold,scrap_kg",
+    );
+  });
+});

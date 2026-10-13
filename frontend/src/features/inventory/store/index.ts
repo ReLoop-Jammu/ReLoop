@@ -2,8 +2,9 @@
 
 /*
  * DATA LAYER for the hub and the public forms. Every read and write goes
- * through these functions. They are async so that swapping the browser
- * storage in ./local for Supabase changes nothing in the callers.
+ * through these functions. With Supabase configured (production) they use the
+ * shared database (./supabase) as the signed-in staff member; without it
+ * (local development, CI) they use this browser's storage (./local).
  */
 
 import type {
@@ -18,6 +19,12 @@ import type {
 import { nextItemId, randomId } from "../ids";
 import { applyStockRules } from "../rules";
 import { readCollection, writeCollection } from "./local";
+import * as live from "./supabase";
+
+/** True when the hub reads and writes the shared Supabase database. */
+export const SHARED_DATABASE = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+);
 
 const C = {
   items: "items",
@@ -51,10 +58,12 @@ export type ItemFilter = { status?: ItemStatus | ItemStatus[]; grade?: Item["gra
 
 /** Reads always see up-to-date prices: the day-45/75 rules run first. */
 export async function getItems(filter: ItemFilter = {}): Promise<Item[]> {
-  await applyAutomaticRules();
+  const all = SHARED_DATABASE
+    ? await live.getItems()
+    : (await applyAutomaticRules(), readCollection<Item>(C.items));
   const statuses = filter.status ? ([] as ItemStatus[]).concat(filter.status) : null;
   const q = filter.q?.trim().toLowerCase();
-  return readCollection<Item>(C.items)
+  return all
     .filter(
       (i) =>
         (!statuses || statuses.includes(i.status)) &&
@@ -65,6 +74,7 @@ export async function getItems(filter: ItemFilter = {}): Promise<Item[]> {
 }
 
 export async function getItem(id: string): Promise<Item | null> {
+  if (SHARED_DATABASE) return live.getItem(id);
   await applyAutomaticRules();
   return readCollection<Item>(C.items).find((i) => i.id === id) ?? null;
 }
@@ -77,6 +87,13 @@ export type NewItem = Omit<
 
 /** Logs a new item at intake and assigns the next RL-JMU tag. */
 export async function createItem(input: NewItem): Promise<Item> {
+  if (SHARED_DATABASE) {
+    return live.createItem({
+      ...input,
+      grade: input.grade ?? null,
+      checklist: input.checklist ?? {},
+    });
+  }
   const items = readCollection<Item>(C.items);
   const item: Item = {
     ...input,
@@ -100,10 +117,12 @@ export async function createItem(input: NewItem): Promise<Item> {
 }
 
 export async function saveItem(item: Item): Promise<Item> {
+  if (SHARED_DATABASE) return live.saveItem(item);
   return upsert(C.items, item);
 }
 
 export async function setItemStatus(id: string, status: ItemStatus, note?: string): Promise<Item> {
+  if (SHARED_DATABASE) return live.setItemStatus(id, status, note);
   const item = await getItem(id);
   if (!item) throw new Error(`Item ${id} not found`);
   const at = nowIso();
@@ -119,6 +138,7 @@ export async function setItemStatus(id: string, status: ItemStatus, note?: strin
 
 /** Runs the plan's day-45 / day-75 rules. Called whenever the hub opens. */
 export async function applyAutomaticRules(now = new Date()): Promise<Item[]> {
+  if (SHARED_DATABASE) return live.applyAutomaticRules();
   const items = readCollection<Item>(C.items);
   const changed = applyStockRules(items, now);
   if (changed.length) {
@@ -134,32 +154,39 @@ export async function applyAutomaticRules(now = new Date()): Promise<Item[]> {
 // ---------------------------------------------------------------- partners & institutions
 
 export async function getPartners(): Promise<Partner[]> {
+  if (SHARED_DATABASE) return live.getPartners();
   return readCollection<Partner>(C.partners).sort((a, b) => a.name.localeCompare(b.name));
 }
 export async function savePartner(p: Omit<Partner, "id"> & { id?: string }): Promise<Partner> {
+  if (SHARED_DATABASE) return live.savePartner(p);
   return upsert(C.partners, { ...p, id: p.id ?? randomId("shop") });
 }
 export async function deletePartner(id: string): Promise<void> {
+  if (SHARED_DATABASE) return live.deletePartner(id);
   remove(C.partners, id);
 }
 
 export async function getInstitutions(): Promise<Institution[]> {
+  if (SHARED_DATABASE) return live.getInstitutions();
   return readCollection<Institution>(C.institutions).sort((a, b) => a.name.localeCompare(b.name));
 }
 export async function saveInstitution(
   i: Omit<Institution, "id"> & { id?: string },
 ): Promise<Institution> {
+  if (SHARED_DATABASE) return live.saveInstitution(i);
   return upsert(C.institutions, { ...i, id: i.id ?? randomId("inst") });
 }
 
 // ---------------------------------------------------------------- handovers and repairs
 
 export async function getHandovers(): Promise<Handover[]> {
+  if (SHARED_DATABASE) return live.getHandovers();
   return readCollection<Handover>(C.handovers).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /** Records a recycler handover and marks the included items as handed over. */
 export async function saveHandover(h: Omit<Handover, "id"> & { id?: string }): Promise<Handover> {
+  if (SHARED_DATABASE) return live.saveHandover(h);
   const handover = upsert(C.handovers, { ...h, id: h.id ?? randomId("ho") });
   const at = nowIso();
   writeCollection(
@@ -182,11 +209,13 @@ export async function saveHandover(h: Omit<Handover, "id"> & { id?: string }): P
 }
 
 export async function getRepairJobs(): Promise<RepairJob[]> {
+  if (SHARED_DATABASE) return live.getRepairJobs();
   return readCollection<RepairJob>(C.repairJobs).sort((a, b) => b.sentAt.localeCompare(a.sentAt));
 }
 export async function saveRepairJob(
   j: Omit<RepairJob, "id"> & { id?: string },
 ): Promise<RepairJob> {
+  if (SHARED_DATABASE) return live.saveRepairJob(j);
   return upsert(C.repairJobs, { ...j, id: j.id ?? randomId("rep") });
 }
 
@@ -210,7 +239,22 @@ export async function addSubmission(
 const ALL = Object.values(C);
 export type Backup = { version: 1; exportedAt: string; data: Record<string, unknown[]> };
 
+/** Everything in the hub as one file: the shared database for staff, or this device. */
 export async function exportAll(): Promise<Backup> {
+  if (SHARED_DATABASE) {
+    const [items, partners, institutions, handovers, repairJobs] = await Promise.all([
+      live.getItems(),
+      live.getPartners(),
+      live.getInstitutions(),
+      live.getHandovers(),
+      live.getRepairJobs(),
+    ]);
+    return {
+      version: 1,
+      exportedAt: nowIso(),
+      data: { items, partners, institutions, handovers, repair_jobs: repairJobs },
+    };
+  }
   return {
     version: 1,
     exportedAt: nowIso(),
@@ -219,6 +263,11 @@ export async function exportAll(): Promise<Backup> {
 }
 
 export async function importAll(backup: Backup): Promise<void> {
+  if (SHARED_DATABASE) {
+    throw new Error(
+      "Restoring a file over the shared database isn't possible here. Use “Copy this device's items” for items that were only on this device.",
+    );
+  }
   if (backup?.version !== 1 || typeof backup.data !== "object")
     throw new Error("This is not a ReLoop backup file.");
   for (const name of ALL)

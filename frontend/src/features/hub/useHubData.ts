@@ -10,6 +10,14 @@ import {
   getRepairJobs,
 } from "@/features/inventory/store";
 
+export const HUB_ERROR_EVENT = "reloop:hub-error";
+
+/** Shows an error in the hub's banner (see HubShell). */
+export function reportHubError(e: unknown) {
+  const message = e instanceof Error ? e.message : "Something went wrong. Please try again.";
+  window.dispatchEvent(new CustomEvent(HUB_ERROR_EVENT, { detail: message }));
+}
+
 export type HubData = {
   items: Item[];
   partners: Partner[];
@@ -32,15 +40,20 @@ export function useHubData() {
   const [loaded, setLoaded] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [items, partners, institutions, handovers, repairJobs] = await Promise.all([
-      getItems(),
-      getPartners(),
-      getInstitutions(),
-      getHandovers(),
-      getRepairJobs(),
-    ]);
-    setData({ items, partners, institutions, handovers, repairJobs });
-    setLoaded(true);
+    try {
+      const [items, partners, institutions, handovers, repairJobs] = await Promise.all([
+        getItems(),
+        getPartners(),
+        getInstitutions(),
+        getHandovers(),
+        getRepairJobs(),
+      ]);
+      setData({ items, partners, institutions, handovers, repairJobs });
+    } catch (e) {
+      reportHubError(e);
+    } finally {
+      setLoaded(true);
+    }
   }, []);
 
   useEffect(() => {

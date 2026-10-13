@@ -48,3 +48,56 @@ describe("live listings in the shop", () => {
     expect(listingToShopItem(listing({ stock: 0 }), categories)).toBeNull();
   });
 });
+
+const { hubItemToShopItem, combineStock } = await import("./queries");
+
+describe("hub items in the shop", () => {
+  const row = {
+    id: "RL-JMU-0006",
+    category: "laptop" as const,
+    part_type: null,
+    grade: "A" as const,
+    brand: "Dell",
+    model: "Latitude 5420",
+    description: "Works, clean",
+    checklist: { "Powers on": true, Keyboard: true, Battery: false },
+    wiped_at: "2026-11-02T10:00:00.000Z",
+    list_paise: 2000000,
+    current_paise: 1600000,
+    price_cut_at: "2026-12-20T00:00:00.000Z",
+    status: "listed" as const,
+    listed_at: "2026-11-03T00:00:00.000Z",
+    item_photos: [
+      { position: 1, storage_path: "RL-JMU-0006/b.jpg" },
+      { position: 0, storage_path: "RL-JMU-0006/a.jpg" },
+    ],
+  };
+
+  it("shows a listed item with its first photo, passed checks, wipe and price cut", () => {
+    expect(
+      hubItemToShopItem(row, "https://x.supabase.co/storage/v1/object/public/item-photos"),
+    ).toMatchObject({
+      id: "RL-JMU-0006",
+      title: "Dell Latitude 5420",
+      pricePaise: 1600000,
+      wasPaise: 2000000,
+      photo: "https://x.supabase.co/storage/v1/object/public/item-photos/RL-JMU-0006/a.jpg",
+      checks: ["Powers on", "Keyboard"],
+      dataWiped: true,
+      shipsIndia: true,
+      warrantyDays: 30,
+    });
+  });
+
+  it("drops anything not listed or not sellable", () => {
+    expect(hubItemToShopItem({ ...row, status: "sold" }, "")).toBeNull();
+    expect(hubItemToShopItem({ ...row, grade: "D" }, "")).toBeNull();
+  });
+
+  it("hides the samples as soon as real stock exists", () => {
+    const sample = { ...hubItemToShopItem(row, "")!, id: "RL-JMU-0001", sample: true };
+    const real = hubItemToShopItem(row, "")!;
+    expect(combineStock([], [sample])).toEqual([sample]);
+    expect(combineStock([real], [sample])).toEqual([real]);
+  });
+});

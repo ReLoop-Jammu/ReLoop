@@ -3,16 +3,65 @@
 import { Download, Upload, UploadCloud } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { exportAll, getItems, importAll, type Backup } from "@/features/inventory/store";
+import {
+  exportAll,
+  getItems,
+  importAll,
+  SHARED_DATABASE,
+  type Backup,
+} from "@/features/inventory/store";
 import { storageUsageBytes } from "@/features/inventory/store/local";
 import { toShopItem, type ShopSnapshot } from "@/features/shop/model";
 import { downloadFile } from "../photos";
+import { DeviceCopy } from "./DeviceCopy";
 import { useHubData } from "../useHubData";
 import { PageTitle, Panel } from "./ui";
 
 const STORAGE_BUDGET = 5 * 1024 * 1024; // typical browser limit per site
 
 export function DataPage() {
+  return SHARED_DATABASE ? <SharedDataPage /> : <DeviceDataPage />;
+}
+
+function SharedDataPage() {
+  const [msg, setMsg] = useState("");
+  const stamp = new Date().toISOString().slice(0, 10);
+  const backup = async () => {
+    try {
+      downloadFile(`reloop-hub-backup-${stamp}.json`, JSON.stringify(await exportAll(), null, 2));
+      setMsg("Backup downloaded. It holds supplier details: keep it private.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Could not make the backup.");
+    }
+  };
+  return (
+    <>
+      <PageTitle
+        title="Data & exports"
+        description="Hub data is stored in ReLoop's shared database, for all hub staff. The public shop reads listed items from it directly."
+      />
+      {msg && (
+        <p role="status" className="mb-4 rounded-lg bg-grade-a-bg px-4 py-2 text-sm text-grade-a">
+          {msg}
+        </p>
+      )}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Panel title="Backup">
+          <p className="text-sm leading-relaxed text-ink-soft">
+            Download every item, shop, institution, handover and repair as one file. KPI and item
+            spreadsheets (CSV) are on the dashboard.
+          </p>
+          <Button size="sm" className="mt-4" onClick={() => void backup()}>
+            <Download className="size-4" aria-hidden="true" /> Download backup
+          </Button>
+        </Panel>
+        <DeviceCopy />
+      </div>
+    </>
+  );
+}
+
+function DeviceDataPage() {
   const { items, refresh } = useHubData();
   const [usage, setUsage] = useState(0);
   const [msg, setMsg] = useState("");
@@ -54,7 +103,7 @@ export function DataPage() {
   return (
     <>
       <PageTitle
-        title="Backup & publish"
+        title="Data & exports"
         description="Hub data lives only on this device until the shared database is connected."
       />
       {msg && (
