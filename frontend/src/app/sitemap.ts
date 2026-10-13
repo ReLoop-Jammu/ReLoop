@@ -11,6 +11,7 @@ const PAGES = [
   "/how-it-works",
   "/where-scrap-goes",
   "/what-we-accept",
+  "/help",
   "/warranty",
   "/impact",
   "/contact",

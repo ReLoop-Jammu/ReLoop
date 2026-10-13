@@ -62,7 +62,11 @@ export default function ShopsPage() {
         </h2>
         <p className="mt-2 text-muted">
           Tell us about your shop and add multiple items in one submission. Everything goes
-          privately to our team for review.
+          privately to our team for review.{" "}
+          <Link href="/help" className="font-semibold text-brand-600 underline">
+            Step-by-step help, in English and Hindi
+          </Link>
+          .
         </p>
         <div className="mt-6">
           <ShopSubmissionForm />

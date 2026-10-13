@@ -25,8 +25,8 @@ The plan file is the reference. Defaults were used for every question.
 | 2     | `feat/tracked-links`  | done        | PR #35. Migration `20261024000001` live; checks 41/41. Live: 5 links counted once each, previews not counted; Vercel receives the UTM page view; test clicks removed. |
 | 3     | `feat/what-we-accept` | done        | `/what-we-accept` (header, sell pages, `/locations`); WhatsApp buttons on item pages (not samples) and sell pages. Header nav inline from 1280 px.                    |
 | 4     | `feat/impact-counter` | done        | View `impact_totals` (`20261025000001`) live; checks 43/43. Home shows "Pilot starts November 2026" until a total is above zero. Live test rolled back.               |
-| 5     | `feat/print`          | done        | A4 poster and flyer pages (`/print/partner-poster`, `/print/awareness-flyer`), PDFs in `frontend/public/print/` via `npm run print -w frontend`, index `/print`.      |
-| 6     | `feat/help`           | not started |                                                                                                                                                                       |
+| 5     | `feat/print`          | done        | PR #38. A4 poster and flyer, PDFs in `frontend/public/print/` (`npm run print -w frontend`), index `/print`. Live: both PDFs served.                                  |
+| 6     | `feat/help`           | done        | `/help` (English and Hindi toggle) and `docs/report/shop-owner-guide.md`, both from `guide.json`. Hindi still to be checked by a native speaker.                      |
 | 7     | `docs/report`         | not started |                                                                                                                                                                       |
 
 ## Round 3 (approved 2026-10-13): close the loop
