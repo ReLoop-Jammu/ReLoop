@@ -1,10 +1,20 @@
 import "server-only";
 
-import type { ShopFilters, ShopItem } from "./model";
+import snapshot from "@/data/shop-snapshot.json";
+import { shopSnapshotSchema, type ShopFilters, type ShopItem } from "./model";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+/*
+ * GitHub Actions (CI=true) builds and runs the browser tests without Supabase,
+ * so there the shop shows the sample stock file instead. Everywhere else
+ * (production, preview, local) missing variables still fail loudly. Vercel's
+ * own builds set CI=1 and VERCEL=1, so they never take this path.
+ */
+const USE_SAMPLE_STOCK =
+  (!SUPABASE_URL || !SUPABASE_KEY) && process.env.CI === "true" && !process.env.VERCEL;
 
 type SupabaseListing = {
   id: number;
@@ -155,6 +165,8 @@ function toShopItem(listing: SupabaseListing, categories: SupabaseCategory[]): S
 }
 
 async function getAllPublicShopItems(): Promise<ShopItem[]> {
+  if (USE_SAMPLE_STOCK) return shopSnapshotSchema.parse(snapshot).items;
+
   const { listings, categories } = await getShopData();
 
   return listings
@@ -231,6 +243,6 @@ export async function getAllShopIds(): Promise<string[]> {
 }
 
 export async function isSampleStock(): Promise<boolean> {
-  // Real Supabase inventory is never sample inventory.
-  return false;
+  // Real Supabase inventory is never sample inventory; only CI shows the sample file.
+  return USE_SAMPLE_STOCK;
 }
