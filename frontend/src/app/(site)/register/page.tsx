@@ -47,7 +47,15 @@ export default function RegisterPage() {
       if (result.session) router.push("/account");
       else setMessage(result.message);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Registration failed. Please try again.");
+      const message = e instanceof Error ? e.message : "Registration failed. Please try again.";
+      // Until the database accepts shop owners without a GSTIN
+      // (supabase-fixes/2026-10-14.sql), Supabase Auth reports only a generic
+      // database error for them.
+      setError(
+        notGstRegistered && /database error/i.test(message)
+          ? "We can't register shops without a GSTIN just yet. Enter your GSTIN, or message us on WhatsApp and we'll set up your account."
+          : message,
+      );
     } finally {
       setBusy(false);
     }
