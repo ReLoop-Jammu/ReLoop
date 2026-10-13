@@ -48,7 +48,6 @@ describe("buy-price estimate (plan §04)", () => {
     });
   });
 
-
   it("guesses a likely grade from the seller's answers", () => {
     expect(likelyGrade({ powersOn: "yes", allWorking: "yes", hazard: false })).toBe("A");
     expect(likelyGrade({ powersOn: "yes", allWorking: "one_fault", hazard: false })).toBe("B");

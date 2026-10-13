@@ -55,10 +55,11 @@ export default function ShopsPage() {
           Sign up as a partner shop
         </h2>
         <p className="mt-2 text-muted">
-          Tell us about your shop and add multiple items in one submission. Everything goes privately to our team for review.
+          Tell us about your shop and add multiple items in one submission. Everything goes
+          privately to our team for review.
         </p>
         <div className="mt-6">
-<ShopSubmissionForm />
+          <ShopSubmissionForm />
         </div>
       </section>
     </Container>
