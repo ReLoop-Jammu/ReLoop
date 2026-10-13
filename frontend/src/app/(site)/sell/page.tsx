@@ -7,6 +7,7 @@ import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { GRADE_INFO, GRADES } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
 import { BUSINESS_RULES } from "@/config/business-rules";
+import { SellQuickLinks } from "@/features/sell/components/SellPageHeader";
 
 function pct(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -66,6 +67,7 @@ export default function SellPage() {
               offer for items we can buy. If you accept, we pay the agreed amount directly. Items we
               cannot purchase are directed to an authorised recycler where appropriate.
             </p>
+            <SellQuickLinks />
           </div>
           <ul className="mt-12 grid gap-4 lg:grid-cols-3" role="list">
             {PATHS.map(({ href, icon: Icon, title, who, body, cta }) => (

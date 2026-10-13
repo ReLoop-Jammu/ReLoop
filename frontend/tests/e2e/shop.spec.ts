@@ -70,6 +70,52 @@ test.describe("sample stock", () => {
       page.getByText("This is a sample item to show how stock will look."),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: /reserve/i })).toHaveCount(0);
+    await expect(page.getByRole("main").locator('a[href^="https://wa.me/"]')).toHaveCount(0);
+  });
+});
+
+test.describe("what we accept", () => {
+  test("lists what we take, what we don't, and where batteries and dead items go", async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto("/");
+    if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "What we accept" })
+      .click();
+    await expect(page).toHaveURL(/\/what-we-accept$/);
+    const main = page.getByRole("main");
+    await expect(main.getByRole("heading", { name: "What we take" })).toBeVisible();
+    await expect(main.getByRole("heading", { name: "Laptops" })).toBeVisible();
+    await expect(main.getByRole("heading", { name: "What we don't take" })).toBeVisible();
+    await expect(main.getByText(/fridges, washing machines and air conditioners/)).toBeVisible();
+    await expect(main.getByText(/closed metal cabinet with sand/)).toBeVisible();
+    await expect(main.getByText(/VRG Groups, Gangyal/)).toBeVisible();
+  });
+
+  test("the sell pages and locations link to it, and sell pages offer a WhatsApp chat", async ({
+    page,
+  }) => {
+    for (const path of ["/sell", "/sell/shops", "/sell/institutions", "/locations"]) {
+      await page.goto(path);
+      await expect(
+        page.getByRole("main").getByRole("link", { name: "What we accept" }),
+        path,
+      ).toHaveAttribute("href", "/what-we-accept");
+    }
+    for (const path of ["/sell", "/sell/shops", "/sell/institutions", "/what-we-accept"]) {
+      await page.goto(path);
+      const chat = page.getByRole("main").getByRole("link", { name: /Chat on WhatsApp/ });
+      const url = new URL((await chat.getAttribute("href"))!);
+      expect(url.host, path).toBe("wa.me");
+      expect(url.pathname, path).toBe("/919871276179");
+      expect(url.searchParams.get("text"), path).toBe(
+        "Hi ReLoop, I'd like to sell old electronics",
+      );
+      await expect(chat).toHaveAttribute("target", "_blank");
+    }
   });
 });
 
@@ -144,6 +190,7 @@ test.describe("site", () => {
       "/sell/institutions",
       "/how-it-works",
       "/where-scrap-goes",
+      "/what-we-accept",
       "/warranty",
       "/impact",
       "/contact",

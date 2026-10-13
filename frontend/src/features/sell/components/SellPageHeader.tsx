@@ -2,6 +2,7 @@ import { ArrowLeft, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { WhatsAppButton } from "./WhatsAppButton";
 
 type Props = { icon: LucideIcon; eyebrow: string; title: string; children: ReactNode };
 
@@ -22,6 +23,19 @@ export function SellPageHeader({ icon: Icon, eyebrow, title, children }: Props) 
       </div>
       <h1 className="mt-4 text-4xl font-bold sm:text-5xl">{title}</h1>
       <div className="mt-4 text-lg leading-relaxed text-muted">{children}</div>
+      <SellQuickLinks />
+    </div>
+  );
+}
+
+/** "What we accept" and a WhatsApp chat, on every sell page. */
+export function SellQuickLinks() {
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <WhatsAppButton message="Hi ReLoop, I'd like to sell old electronics" />
+      <Link href="/what-we-accept" className="font-semibold text-brand-600 underline">
+        What we accept
+      </Link>
     </div>
   );
 }

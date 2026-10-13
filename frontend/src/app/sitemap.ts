@@ -10,6 +10,7 @@ const PAGES = [
   "/sell/institutions",
   "/how-it-works",
   "/where-scrap-goes",
+  "/what-we-accept",
   "/warranty",
   "/impact",
   "/contact",

@@ -24,12 +24,12 @@ export function Header() {
         </Container>
       </div>
       <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
-        <Container className="relative flex h-16 items-center gap-6 lg:h-[72px]">
+        <Container className="relative flex h-16 items-center gap-4 lg:h-[72px] xl:gap-3 2xl:max-w-[88rem] 2xl:gap-6">
           <Link href="/" aria-label="ReLoop home" className="shrink-0">
             <Logo id="header" />
           </Link>
-          <NavLinks className="hidden lg:flex" />
-          <HeaderSearch className="ml-auto hidden w-full max-w-xs md:block" />
+          <NavLinks className="hidden xl:flex" />
+          <HeaderSearch className="ml-auto hidden w-full max-w-xs min-w-0 md:block" />
           {hasContactChannel && (
             <ButtonLink href="/contact" variant="ghost" size="sm" className="hidden md:inline-flex">
               Contact
@@ -42,7 +42,7 @@ export function Header() {
             <Plus className="size-4" aria-hidden="true" />
             Sell to us
           </ButtonLink>
-          <div className="ml-auto md:ml-0 lg:hidden">
+          <div className="ml-auto md:ml-0 xl:hidden">
             <MobileNav />
           </div>
         </Container>

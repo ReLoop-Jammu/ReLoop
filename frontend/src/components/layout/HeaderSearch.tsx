@@ -19,7 +19,7 @@ export function HeaderSearch({ className }: { className?: string }) {
         <input
           type="search"
           name="q"
-          placeholder="Search phones, laptops, parts…"
+          placeholder="Search the shop"
           maxLength={100}
           className="min-h-11 w-full rounded-full border border-line bg-sunken/70 pr-4 pl-10 text-base text-ink transition placeholder:text-muted hover:border-line-strong focus:border-brand-500 focus:bg-surface focus:ring-3 focus:ring-brand-500/15 focus:outline-none sm:text-sm"
         />

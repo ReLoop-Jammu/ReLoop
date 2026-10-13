@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReserveItem } from "./ReserveItem";
 
@@ -72,5 +72,23 @@ describe("reserving or asking about an item", () => {
     render(<ReserveItem {...props} sample />);
     expect(screen.queryByRole("button", { name: "Reserve this item" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ask a question" })).not.toBeInTheDocument();
+  });
+});
+
+describe("WhatsApp on an item page", () => {
+  afterEach(cleanup);
+
+  it("offers a chat that names the item's tag and title", () => {
+    cleanup();
+    render(<ReserveItem {...props} />);
+    const link = screen.getByRole("link", { name: /Chat on WhatsApp/ });
+    expect(new URL(link.getAttribute("href")!).searchParams.get("text")).toBe(
+      "Hi ReLoop, I'm interested in RL-JMU-0006 Dell Latitude 5420",
+    );
+  });
+
+  it("is hidden on sample items", () => {
+    render(<ReserveItem {...props} sample />);
+    expect(screen.queryByRole("link", { name: /WhatsApp/ })).toBeNull();
   });
 });

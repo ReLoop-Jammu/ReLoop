@@ -19,15 +19,15 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 The plan file is the reference. Defaults were used for every question.
 
-| Batch | Branch                | Status      | Note                                                                                                                                            |
-| ----- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | `feat/retention`      | done        | Migration `20261023000001` and the daily job applied live. Checks 39 of 39 true. Live test 5/5 (rolled back).                                   |
-| 2     | `feat/tracked-links`  | done        | Migration `20261024000001` applied live; checks 41 of 41 true. `/go/<slug>` links; counts on `/hub/shops`. Doc: `docs/report/tracked-links.md`. |
-| 3     | `feat/what-we-accept` | not started |                                                                                                                                                 |
-| 4     | `feat/impact-counter` | not started |                                                                                                                                                 |
-| 5     | `feat/print`          | not started |                                                                                                                                                 |
-| 6     | `feat/help`           | not started |                                                                                                                                                 |
-| 7     | `docs/report`         | not started |                                                                                                                                                 |
+| Batch | Branch                | Status      | Note                                                                                                                                                                  |
+| ----- | --------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | `feat/retention`      | done        | Migration `20261023000001` and the daily job applied live. Checks 39 of 39 true. Live test 5/5 (rolled back).                                                         |
+| 2     | `feat/tracked-links`  | done        | PR #35. Migration `20261024000001` live; checks 41/41. Live: 5 links counted once each, previews not counted; Vercel receives the UTM page view; test clicks removed. |
+| 3     | `feat/what-we-accept` | done        | `/what-we-accept` (header, sell pages, `/locations`); WhatsApp buttons on item pages (not samples) and sell pages. Header nav inline from 1280 px.                    |
+| 4     | `feat/impact-counter` | not started |                                                                                                                                                                       |
+| 5     | `feat/print`          | not started |                                                                                                                                                                       |
+| 6     | `feat/help`           | not started |                                                                                                                                                                       |
+| 7     | `docs/report`         | not started |                                                                                                                                                                       |
 
 ## Round 3 (approved 2026-10-13): close the loop
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils/money";
 import { RequestForm } from "./RequestForm";
+import { WhatsAppButton } from "./WhatsAppButton";
 
 type Props = {
   itemId: string;
@@ -41,6 +42,10 @@ export function ReserveItem({ itemId, title, pricePaise, shipsIndia, sample }: P
         >
           Ask a question
         </Button>
+        <WhatsAppButton
+          className="w-full sm:w-auto"
+          message={`Hi ReLoop, I'm interested in ${itemId} ${title}`}
+        />
       </div>
     );
   }

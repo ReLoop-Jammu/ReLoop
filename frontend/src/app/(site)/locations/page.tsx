@@ -75,6 +75,10 @@ export default async function LocationsPage() {
             <Link href="/sell/shops" className="font-semibold text-brand-600 underline">
               Run a shop? Become a partner
             </Link>
+            {" · "}
+            <Link href="/what-we-accept" className="font-semibold text-brand-600 underline">
+              What we accept
+            </Link>
           </p>
         </section>
 
