@@ -12,6 +12,7 @@ import {
   type ItemStatus,
 } from "@/features/inventory/model";
 import { daysBetween } from "@/features/inventory/rules";
+import { SHARED_DATABASE } from "@/features/inventory/store";
 import { formatPrice } from "@/lib/utils/money";
 import { useHubData } from "../useHubData";
 import { PageTitle, Panel, Select, hubInput } from "./ui";
@@ -42,7 +43,14 @@ export function ItemList() {
 
   return (
     <>
-      <PageTitle title="Items" description={`${items.length} items logged on this device`} />
+      <PageTitle
+        title="Items"
+        description={
+          loaded
+            ? `${items.length.toLocaleString("en-IN")} items ${SHARED_DATABASE ? "in the shared database" : "logged on this device"}`
+            : "Loading items…"
+        }
+      />
       <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_200px_160px]">
         <label className="relative">
           <span className="sr-only">Search by tag, brand, model or source</span>
@@ -139,7 +147,12 @@ export function ItemList() {
                       <span className="text-xs text-muted">–</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5">{statusLabel(i.status as ItemStatus)}</td>
+                  <td className="px-4 py-2.5">
+                    {statusLabel(i.status as ItemStatus)}
+                    {i.hidden && (
+                      <span className="block text-xs font-semibold text-warning">Hidden</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 text-right tabular-nums">
                     {i.currentPaise ? formatPrice(i.currentPaise) : "–"}
                   </td>

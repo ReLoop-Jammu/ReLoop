@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 
 let inserted: Record<string, unknown> | null;
 let validToken: boolean | "down";
+let itemHidden: boolean;
 const TOKEN = "a".repeat(64);
 
 beforeEach(() => {
@@ -13,6 +14,7 @@ beforeEach(() => {
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-key");
   inserted = null;
   validToken = true;
+  itemHidden = false;
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: string, init: RequestInit = {}) => {
@@ -23,7 +25,8 @@ beforeEach(() => {
           : validToken
             ? Response.json({ id: "buyer-1" })
             : new Response("", { status: 401 });
-      if (url.includes("/rest/v1/items?")) return Response.json([{ status: "listed" }]);
+      if (url.includes("/rest/v1/items?"))
+        return Response.json([{ status: "listed", hidden: itemHidden }]);
       if (url.includes("/rest/v1/submissions") && init.method === "POST") {
         inserted = JSON.parse(String(init.body));
         return Response.json([{ status_token: TOKEN }]);
@@ -78,6 +81,13 @@ describe("public requests", () => {
     const res = await send({ authorization: "Bearer good" });
     expect(await res.json()).toMatchObject({ ok: true, linked: false });
     expect(inserted).toMatchObject({ buyer_id: null });
+  });
+
+  it("refuses requests about a hidden item, as for one no longer on sale", async () => {
+    itemHidden = true;
+    const res = await send();
+    expect(res.status).toBe(409);
+    expect(inserted).toBeNull();
   });
 
   it("never takes the buyer from the request body", async () => {

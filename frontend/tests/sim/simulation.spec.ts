@@ -296,3 +296,28 @@ test.describe("offers, pickups and payouts (real logins)", () => {
     });
   });
 });
+
+test.describe("listing controls (real logins)", () => {
+  test.skip(({ isMobile }) => isMobile, "one viewport is enough for shared demo data");
+
+  test("an item staff hid is gone from the public shop, and its page says it isn't there", async ({
+    page,
+    browser,
+  }) => {
+    await loginAs(page, "demo-staff@reloop.demo", "/hub/items?status=listed");
+    // Every item loads, not just the first page of 1,000 the database sends at once.
+    const total = page.getByText(/[\d,]+ items in the shared database/);
+    await expect(total).toBeVisible({ timeout: 20_000 });
+    expect(Number((await total.textContent())!.replace(/\D/g, ""))).toBeGreaterThan(1000);
+    const row = page.locator("tr").filter({ hasText: "Hidden" }).first();
+    await expect(row).toBeVisible({ timeout: 20_000 });
+    const tag = (await row.getByRole("link").first().textContent())!.trim();
+    expect(tag).toMatch(/^RL-JMU-\d+$/);
+    const visitor = await (await browser.newContext()).newPage();
+    const res = await visitor.goto(`/shop/${tag}`);
+    expect(res?.status()).toBe(404);
+    await visitor.goto("/shop");
+    await expect(visitor.locator(`a[href="/shop/${tag}"]`)).toHaveCount(0);
+    await visitor.context().close();
+  });
+});

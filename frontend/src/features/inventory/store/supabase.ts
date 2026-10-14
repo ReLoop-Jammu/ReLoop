@@ -8,6 +8,7 @@
  * status and price changes, applies handovers and runs the day-45/75 rules.
  */
 
+import { allPages } from "@/lib/pages";
 import { authenticatedFetch } from "@/lib/auth-client";
 import type {
   Handover,
@@ -43,6 +44,8 @@ async function rest<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   return data as T;
 }
+/** Every row of a list (Supabase sends at most 1,000 per request). */
+const restAll = <T>(path: string) => allPages<T>((headers) => rest<T[]>(path, { headers }));
 const write = (path: string, method: string, body: unknown) =>
   rest<Record<string, unknown>[]>(path, {
     method,
@@ -93,6 +96,8 @@ type ItemRow = {
   parent_id: string | null;
   handover_id: string | null;
   item_photos?: { position: number; storage_path: string }[];
+  hidden: boolean;
+  returned_at: string | null;
   item_events?: { at: string; type: string; note: string }[];
 };
 
@@ -156,6 +161,8 @@ export function rowToItem(r: ItemRow): Item {
     fulfilment: opt(r.fulfilment),
     parentId: opt(r.parent_id),
     handoverId: opt(r.handover_id),
+    hidden: r.hidden ? true : undefined,
+    returnedAt: opt(r.returned_at),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) Object.assign(item, { [k]: v });
   return item;
@@ -202,7 +209,33 @@ export function itemToRow(i: Omit<Item, "id" | "events" | "photos">) {
     fulfilment: i.fulfilment ?? null,
     parent_id: i.parentId ?? null,
     handover_id: i.handoverId ?? null,
+    hidden: i.hidden ?? false,
   };
+}
+
+/**
+ * Event types the database writes itself when an item changes (see
+ * log_item_change), so the client never saves them twice.
+ */
+const DB_LOGGED =
+  /^(received|graded|price_changed|data_wiped|hidden|unhidden|returned|edited|status:.*)$/;
+
+/**
+ * History the client added that the database doesn't log by itself (notes,
+ * repair steps, stripping), not yet saved. Compared by type and note, in order.
+ */
+export function unsavedEvents(
+  saved: readonly ItemEvent[],
+  local: readonly ItemEvent[],
+): ItemEvent[] {
+  const left = [...saved];
+  const fresh: ItemEvent[] = [];
+  for (const e of local) {
+    const i = left.findIndex((s) => s.type === e.type && (s.note ?? "") === (e.note ?? ""));
+    if (i >= 0) left.splice(i, 1);
+    else if (!DB_LOGGED.test(e.type)) fresh.push(e);
+  }
+  return fresh;
 }
 
 let rulesRanAt = 0;
@@ -216,7 +249,7 @@ export async function applyAutomaticRules(): Promise<Item[]> {
 
 export async function getItems(): Promise<Item[]> {
   await applyAutomaticRules();
-  const rows = await rest<ItemRow[]>(`items?select=${ITEM_SELECT}&order=id.desc`);
+  const rows = await restAll<ItemRow>(`items?select=${ITEM_SELECT}&order=id.desc`);
   return rows.map(rowToItem);
 }
 
@@ -291,12 +324,60 @@ export async function createItem(
 }
 
 export async function saveItem(item: Item): Promise<Item> {
-  const { id, events: _events, photos, ...fields } = item;
-  void _events;
-  const rows = await write(`items?id=eq.${encodeURIComponent(id)}`, "PATCH", itemToRow(fields));
+  const { id, events, photos, ...fields } = item;
+  const before = await getItem(id);
+  // Brand, model and description change only through editItemDetails (with a reason).
+  const { brand: _b, model: _m, description: _d, ...row } = itemToRow(fields);
+  void _b;
+  void _m;
+  void _d;
+  const rows = await write(`items?id=eq.${encodeURIComponent(id)}`, "PATCH", row);
   if (rows.length !== 1) throw new Error(`Item ${id} wasn't saved.`);
   await syncPhotos(id, photos);
+  for (const e of unsavedEvents(before?.events ?? [], events))
+    await addNote(id, e.note ?? "", e.type);
   return (await getItem(id)) ?? item;
+}
+
+/** Corrects brand, model and description; the reason goes into the history. */
+export async function editItemDetails(
+  id: string,
+  d: { brand: string; model: string; description: string },
+  reason: string,
+): Promise<Item> {
+  await rest("rpc/edit_item_details", {
+    method: "POST",
+    body: JSON.stringify({
+      p_id: id,
+      p_brand: d.brand,
+      p_model: d.model,
+      p_description: d.description,
+      p_reason: reason,
+    }),
+  });
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  return item;
+}
+
+/** Records that a sold item came back, with the reason. */
+export async function markReturned(id: string, reason: string): Promise<Item> {
+  await rest("rpc/mark_item_returned", {
+    method: "POST",
+    body: JSON.stringify({ p_id: id, p_reason: reason }),
+  });
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  return item;
+}
+
+/** Hides an item from every public page, or shows it again. */
+export async function setHidden(id: string, hidden: boolean): Promise<Item> {
+  const rows = await write(`items?id=eq.${encodeURIComponent(id)}`, "PATCH", { hidden });
+  if (rows.length !== 1) throw new Error(`Item ${id} not found`);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  return item;
 }
 
 export async function setItemStatus(id: string, status: ItemStatus, note?: string): Promise<Item> {
@@ -346,7 +427,7 @@ const toPartner = (r: PartnerRow): Partner => ({
 });
 
 export async function getPartners(): Promise<Partner[]> {
-  return (await rest<PartnerRow[]>("partners?select=*&order=name.asc")).map(toPartner);
+  return (await restAll<PartnerRow>("partners?select=*&order=name.asc,id.asc")).map(toPartner);
 }
 
 /** New rows get a database id; ids that aren't uuids (from a device) are dropped. */
@@ -402,7 +483,9 @@ const toInstitution = (r: InstitutionRow): Institution => ({
 });
 
 export async function getInstitutions(): Promise<Institution[]> {
-  return (await rest<InstitutionRow[]>("institutions?select=*&order=name.asc")).map(toInstitution);
+  return (await restAll<InstitutionRow>("institutions?select=*&order=name.asc,id.asc")).map(
+    toInstitution,
+  );
 }
 
 export async function saveInstitution(
@@ -450,7 +533,7 @@ const toHandover = (r: HandoverRow): Handover => ({
 });
 
 export async function getHandovers(): Promise<Handover[]> {
-  return (await rest<HandoverRow[]>("handovers?select=*&order=date.desc")).map(toHandover);
+  return (await restAll<HandoverRow>("handovers?select=*&order=date.desc,id.asc")).map(toHandover);
 }
 
 /** Records a handover; the database marks the included scrap-cage items as handed over. */
@@ -492,7 +575,7 @@ const toRepair = (r: RepairRow): RepairJob => ({
 });
 
 export async function getRepairJobs(): Promise<RepairJob[]> {
-  return (await rest<RepairRow[]>("repair_jobs?select=*&order=sent_at.desc")).map(toRepair);
+  return (await restAll<RepairRow>("repair_jobs?select=*&order=sent_at.desc,id.asc")).map(toRepair);
 }
 
 export async function saveRepairJob(

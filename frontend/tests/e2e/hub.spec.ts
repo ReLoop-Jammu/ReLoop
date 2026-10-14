@@ -270,3 +270,47 @@ test.describe("hub overview, menu and search", () => {
     });
   }
 });
+
+test.describe("listing controls", () => {
+  test("hide, correct with a reason, sell, take back and scrap", async ({ page }) => {
+    await page.goto("/hub/intake");
+    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Category").selectOption("monitor");
+    await page.getByLabel("Brand").fill("LG");
+    await page.getByLabel("Model").fill("22MK400");
+    await page.getByLabel("Grade (if tested now)").selectOption("A");
+    await page.getByLabel("We paid (₹)").fill("400");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await page.getByRole("link", { name: "Open item" }).click();
+    await page.getByLabel("List price (₹)").fill("2500");
+    await page.getByRole("button", { name: "List online" }).click();
+    await expect(page.getByText(/Listed at ₹2,500/).first()).toBeVisible();
+
+    // Hidden items stay out of the shop file.
+    await page.getByRole("button", { name: "Hide from the shop" }).click();
+    await expect(page.getByText("The item is hidden from the public site.")).toBeVisible();
+    await page.goto("/hub/data");
+    await expect(page.getByText(/0 listed items?/)).toBeVisible();
+    await page.goBack();
+
+    await page.getByRole("button", { name: "Show in the shop" }).click();
+    await page.getByRole("button", { name: /Edit brand, model or description/ }).click();
+    await page.getByLabel("Model").last().fill("22MK430");
+    await page.getByRole("button", { name: "Save the correction" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Say why" })).toBeVisible();
+    await page
+      .getByLabel("Why the change (goes into the history)")
+      .fill("Model number misread at intake");
+    await page.getByRole("button", { name: "Save the correction" }).click();
+    await expect(page.getByText("model: Model number misread at intake")).toBeVisible();
+
+    await page.getByRole("button", { name: "Mark sold" }).click();
+    await page.getByRole("button", { name: /The buyer returned it/ }).click();
+    await page.getByLabel(/What happened/).fill("Dead pixels found at home (warranty)");
+    await page.getByRole("button", { name: "Record the return" }).click();
+    await expect(page.getByText("Return recorded. Decide where it goes next.")).toBeVisible();
+    await page.getByRole("button", { name: "Send it to the scrap cage" }).click();
+    await expect(page.getByText("Sent to the scrap cage.")).toBeVisible();
+    await expect(page.getByText(/returned · Dead pixels found at home/)).toBeVisible();
+  });
+});

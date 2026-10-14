@@ -84,6 +84,7 @@ export const STATUSES = [
   { value: "listed", label: "Listed", stage: "selling" },
   { value: "reserved", label: "Reserved", stage: "selling" },
   { value: "sold", label: "Sold", stage: "done" },
+  { value: "returned", label: "Returned by the buyer", stage: "work" },
   { value: "in_scrap_cage", label: "In scrap cage", stage: "recycling" },
   { value: "handed_over", label: "Handed to recycler", stage: "done" },
   { value: "stripped", label: "Stripped (parts removed)", stage: "done" },
@@ -138,6 +139,9 @@ export type Item = {
   fulfilment?: Fulfilment;
   parentId?: string;
   handoverId?: string;
+  /** Kept off the public shop and every public page, whatever the status. */
+  hidden?: boolean;
+  returnedAt?: string;
   events: ItemEvent[];
 };
 

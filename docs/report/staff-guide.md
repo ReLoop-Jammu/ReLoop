@@ -118,6 +118,12 @@ A shop that agreed in person at the counter doesn't need to accept in the app: a
 2. Enter the **List price (₹)** and press **List online**. It appears in the public shop straight away.
 3. Unsold items are handled automatically: after 45 days the price drops 20%, and after 75 days the item is downgraded to C.
 
+**Listing controls** (on the item's page, any time after intake):
+
+- **Hide from the shop** takes the item off the public shop and every public page, whatever its status (for example while you retake a photo); the 45- and 75-day clocks keep running while it's hidden. **Show in the shop** puts it back. The item list marks hidden items.
+- **Edit brand, model or description…** corrects a mistake. Say why; the reason goes into the item's **History**. Brand, model and description can't be changed any other way.
+- **The buyer returned it…** (sold items): write what happened (for example a warranty claim) and press **Record the return**. Test it again (regrade if needed), The return cancels the sale (its date and price stay in the **History**), so it no longer counts as sold. Then **Put it back on sale** (with a new listing date, so the 45- and 75-day clocks start again) or **Send it to the scrap cage**.
+
 ## 7. Reservations, questions and institution bookings
 
 **Page:** `/hub/requests` (menu: **Requests**)

@@ -72,7 +72,7 @@ function DeviceDataPage() {
   }, [items]);
 
   const stamp = new Date().toISOString().slice(0, 10);
-  const listed = items.filter((i) => i.status === "listed").length;
+  const listed = items.filter((i) => i.status === "listed" && !i.hidden).length;
 
   const backup = async () => {
     downloadFile(`reloop-hub-backup-${stamp}.json`, JSON.stringify(await exportAll(), null, 2));
@@ -93,6 +93,7 @@ function DeviceDataPage() {
 
   const publish = async () => {
     const shopItems = (await getItems({ status: "listed" }))
+      .filter((i) => !i.hidden)
       .map(toShopItem)
       .filter((x) => x !== null);
     const snapshot: ShopSnapshot = { publishedAt: new Date().toISOString(), items: shopItems };
