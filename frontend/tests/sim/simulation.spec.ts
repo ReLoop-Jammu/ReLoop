@@ -406,3 +406,44 @@ test.describe("public pricing (simulated references)", () => {
     await expect(page.getByText(/Simulated reference/).first()).toBeVisible();
   });
 });
+
+test.describe("shop discovery (simulated stock)", () => {
+  test("pages of results, a brand filter, compare and recently viewed", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/shop");
+    await expect(page.getByText(/Showing 1–24 of \d+/)).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Pages of results" })
+      .getByRole("link", { name: "Next" })
+      .click();
+    await expect(page).toHaveURL(/page=2/);
+    await expect(page.getByText(/Showing 25–48 of/)).toBeVisible();
+
+    await page.goto("/shop?category=laptop");
+    const brand = page.getByLabel("Brand");
+    const first = (await brand.locator("option").nth(1).textContent())!.trim();
+    await brand.selectOption(first);
+    await expect(page).toHaveURL(
+      new RegExp(`brand=${encodeURIComponent(first).replace(/%20/g, "\\+|%20")}`),
+    );
+
+    const links = page.locator("main article a");
+    const a = await links.nth(0).getAttribute("href");
+    const b = await links.nth(1).getAttribute("href");
+    for (const href of [a, b]) {
+      await page.goto(href!);
+      await page.getByRole("button", { name: "Compare" }).click();
+      await expect(page.getByRole("button", { name: "Added to compare" })).toBeVisible();
+    }
+    await page.getByRole("link", { name: "Compare 2 items" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Compare items" })).toBeVisible();
+    await expect(page.locator("thead th a")).toHaveCount(2);
+
+    await page.goto("/shop");
+    await expect(page.getByRole("heading", { name: "Recently viewed" })).toBeVisible();
+    await expect(page.getByText(/to compare:/)).toBeVisible();
+  });
+});

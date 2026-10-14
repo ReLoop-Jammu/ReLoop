@@ -46,6 +46,12 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
 - **`npm audit` reports 5 "high" advisories, all one chain:** `eslint-config-next` → `@next/eslint-plugin-next` → `fast-glob` → `micromatch` → `braces` (GHSA-vfj7-8cjw-p6xm, a denial-of-service in glob parsing). No fixed `braces` release exists; npm's suggested fix is a downgrade to `eslint-config-next` 14. It runs only when linting and is never shipped to the site. `source-map-js` was fixed with an `overrides` entry (1.2.2).
 - **GitHub Pages is still switched on** for this repository and serves its files at `reloop-jammu.github.io/ReLoop`. Only a repo admin can turn it off (GitHub → Settings → Pages → Unpublish). Until then the root `index.html` redirects to the live site.
 
+## 3b. Shop
+
+- **Compare and recently viewed live in the visitor's browser** (`localStorage`): they don't follow someone to another device and are cleared with the browser's data. Saved items with alerts come with accounts (watchlist).
+- **Shop photos are served as stored**, not through Vercel's image optimiser, whose free monthly quota the photos would use up. Staff upload compressed photos (the intake form shrinks them).
+- **Search runs over the stock in memory** on each request (fine for a few thousand items). A database search index is the next step if the shop grows far beyond that.
+
 ## 4. The loop (submissions, requests, map, team)
 
 - **Offers:** a shop accepts or declines in the app; accepting books the next route day. Payouts are recorded by hand after paying (cash or UPI): nothing pays a shop automatically, and the receipt PDF is not a tax invoice.

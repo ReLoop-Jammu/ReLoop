@@ -10,10 +10,17 @@ import { SHOP_SORTS, type ShopFilters } from "../model";
 const selectClass = controlClasses({ select: true });
 
 /**
- * Search, category and sort live in the URL (?q=&category=&sort=&grade=) so
- * results are shareable and work without JavaScript. Selects apply instantly.
+ * Search, category, brand, price range and sort live in the URL
+ * (?q=&category=&brand=&min=&max=&sort=&grade=) so results are shareable and
+ * work without JavaScript. Selects apply instantly; prices on Enter or Apply.
  */
-export function ShopFilterBar({ filters }: { filters: ShopFilters }) {
+export function ShopFilterBar({
+  filters,
+  brands = [],
+}: {
+  filters: ShopFilters;
+  brands?: string[];
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const submit = () => formRef.current?.requestSubmit();
   return (
@@ -24,7 +31,7 @@ export function ShopFilterBar({ filters }: { filters: ShopFilters }) {
       id="search"
       role="search"
       aria-label="Search and filter stock"
-      className="mb-5 grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-3 shadow-soft lg:grid-cols-[minmax(0,1fr)_200px_200px]"
+      className="mb-5 grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-3 shadow-soft lg:grid-cols-[minmax(0,1fr)_180px_160px_180px]"
     >
       {filters.grade && <input type="hidden" name="grade" value={filters.grade} />}
       <label className="relative col-span-2 lg:col-span-1">
@@ -59,6 +66,22 @@ export function ShopFilterBar({ filters }: { filters: ShopFilters }) {
         </select>
       </label>
       <label>
+        <span className="sr-only">Brand</span>
+        <select
+          name="brand"
+          defaultValue={filters.brand ?? ""}
+          onChange={submit}
+          className={selectClass}
+        >
+          <option value="">All brands</option>
+          {brands.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
         <span className="sr-only">Sort by</span>
         <select
           name="sort"
@@ -73,9 +96,45 @@ export function ShopFilterBar({ filters }: { filters: ShopFilters }) {
           ))}
         </select>
       </label>
-      <button type="submit" className="sr-only focus:not-sr-only">
-        Apply filters
-      </button>
+      <fieldset className="col-span-2 flex flex-wrap items-center gap-2 text-sm lg:col-span-4">
+        <legend className="sr-only">Price range (₹)</legend>
+        <span className="text-muted" aria-hidden="true">
+          Price ₹
+        </span>
+        <label>
+          <span className="sr-only">Lowest price (₹)</span>
+          <input
+            type="number"
+            name="min"
+            min={0}
+            step={50}
+            inputMode="numeric"
+            placeholder="From"
+            defaultValue={filters.min ?? ""}
+            className={`${controlClasses({})} w-28`}
+          />
+        </label>
+        <span aria-hidden="true">–</span>
+        <label>
+          <span className="sr-only">Highest price (₹)</span>
+          <input
+            type="number"
+            name="max"
+            min={0}
+            step={50}
+            inputMode="numeric"
+            placeholder="To"
+            defaultValue={filters.max ?? ""}
+            className={`${controlClasses({})} w-28`}
+          />
+        </label>
+        <button
+          type="submit"
+          className="min-h-11 rounded-full px-4 font-semibold text-brand-600 underline"
+        >
+          Apply
+        </button>
+      </fieldset>
     </Form>
   );
 }

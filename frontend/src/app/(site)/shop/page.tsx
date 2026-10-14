@@ -8,7 +8,11 @@ import { GradeChips } from "@/features/shop/components/GradeChips";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
 import { SampleStockNotice } from "@/features/shop/components/SampleStockNotice";
 import { ShopFilterBar } from "@/features/shop/components/ShopFilterBar";
-import { parseShopFilters, type ShopFilters } from "@/features/shop/model";
+import { CompareBar } from "@/features/shop/components/CompareBar";
+import { Pagination } from "@/features/shop/components/Pagination";
+import { RecentlyViewed } from "@/features/shop/components/RecentlyViewed";
+import { parseShopFilters, SHOP_PAGE_SIZE, type ShopFilters } from "@/features/shop/model";
+import { formatPrice } from "@/lib/utils/money";
 import { getShopItems, isSampleStock } from "@/features/shop/queries";
 
 export async function generateMetadata({ searchParams }: PageProps<"/shop">): Promise<Metadata> {
@@ -28,12 +32,19 @@ function describe(f: ShopFilters): string[] {
     f.q && `“${f.q}”`,
     f.grade && `grade ${f.grade}`,
     f.category && categoryLabel(f.category, true),
+    f.brand,
+    f.min !== undefined && `from ${formatPrice(f.min * 100)}`,
+    f.max !== undefined && `up to ${formatPrice(f.max * 100)}`,
   ].filter((x): x is string => Boolean(x));
 }
 
 export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
   const filters = parseShopFilters(await searchParams);
-  const [{ items, total }, sample] = await Promise.all([getShopItems(filters), isSampleStock()]);
+  const [{ items, total, matching, page, pages, brands }, sample] = await Promise.all([
+    getShopItems(filters),
+    isSampleStock(),
+  ]);
+  const from = matching ? (page - 1) * SHOP_PAGE_SIZE + 1 : 0;
   const active = describe(filters);
 
   return (
@@ -47,9 +58,13 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
       />
       {sample && <SampleStockNotice />}
       <GradeChips filters={filters} />
-      <ShopFilterBar key={JSON.stringify(filters)} filters={filters} />
+      <ShopFilterBar key={JSON.stringify(filters)} filters={filters} brands={brands} />
+      <RecentlyViewed />
       <p className="mb-5 text-sm text-muted" aria-live="polite">
-        Showing {items.length} of {total} items{active.length > 0 && ` for ${active.join(" · ")}`}
+        {matching === 0
+          ? `No items${active.length > 0 ? ` for ${active.join(" · ")}` : ""}`
+          : `Showing ${from}–${from + items.length - 1} of ${matching}${matching < total ? ` (${total} on sale)` : ""}`}
+        {matching > 0 && active.length > 0 && ` for ${active.join(" · ")}`}
       </p>
       {/* Item cards use h3 titles; this keeps the heading order for screen readers. */}
       <h2 className="sr-only">Items</h2>
@@ -73,6 +88,8 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
           />
         }
       />
+      {pages > 1 && <Pagination filters={filters} page={page} pages={pages} />}
+      <CompareBar />
     </Container>
   );
 }

@@ -130,3 +130,54 @@ describe("hub items in the shop", () => {
     expect(new Set(shown.map((i) => i.id)).size).toBe(shown.length);
   });
 });
+
+describe("finding items in the shop", async () => {
+  const { brandsIn, filterShopItems } = await import("./queries");
+  const item = (id: string, over: Partial<import("./model").ShopItem>) =>
+    ({
+      id,
+      title: id,
+      category: "laptop",
+      grade: "A",
+      pricePaise: 1000000,
+      description: "",
+      checks: [],
+      dataWiped: true,
+      warrantyDays: 30,
+      shipsIndia: true,
+      listedAt: "2026-10-01T00:00:00.000Z",
+      ...over,
+    }) as import("./model").ShopItem;
+  const stock = [
+    item("RL-JMU-0001", { brand: "Dell", pricePaise: 1500000, newPricePaise: 4500000 }),
+    item("RL-JMU-0002", { brand: "HP", pricePaise: 800000, wasPaise: 1000000 }),
+    item("RL-JMU-0003", { brand: "dell", category: "monitor", pricePaise: 300000 }),
+    item("RL-JMU-0004", { pricePaise: 2500000, listedAt: "2026-10-05T00:00:00.000Z" }),
+  ];
+
+  it("filters by brand (any case) and price range in rupees", () => {
+    expect(filterShopItems(stock, { brand: "DELL" }).map((i) => i.id)).toEqual([
+      "RL-JMU-0001",
+      "RL-JMU-0003",
+    ]);
+    expect(
+      filterShopItems(stock, { min: 5000, max: 15000 })
+        .map((i) => i.id)
+        .sort(),
+    ).toEqual(["RL-JMU-0001", "RL-JMU-0002"]);
+  });
+
+  it("sorts by the biggest saving, newest first among equals", () => {
+    expect(filterShopItems(stock, { sort: "saving" }).map((i) => i.id)).toEqual([
+      "RL-JMU-0001",
+      "RL-JMU-0002",
+      "RL-JMU-0004",
+      "RL-JMU-0003",
+    ]);
+  });
+
+  it("lists each brand once, for the chosen category", () => {
+    expect(brandsIn(stock)).toEqual(["Dell", "HP"]);
+    expect(brandsIn(stock, "monitor")).toEqual(["dell"]);
+  });
+});

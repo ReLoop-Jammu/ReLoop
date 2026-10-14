@@ -23,6 +23,12 @@ export type ShopItem = {
   wasPaise?: number;
   description: string;
   photo?: string;
+  /** Every photo, in order (the first is `photo`). */
+  photos?: string[];
+  /** For the brand filter (hub items; empty for listings). */
+  brand?: string;
+  /** Price new, when ReLoop recorded a fresh one (for the "biggest saving" sort). */
+  newPricePaise?: number;
   checks: string[];
   dataWiped: boolean;
   warrantyDays: number | null;
@@ -69,6 +75,11 @@ export const shopSnapshotSchema = z.object({
         wasPaise: z.number().int().positive().optional(),
         description: z.string().max(2000),
         photo: z.string().startsWith("data:image/").or(z.string().startsWith("/")).optional(),
+        photos: z
+          .array(z.string().startsWith("data:image/").or(z.string().startsWith("/")))
+          .optional(),
+        brand: z.string().max(40).optional(),
+        newPricePaise: z.number().int().positive().optional(),
         checks: z.array(z.string().max(60)),
         dataWiped: z.boolean(),
         warrantyDays: z.number().int().positive().nullable(),
@@ -111,7 +122,8 @@ export function toShopItem(item: Item): ShopItem | null {
     pricePaise: item.currentPaise,
     ...(item.priceCutAt && item.listPaise && { wasPaise: item.listPaise }),
     description: item.description,
-    ...(item.photos[0] && { photo: item.photos[0] }),
+    ...(item.photos[0] && { photo: item.photos[0], photos: item.photos }),
+    ...(item.brand && { brand: item.brand }),
     checks: item.inspection
       ? Object.entries(item.inspection.checks)
           .filter(([, r]) => r === "pass")
@@ -152,19 +164,42 @@ export const SHOP_SORTS = [
   { value: "newest", label: "Newest" },
   { value: "price_asc", label: "Price: low to high" },
   { value: "price_desc", label: "Price: high to low" },
+  { value: "saving", label: "Biggest saving" },
 ] as const;
 type Sort = (typeof SHOP_SORTS)[number]["value"];
+export const SHOP_PAGE_SIZE = 24;
 
 const first = z.preprocess((v) => (Array.isArray(v) ? v[0] : v), z.string().optional());
+const rupees = first
+  .transform((v) => (v && /^\d{1,7}$/.test(v.trim()) ? Number(v.trim()) : undefined))
+  .catch(undefined);
 
 const filtersSchema = z.object({
   q: first.transform((v) => v?.trim().slice(0, 100) || undefined),
   grade: first.pipe(z.enum(["A", "B", "C"]).optional()).catch(undefined),
   category: first.pipe(z.enum(categoryValues).optional()).catch(undefined),
-  sort: first.pipe(z.enum(["newest", "price_asc", "price_desc"]).optional()).catch(undefined),
+  brand: first.transform((v) => v?.trim().slice(0, 40) || undefined),
+  min: rupees,
+  max: rupees,
+  sort: first
+    .pipe(z.enum(["newest", "price_asc", "price_desc", "saving"]).optional())
+    .catch(undefined),
+  page: first
+    .transform((v) => (v && /^\d{1,4}$/.test(v) && Number(v) > 1 ? Number(v) : undefined))
+    .catch(undefined),
 });
 
-export type ShopFilters = { q?: string; grade?: "A" | "B" | "C"; category?: Category; sort?: Sort };
+export type ShopFilters = {
+  q?: string;
+  grade?: "A" | "B" | "C";
+  category?: Category;
+  brand?: string;
+  /** Price range in rupees. */
+  min?: number;
+  max?: number;
+  sort?: Sort;
+  page?: number;
+};
 
 export function parseShopFilters(
   params: Record<string, string | string[] | undefined>,
@@ -172,9 +207,22 @@ export function parseShopFilters(
   return filtersSchema.parse(params);
 }
 
+/** A shop address with these filters (page 1 is left out). */
 export function shopHref(filters: ShopFilters): string {
   const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(filters)) if (v) p.set(k, v);
+  for (const [k, v] of Object.entries(filters))
+    if (v !== undefined && v !== "" && !(k === "page" && v === 1)) p.set(k, String(v));
   const qs = p.toString();
   return qs ? `/shop?${qs}` : "/shop";
+}
+
+/** What a buyer saves on the item: against its price new, or its own price cut (whichever is larger). */
+export function itemSaving(
+  item: Pick<ShopItem, "pricePaise" | "wasPaise" | "newPricePaise">,
+): number {
+  return Math.max(
+    0,
+    (item.newPricePaise ?? 0) - item.pricePaise,
+    (item.wasPaise ?? 0) - item.pricePaise,
+  );
 }

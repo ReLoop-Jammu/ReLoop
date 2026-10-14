@@ -48,3 +48,43 @@ describe("toShopItem", () => {
     expect(part?.warrantyDays).toBeNull();
   });
 });
+
+describe("shop filters in the address", async () => {
+  const { itemSaving, parseShopFilters, shopHref } = await import("./model");
+  it("reads brand, price range, saving sort and page, ignoring nonsense", () => {
+    expect(
+      parseShopFilters({ brand: " Dell ", min: "1000", max: "5000", sort: "saving", page: "3" }),
+    ).toEqual({
+      q: undefined,
+      grade: undefined,
+      category: undefined,
+      brand: "Dell",
+      min: 1000,
+      max: 5000,
+      sort: "saving",
+      page: 3,
+    });
+    expect(parseShopFilters({ min: "-5", max: "lots", page: "0", sort: "cheapest" })).toMatchObject(
+      {
+        min: undefined,
+        max: undefined,
+        page: undefined,
+        sort: undefined,
+      },
+    );
+  });
+
+  it("builds shareable addresses, leaving out page 1", () => {
+    expect(shopHref({ brand: "HP", min: 500, page: 1 })).toBe("/shop?brand=HP&min=500");
+    expect(shopHref({ page: 2 })).toBe("/shop?page=2");
+    expect(shopHref({})).toBe("/shop");
+  });
+
+  it("counts the bigger of the saving against new and the price cut", () => {
+    expect(itemSaving({ pricePaise: 500000, newPricePaise: 1500000, wasPaise: 600000 })).toBe(
+      1000000,
+    );
+    expect(itemSaving({ pricePaise: 500000, wasPaise: 600000 })).toBe(100000);
+    expect(itemSaving({ pricePaise: 500000 })).toBe(0);
+  });
+});
