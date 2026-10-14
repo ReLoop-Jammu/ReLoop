@@ -5,6 +5,8 @@
  * Money is integer paise; dates are ISO strings.
  */
 
+import type { Inspection } from "./inspection";
+
 export const GRADES = ["A", "B", "C", "D"] as const;
 export type Grade = (typeof GRADES)[number];
 
@@ -139,6 +141,9 @@ export type Item = {
   fulfilment?: Fulfilment;
   parentId?: string;
   handoverId?: string;
+  /** The ReLoop Checked record; required before the item goes on sale. */
+  inspection?: Inspection;
+  inspectedAt?: string;
   /** Kept off the public shop and every public page, whatever the status. */
   hidden?: boolean;
   returnedAt?: string;

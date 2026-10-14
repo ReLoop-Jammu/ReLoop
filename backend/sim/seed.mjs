@@ -1110,6 +1110,8 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
     "updated_at",
     "hidden",
     "returned_at",
+    "inspection",
+    "inspected_at",
   ];
   // One listing staff hid (a photo to retake) and one sale that came back.
   const hiddenOne = items.find((i) => i.status === "listed" && i.category !== "part");
@@ -1139,8 +1141,35 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
       note: `Battery doesn't hold charge (simulated warranty claim) (sold ${soldOn}${soldFor})`,
     });
   }
+  // Every graded item has its inspection (version 1), from its checklist:
+  // battery and storage health where measured. A grade B item on sale was
+  // checked again after its repair, so its checks pass.
+  const ON_SALE_OR_SOLD = ["listed", "reserved", "sold", "returned"];
+  const inspectionOf = (i) => {
+    if (!i.grade) return null;
+    const afterRepair = i.grade === "B" && ON_SALE_OR_SOLD.includes(i.status);
+    const checks = Object.fromEntries(
+      Object.entries(i.checklist ?? {}).map(([k, ok]) => [k, ok || afterRepair ? "pass" : "fail"]),
+    );
+    const battery = i.has_battery && i.category !== "part";
+    return {
+      version: 1,
+      checks,
+      ...(battery && {
+        battery_health_pct:
+          i.grade === "A" ? int(82, 96) : i.grade === "B" ? int(72, 90) : int(40, 70),
+      }),
+      ...(i.part_type === "storage" && { storage_health_pct: int(80, 98) }),
+    };
+  };
   const ordered = [...items]
-    .map((i) => ({ hidden: false, returned_at: null, ...i }))
+    .map((i) => ({
+      hidden: false,
+      returned_at: null,
+      ...i,
+      inspection: inspectionOf(i),
+      inspected_at: i.grade ? (i.graded_at ?? i.received_at) : null,
+    }))
     .sort((a, b) => (a.parent_id ? 1 : 0) - (b.parent_id ? 1 : 0));
   sql.push(`alter table public.items disable trigger user;
 alter table public.submissions disable trigger user;`);

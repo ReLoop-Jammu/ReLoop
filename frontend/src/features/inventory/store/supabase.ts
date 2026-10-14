@@ -9,6 +9,7 @@
  */
 
 import { allPages } from "@/lib/pages";
+import { inspectionFromRow, inspectionToRow } from "../inspection";
 import { authenticatedFetch } from "@/lib/auth-client";
 import type {
   Handover,
@@ -98,6 +99,8 @@ type ItemRow = {
   item_photos?: { position: number; storage_path: string }[];
   hidden: boolean;
   returned_at: string | null;
+  inspection: unknown;
+  inspected_at: string | null;
   item_events?: { at: string; type: string; note: string }[];
 };
 
@@ -163,6 +166,8 @@ export function rowToItem(r: ItemRow): Item {
     handoverId: opt(r.handover_id),
     hidden: r.hidden ? true : undefined,
     returnedAt: opt(r.returned_at),
+    inspection: inspectionFromRow(r.inspection),
+    inspectedAt: opt(r.inspected_at),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) Object.assign(item, { [k]: v });
   return item;
@@ -210,6 +215,8 @@ export function itemToRow(i: Omit<Item, "id" | "events" | "photos">) {
     parent_id: i.parentId ?? null,
     handover_id: i.handoverId ?? null,
     hidden: i.hidden ?? false,
+    inspection: inspectionToRow(i.inspection),
+    inspected_at: i.inspectedAt ?? null,
   };
 }
 

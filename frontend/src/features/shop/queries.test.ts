@@ -62,6 +62,14 @@ describe("hub items in the shop", () => {
     description: "Works, clean",
     checklist: { "Powers on": true, Keyboard: true, Battery: false },
     wiped_at: "2026-11-02T10:00:00.000Z",
+    wipe_required: true,
+    wipe_method: "reset_overwrite" as const,
+    inspection: {
+      version: 1,
+      checks: { "Powers on": "pass", Keyboard: "pass", Battery: "fail" },
+      battery_health_pct: 88,
+    },
+    inspected_at: "2026-11-02T09:00:00.000Z",
     list_paise: 2000000,
     current_paise: 1600000,
     price_cut_at: "2026-12-20T00:00:00.000Z",
@@ -86,6 +94,18 @@ describe("hub items in the shop", () => {
       dataWiped: true,
       shipsIndia: true,
       warrantyDays: 30,
+      report: {
+        inspectedAt: "2026-11-02T09:00:00.000Z",
+        checks: [
+          { name: "Powers on", result: "pass" },
+          { name: "Keyboard", result: "pass" },
+          { name: "Battery", result: "fail" },
+        ],
+        batteryHealthPct: 88,
+        wipeRequired: true,
+        wipedAt: "2026-11-02T10:00:00.000Z",
+        wipeMethod: "reset_overwrite",
+      },
     });
   });
 

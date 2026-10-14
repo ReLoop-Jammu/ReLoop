@@ -18,6 +18,7 @@ import type {
 } from "../model";
 import { getSession, siteFetch } from "@/lib/auth-client";
 import { nextItemId, randomId } from "../ids";
+import { allPass, checklistOf } from "../inspection";
 import { applyStockRules } from "../rules";
 import { readCollection, writeCollection } from "./local";
 import * as live from "./supabase";
@@ -88,11 +89,17 @@ export type NewItem = Omit<
 
 /** Logs a new item at intake and assigns the next RL-JMU tag. */
 export async function createItem(input: NewItem): Promise<Item> {
+  // Grade A at intake means every check passed (CHECKLISTS), so that is its inspection.
+  const inspected =
+    input.grade === "A" && !input.inspection
+      ? { inspection: allPass(input.category), inspectedAt: nowIso() }
+      : {};
+  input = { ...input, ...inspected };
   if (SHARED_DATABASE) {
     return live.createItem({
       ...input,
       grade: input.grade ?? null,
-      checklist: input.checklist ?? {},
+      checklist: input.checklist ?? (input.inspection ? checklistOf(input.inspection) : {}),
     });
   }
   const items = readCollection<Item>(C.items);
@@ -100,7 +107,7 @@ export async function createItem(input: NewItem): Promise<Item> {
     ...input,
     id: nextItemId(items.map((i) => i.id)),
     grade: input.grade ?? null,
-    checklist: input.checklist ?? {},
+    checklist: input.checklist ?? (input.inspection ? checklistOf(input.inspection) : {}),
     status: input.grade ? "graded" : "received",
     gradedAt: input.grade ? nowIso() : undefined,
     listPaise: null,

@@ -364,7 +364,7 @@ export function IntakeForm() {
             <Field
               label="Grade (if tested now)"
               htmlFor={`${id}-grade`}
-              hint="Leave blank to grade later (within 24 h)."
+              hint="Leave blank to grade later (within 24 h). Grade A means every check works, which is recorded as its inspection; other grades are inspected on the item page."
             >
               <Select
                 id={`${id}-grade`}

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { inspectionFromRow } from "@/features/inventory/inspection";
+
 import snapshot from "@/data/shop-snapshot.json";
 import { shipsAcrossIndia, type Item } from "@/features/inventory/model";
 import { shopSnapshotSchema, toShopItem, type ShopFilters, type ShopItem } from "./model";
@@ -183,6 +185,10 @@ export type PublicHubItem = {
   description: string;
   checklist: Record<string, boolean>;
   wiped_at: string | null;
+  wipe_required: boolean;
+  wipe_method: Item["dataWipe"]["method"] | null;
+  inspection: unknown;
+  inspected_at: string | null;
   list_paise: number | null;
   current_paise: number | null;
   price_cut_at: string | null;
@@ -192,7 +198,7 @@ export type PublicHubItem = {
 };
 
 const HUB_ITEM_SELECT =
-  "id,category,part_type,grade,brand,model,description,checklist,wiped_at,list_paise,current_paise,price_cut_at,status,listed_at,item_photos(position,storage_path)";
+  "id,category,part_type,grade,brand,model,description,checklist,wiped_at,wipe_required,wipe_method,inspection,inspected_at,list_paise,current_paise,price_cut_at,status,listed_at,item_photos(position,storage_path)";
 
 /** A listed hub item as the shop shows it (exported for tests). */
 export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopItem | null {
@@ -208,7 +214,13 @@ export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopIt
     model: row.model,
     description: row.description,
     checklist: row.checklist ?? {},
-    dataWipe: { required: false, ...(row.wiped_at && { doneAt: row.wiped_at }) },
+    dataWipe: {
+      required: Boolean(row.wipe_required),
+      ...(row.wiped_at && { doneAt: row.wiped_at }),
+      ...(row.wipe_method && { method: row.wipe_method }),
+    },
+    inspection: inspectionFromRow(row.inspection),
+    ...(row.inspected_at && { inspectedAt: row.inspected_at }),
     listPaise: row.list_paise === null ? null : Number(row.list_paise),
     currentPaise: row.current_paise === null ? null : Number(row.current_paise),
     ...(row.price_cut_at && { priceCutAt: row.price_cut_at }),

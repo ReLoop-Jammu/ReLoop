@@ -745,8 +745,9 @@ describe("staff hub on Supabase (20261018000001)", () => {
     // Valid for sale: wiped (laptops must be) and, for parts, with a part type.
     const { rows } = await db.query(
       `insert into public.items (source_type, category, part_type, buy_mode, grade, current_paise, list_paise,
-                                 status, listed_at, wiped_at)
-       values ('repair_shop', $1, $5, 'cash', $2, $3, $3, 'listed', now() - make_interval(days => $4), now())
+                                 status, listed_at, wiped_at, inspection, inspected_at)
+       values ('repair_shop', $1, $5, 'cash', $2, $3, $3, 'listed', now() - make_interval(days => $4), now(),
+               '{"version": 1, "checks": {}}', now())
        returning id`,
       [category, grade, pricePaise, daysAgo, partType],
     );
@@ -2620,8 +2621,8 @@ describe("listing controls (20261031000001)", () => {
   });
   const listed = async () => {
     const { rows } = await db.query(
-      `insert into public.items (source_type, category, buy_mode, grade, current_paise, list_paise, status, listed_at, wiped_at, brand, model)
-       values ('repair_shop', 'laptop', 'cash', 'A', 900000, 900000, 'listed', now(), now(), 'Dell', 'Latitude 5490')
+      `insert into public.items (source_type, category, buy_mode, grade, current_paise, list_paise, status, listed_at, wiped_at, brand, model, inspection, inspected_at)
+       values ('repair_shop', 'laptop', 'cash', 'A', 900000, 900000, 'listed', now(), now(), 'Dell', 'Latitude 5490', '{"version": 1, "checks": {}}', now())
        returning id`,
     );
     return rows[0].id;
@@ -2943,6 +2944,87 @@ describe("warranty claims (20261101000001)", () => {
       contact_name: "",
       contact_phone: "",
       fault: "Screen flickers after an hour",
+    });
+  });
+});
+
+describe("ReLoop Checked (20261102000001)", () => {
+  let db;
+  let staff;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+  });
+  const graded = async (inspection = null) => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, buy_mode, grade, status, current_paise, list_paise, wiped_at, wipe_method, inspection, inspected_at)
+       values ('repair_shop', 'laptop', 'cash', 'A', 'graded', 900000, 900000, now(), 'drive_wipe', $1, case when $1::jsonb is null then null else now() end)
+       returning id`,
+      [inspection],
+    );
+    return rows[0].id;
+  };
+  const list = (id) =>
+    as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'listed', listed_at = now() where id = $1", [id]),
+    );
+  const ok = {
+    version: 1,
+    checks: { "Powers on": "pass", Display: "pass", Keyboard: "na" },
+    battery_health_pct: 86,
+  };
+
+  test("nothing goes on sale without an inspection", async () => {
+    await assert.rejects(list(await graded()), /items_inspected_before_sale/);
+    await list(await graded(ok));
+  });
+
+  test("an inspection has a version, checks that pass, fail or don't apply, and health in 0-100", async () => {
+    for (const bad of [
+      { checks: {} },
+      { version: 1, checks: { Display: "ok" } },
+      { version: 1, checks: {}, battery_health_pct: 140 },
+      { version: 1, checks: {}, storage_health_pct: "high" },
+    ])
+      await assert.rejects(graded(bad), /items_inspection_shape/, JSON.stringify(bad));
+  });
+
+  test("visitors read the report (checks, health, wipe method and dates), never costs or faults", async () => {
+    const id = await graded(ok);
+    await list(id);
+    const { rows } = await as(db, null, (tx) =>
+      tx.query(
+        "select inspection, inspected_at is not null as dated, wipe_method::text from public.items where id = $1",
+        [id],
+      ),
+    );
+    assert.deepEqual(rows[0], { inspection: ok, dated: true, wipe_method: "drive_wipe" });
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select faults from public.items where id = $1", [id])),
+      /permission denied/,
+    );
+  });
+
+  test("items graded before keep their checklist as a version 1 inspection", async () => {
+    const legacy = await createTestDb({
+      seed: false,
+      migrations: MIGRATIONS.filter((m) => m < "20261102000001"),
+    });
+    await legacy.query(
+      `insert into public.items (source_type, category, buy_mode, grade, status, checklist, current_paise, list_paise, listed_at, wiped_at, graded_at)
+       values ('repair_shop', 'laptop', 'cash', 'B', 'listed', '{"Powers on": true, "Battery health": false}', 500000, 500000, now(), now(), now() - interval '2 days')`,
+    );
+    await legacy.exec(readSql("20261102000001_reloop_checked.sql"));
+    const { rows } = await legacy.query(
+      "select inspection, inspected_at is not null as dated from public.items",
+    );
+    assert.deepEqual(rows[0], {
+      inspection: {
+        version: 1,
+        checks: { "Powers on": "pass", "Battery health": "fail" },
+        from_checklist: true,
+      },
+      dated: true,
     });
   });
 });
