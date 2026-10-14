@@ -1,49 +1,65 @@
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { SITE, hasContactChannel } from "@/lib/site";
+import { NAV_GROUPS } from "@/config/navigation";
+import { LOCATIONS } from "@/config/locations";
+import { SITE } from "@/lib/site";
+import { AccountMenu } from "./AccountMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
-import { NavLinks } from "./NavLinks";
+import { NavMenu } from "./NavMenu";
 
 export function Header() {
   return (
     <>
-      <div className="bg-brand-950 py-2 text-center text-xs text-white/80">
-        <Container>
-          <span className="font-semibold text-gold-400">Early preview</span>
-          <span className="mx-2 text-white/30" aria-hidden="true">
-            •
-          </span>
-          Hub opening in Jammu, {SITE.hubOpens}
-          {hasContactChannel && (
-            <span className="hidden sm:inline"> · Seller sign-ups open now</span>
+      <div className="bg-brand-950 text-sm text-white/80">
+        <Container className="flex min-h-9 items-center justify-between gap-4 py-1.5">
+          <p>Jammu pilot: pickups every {LOCATIONS.route.days.join(" and ")} from partner shops</p>
+          {SITE.supportPhone && SITE.whatsapp && (
+            <a
+              href={`https://wa.me/${SITE.whatsapp}`}
+              className="hidden font-medium whitespace-nowrap text-white hover:underline sm:inline"
+            >
+              WhatsApp {SITE.supportPhone}
+            </a>
           )}
         </Container>
       </div>
-      <header className="sticky top-0 z-40 border-b border-line/80 bg-canvas/85 backdrop-blur-xl">
-        <Container className="relative flex h-16 items-center gap-4 lg:h-[72px] xl:gap-3 2xl:max-w-[88rem] 2xl:gap-6">
-          <Link href="/" aria-label="ReLoop home" className="shrink-0">
+      <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur-xl">
+        <Container className="relative flex h-16 items-center gap-2 lg:h-[72px] lg:gap-3">
+          <Link href="/" aria-label="ReLoop home" className="mr-2 shrink-0">
             <Logo id="header" />
           </Link>
-          <NavLinks className="hidden xl:flex" />
-          <HeaderSearch className="ml-auto hidden w-full max-w-xs min-w-0 md:block" />
-          {hasContactChannel && (
-            <ButtonLink href="/contact" variant="ghost" size="sm" className="hidden md:inline-flex">
-              Contact
+          <nav aria-label="Main" className="hidden lg:block">
+            <ul className="flex items-center">
+              {NAV_GROUPS.map((g) => (
+                <li key={g.key}>
+                  <NavMenu group={g} />
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="ml-auto flex items-center gap-2">
+            <HeaderSearch className="hidden w-56 xl:block" />
+            <Link
+              href="/shop#search"
+              className="hidden size-11 place-items-center rounded-full text-ink-soft transition hover:bg-ink/[0.05] hover:text-ink lg:grid xl:hidden"
+            >
+              <Search className="size-5" aria-hidden="true" />
+              <span className="sr-only">Search the shop</span>
+            </Link>
+            <div className="hidden sm:block">
+              <AccountMenu />
+            </div>
+            <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
+              <Plus className="size-4" aria-hidden="true" />
+              Sell to us
             </ButtonLink>
-          )}
-          <ButtonLink href="/login" variant="secondary" size="sm" className="hidden md:inline-flex">
-            Account
-          </ButtonLink>
-          <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
-            <Plus className="size-4" aria-hidden="true" />
-            Sell to us
-          </ButtonLink>
-          <div className="ml-auto md:ml-0 xl:hidden">
-            <MobileNav />
+            <div className="lg:hidden">
+              <MobileNav />
+            </div>
           </div>
         </Container>
       </header>

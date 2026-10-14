@@ -1,38 +1,34 @@
 "use client";
 
-import { Menu, Plus, X } from "lucide-react";
+import { ChevronDown, Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
-import { hasContactChannel } from "@/lib/site";
-import { cn } from "@/lib/utils/cn";
+import { useId } from "react";
+import { buttonClasses } from "@/components/ui/Button";
+import { isActive, NAV_GROUPS } from "@/config/navigation";
+import { CHANGE_PASSWORD_PATH } from "@/lib/auth-client";
+import { roleLabel, useAccess } from "@/lib/use-access";
 import { HeaderSearch } from "./HeaderSearch";
-import { NAV_LINKS } from "./nav-links";
+import { ReportProblem } from "./ReportProblem";
+import { useDisclosure } from "./use-disclosure";
 
+/** Below 1024 px: everything the desktop header has, in one panel. */
 export function MobileNav() {
   const pathname = usePathname();
+  const { open, root, button, toggle } = useDisclosure();
   const panelId = useId();
-  // Remember which page the menu was opened on, so navigating closes it.
-  const [openOn, setOpenOn] = useState<string | null>(null);
-  const open = openOn === pathname;
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenOn(null);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  const a = useAccess();
+  const access = a.state === "ready" ? a.access : null;
 
   return (
-    <>
+    <div ref={root}>
       <button
+        ref={button}
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpenOn(open ? null : pathname)}
-        className="grid size-11 place-items-center rounded-full border border-line bg-surface text-ink transition hover:bg-sunken"
+        onClick={toggle}
+        className="grid size-11 place-items-center rounded-full border border-line-strong bg-surface text-ink transition hover:bg-sunken"
       >
         <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
         {open ? (
@@ -43,48 +39,95 @@ export function MobileNav() {
       </button>
       <div
         id={panelId}
-        className={cn(
-          "absolute inset-x-0 top-full border-b border-line bg-canvas shadow-lift",
-          open ? "block" : "hidden",
-        )}
+        hidden={!open}
+        className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-line bg-canvas shadow-lift"
       >
         <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 sm:px-6">
-          <HeaderSearch className="md:hidden" />
+          <HeaderSearch />
           <nav aria-label="Main">
             <ul className="divide-y divide-line">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    aria-current={pathname.startsWith(link.href) ? "page" : undefined}
-                    className="block py-3.5 text-base font-medium text-ink aria-[current=page]:text-brand-600"
+              {NAV_GROUPS.map((g) => (
+                <li key={g.key}>
+                  <details
+                    open={g.links.some((l) => isActive(pathname, l.href)) || undefined}
+                    className="group"
                   >
-                    {link.label}
-                  </Link>
+                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-semibold text-ink">
+                      {g.label}
+                      <ChevronDown
+                        className="size-4 transition group-open:rotate-180"
+                        aria-hidden="true"
+                      />
+                    </summary>
+                    <ul className="pb-2">
+                      {g.links.map((l) => (
+                        <li key={l.href}>
+                          <Link
+                            href={l.href}
+                            aria-current={isActive(pathname, l.href) ? "page" : undefined}
+                            className="flex min-h-11 items-center rounded-lg px-3 text-ink-soft aria-[current=page]:bg-brand-50 aria-[current=page]:font-semibold aria-[current=page]:text-brand-700"
+                          >
+                            {l.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 </li>
               ))}
-              {hasContactChannel && (
-                <li>
-                  <Link
-                    href="/contact"
-                    aria-current={pathname.startsWith("/contact") ? "page" : undefined}
-                    className="block py-3.5 text-base font-medium text-ink aria-[current=page]:text-brand-600"
-                  >
-                    Contact
-                  </Link>
-                </li>
-              )}
             </ul>
           </nav>
-          <Link
-            href="/sell"
-            className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-600 font-semibold text-white md:hidden"
-          >
+          <div className="rounded-card border border-line bg-surface p-3">
+            {a.state === "signed-out" ? (
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/login" className={buttonClasses({ variant: "secondary" })}>
+                  Log in
+                </Link>
+                <Link href="/register" className={buttonClasses({ variant: "ghost" })}>
+                  Create account
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-1 text-sm">
+                <p className="px-2 py-1">
+                  <span className="font-semibold">{access?.name ?? "Signed in"}</span>
+                  <span className="text-muted">
+                    {" "}
+                    ({a.state === "loading" ? "checking…" : roleLabel(access)})
+                  </span>
+                </p>
+                {access?.is_staff && (
+                  <Link
+                    href="/hub"
+                    className="flex min-h-11 items-center rounded-lg px-2 font-semibold text-brand-700 hover:bg-sunken"
+                  >
+                    Staff hub
+                  </Link>
+                )}
+                <Link
+                  href="/account"
+                  className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
+                >
+                  My account
+                </Link>
+                <Link
+                  href={CHANGE_PASSWORD_PATH}
+                  className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
+                >
+                  Change password
+                </Link>
+              </div>
+            )}
+          </div>
+          <Link href="/sell" className={buttonClasses({ size: "lg", className: "w-full" })}>
             <Plus className="size-4" aria-hidden="true" />
             Sell to us
           </Link>
+          <p className="text-center text-sm">
+            <ReportProblem className="font-medium text-brand-600 underline" />
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

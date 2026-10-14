@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { goViaMenu } from "./nav";
 import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
 test.describe("public shop", () => {
@@ -80,11 +81,7 @@ test.describe("what we accept", () => {
     isMobile,
   }) => {
     await page.goto("/");
-    if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
-    await page
-      .getByRole("navigation", { name: "Main" })
-      .getByRole("link", { name: "What we accept" })
-      .click();
+    await goViaMenu(page, isMobile, "Sell", "What we accept");
     await expect(page).toHaveURL(/\/what-we-accept$/);
     const main = page.getByRole("main");
     await expect(main.getByRole("heading", { name: "What we take" })).toBeVisible();
@@ -211,11 +208,7 @@ test.describe("site", () => {
 
   test("navigation works on every viewport", async ({ page, isMobile }) => {
     await page.goto("/");
-    if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
-    await page
-      .getByRole("navigation", { name: "Main" })
-      .getByRole("link", { name: "Sell to us" })
-      .click();
+    await goViaMenu(page, isMobile, "Sell", "Sell to ReLoop");
     await expect(page).toHaveURL(/\/sell$/);
   });
 
@@ -376,7 +369,7 @@ test.describe("help for partner shops", () => {
   test("is linked from the footer", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("contentinfo").getByRole("link", { name: "Help for shops" }),
+      page.getByRole("contentinfo").getByRole("link", { name: "Help for partner shops" }),
     ).toHaveAttribute("href", "/help");
   });
 });
