@@ -118,6 +118,17 @@ select check_name, ok
         and not has_column_privilege('authenticated', 'public.items', 'description', 'UPDATE')
         and has_column_privilege('authenticated', 'public.items', 'hidden', 'UPDATE')
         and pg_get_functiondef('public.edit_item_details(text, text, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
-        and pg_get_functiondef('public.mark_item_returned(text, text)'::regprocedure) like '%if not public.is_staff()%')
+        and pg_get_functiondef('public.mark_item_returned(text, text)'::regprocedure) like '%if not public.is_staff()%'),
+    (15, 'Warranty claims: staff read them; a buyer sees only their own, never the staff note',
+        not has_table_privilege('anon', 'public.warranty_claims', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.warranty_claims', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.warranty_claims', 'UPDATE')
+        and (select relrowsecurity from pg_class where oid = 'public.warranty_claims'::regclass)
+        and exists (select 1 from pg_policies where tablename = 'warranty_claims' and qual like '%is_staff()%')
+        and pg_get_functiondef('public.my_warranty_claims()'::regprocedure) not like '%staff_note%'
+        and pg_get_functiondef('public.my_warranty_claims()'::regprocedure) like '%c.buyer_id = auth.uid()%'
+        and pg_get_functiondef('public.decide_warranty_claim(uuid, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
+        and pg_get_functiondef('public.log_warranty_claim(text, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
+        and not has_function_privilege('anon', 'public.open_warranty_claim(text, text)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

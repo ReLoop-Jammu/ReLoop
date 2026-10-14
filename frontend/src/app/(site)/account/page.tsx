@@ -259,6 +259,12 @@ function AccountLinks() {
       body: "Updates on your requests, offers and account.",
     },
     {
+      href: "/account/warranty",
+      icon: ShieldCheck,
+      title: "Warranty claims",
+      body: "Devices you bought through your account, the warranty left, and claims.",
+    },
+    {
       href: "/account/settings",
       icon: UserCog,
       title: "Profile and settings",
@@ -270,7 +276,7 @@ function AccountLinks() {
       <h2 id="account-links" className="text-xl font-bold">
         Your account
       </h2>
-      <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {links.map(({ href, icon: Icon, title, body }) => (
           <li key={href}>
             <Link

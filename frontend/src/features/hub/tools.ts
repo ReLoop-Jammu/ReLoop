@@ -11,6 +11,7 @@ import {
   PackagePlus,
   Recycle,
   Settings,
+  ShieldCheck,
   Store,
   UserCog,
   Users,
@@ -29,11 +30,17 @@ export type HubBadges = {
   offers_accepted: number;
   payouts_due: number;
   pickups_next: number;
+  open_claims: number;
   pending_shops: number | null;
   deletion_requests: number | null;
 };
 export type BadgeKey =
-  "new_requests" | "new_submissions" | "offers_accepted" | "pending_shops" | "deletion_requests";
+  | "new_requests"
+  | "new_submissions"
+  | "offers_accepted"
+  | "open_claims"
+  | "pending_shops"
+  | "deletion_requests";
 
 export type HubTool = {
   href: string;
@@ -92,6 +99,15 @@ export const HUB_TOOLS: readonly HubTool[] = [
     group: "Daily work",
     // New lots to review, and accepted ones to collect.
     badge: ["new_submissions", "offers_accepted"],
+  },
+  {
+    href: "/hub/warranty",
+    label: "Warranty claims",
+    description: "Claims on grade A and B devices within 30 days of the sale.",
+    icon: ShieldCheck,
+    role: "staff",
+    group: "Daily work",
+    badge: "open_claims",
   },
   {
     href: "/hub/partners",

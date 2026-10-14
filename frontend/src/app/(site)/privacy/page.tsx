@@ -93,6 +93,10 @@ export default async function PrivacyPage() {
         </p>
         <p>Notifications on the site are deleted after 90 days.</p>
         <p>
+          Warranty claims (what you reported and what we decided, and for a claim we log for you at
+          the hub, your name and phone) are deleted 12 months after the claim is closed.
+        </p>
+        <p>
           Requests you send through the site (reservations, questions about an item and institution
           pickup bookings) are seen only by ReLoop&apos;s hub staff. Open requests are kept until we
           close them. A closed request (sold, cancelled or done) is deleted automatically 12 months

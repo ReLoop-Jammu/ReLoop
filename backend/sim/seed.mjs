@@ -703,6 +703,65 @@ export function buildSeed({ today = new Date(), auth = "supabase" } = {}) {
     while (![2, 5].includes(next.getUTCDay()));
     booking.scheduled_for = next.toISOString().slice(0, 10);
   }
+  // Warranty: the demo buyer bought a recent grade A or B device through
+  // their account and has an open claim; a walk-in buyer's claim was repaired.
+  const recentSales = items
+    .filter(
+      (i) =>
+        i.status === "sold" &&
+        (i.grade === "A" || i.grade === "B") &&
+        i.category !== "part" &&
+        end.getTime() - i.sold_at.getTime() < 20 * DAY,
+    )
+    .sort((a, b) => b.sold_at - a.sold_at);
+  const claims = [];
+  const [claimSale, walkInSale] = recentSales;
+  if (claimSale) {
+    requests.push({
+      id: uuid(),
+      kind: "reservation",
+      fields: {
+        name: demoBuyer.name,
+        phone: demoBuyer.phone,
+        item: claimSale.id,
+        fulfilment: "Pick up from the hub (free)",
+      },
+      status: "sold",
+      item_id: claimSale.id,
+      created_at: new Date(claimSale.sold_at.getTime() - 6 * HOUR),
+      handled_at: claimSale.sold_at,
+      closed_at: claimSale.sold_at,
+      buyer_id: demoBuyer.id,
+    });
+    claims.push({
+      item_id: claimSale.id,
+      buyer_id: demoBuyer.id,
+      opened_by: "buyer",
+      contact_name: "",
+      contact_phone: "",
+      fault: "The battery drops from 100% to 20% in an hour (simulated).",
+      status: "open",
+      resolution: "",
+      staff_note: "",
+      created_at: at(new Date(claimSale.sold_at.getTime() + 2 * DAY)),
+      closed_at: null,
+    });
+  }
+  if (walkInSale)
+    claims.push({
+      item_id: walkInSale.id,
+      buyer_id: null,
+      opened_by: "staff",
+      contact_name: "Walk-in Buyer (simulated)",
+      contact_phone: "9000020001",
+      fault: "Keyboard keys stopped working (simulated).",
+      status: "closed",
+      resolution: "Repaired at the hub: keyboard ribbon reseated (simulated).",
+      staff_note: "Simulated claim",
+      created_at: at(new Date(walkInSale.sold_at.getTime() + 3 * DAY)),
+      closed_at: at(new Date(walkInSale.sold_at.getTime() + 5 * DAY)),
+    });
+
   const notifications = latest
     .filter((r) => r.status !== "new")
     .map((r) => ({
@@ -915,6 +974,7 @@ delete from public.consignments;
 delete from public.submissions;
 delete from public.notifications;
 delete from public.deletion_requests;
+delete from public.warranty_claims;
 delete from public.payouts;
 delete from public.payout_counters;
 delete from public.pickups;
@@ -1056,7 +1116,11 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
   if (hiddenOne) hiddenOne.hidden = true;
   const returnedOne = [...items]
     .filter(
-      (i) => i.status === "sold" && i.sold_at && end.getTime() - i.sold_at.getTime() < 20 * DAY,
+      (i) =>
+        i.status === "sold" &&
+        i.sold_at &&
+        end.getTime() - i.sold_at.getTime() < 20 * DAY &&
+        !claims.some((c) => c.item_id === i.id),
     )
     .sort((a, b) => b.sold_at - a.sold_at)[0];
   if (returnedOne) {
@@ -1204,6 +1268,25 @@ alter table public.submissions enable trigger user;`);
   );
   sql.push(
     ...inserts("public.link_visits", ["slug", "source", "medium", "visited_at"], visits, 1000),
+  );
+  sql.push(
+    ...inserts(
+      "public.warranty_claims",
+      [
+        "item_id",
+        "buyer_id",
+        "opened_by",
+        "contact_name",
+        "contact_phone",
+        "fault",
+        "status",
+        "resolution",
+        "staff_note",
+        "created_at",
+        "closed_at",
+      ],
+      claims,
+    ),
   );
   sql.push(
     ...inserts(

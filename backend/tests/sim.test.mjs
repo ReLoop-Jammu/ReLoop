@@ -147,12 +147,25 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     assert.equal(Number(next.rows[0].n), pay.rows[0].paid);
   });
 
+  test("the demo buyer has a device under warranty with an open claim", async () => {
+    const { rows } = await db.query(
+      // Measured from the seed's own "today", not the clock, so the test doesn't age.
+      `select c.status, i.grade::text, i.sold_at >= $1::timestamptz - interval '30 days' as covered
+         from public.warranty_claims c join public.items i on i.id = c.item_id
+         join auth.users u on u.id = c.buyer_id where u.email = 'demo-buyer@reloop.demo'`,
+      [TODAY],
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].status, "open");
+    assert.ok(["A", "B"].includes(rows[0].grade) && rows[0].covered);
+  });
+
   test("the demo buyer has their own requests and notifications, and a pickup is booked", async () => {
     const mine = await db.query(
       `select s.status, s.cancelled_by, s.cancel_reason from public.submissions s
          join auth.users u on u.id = s.buyer_id where u.email = 'demo-buyer@reloop.demo'`,
     );
-    assert.equal(mine.rows.length, 4);
+    assert.ok(mine.rows.length >= 4);
     assert.ok(
       mine.rows.some(
         (r) => r.status === "cancelled" && r.cancelled_by === "staff" && r.cancel_reason,

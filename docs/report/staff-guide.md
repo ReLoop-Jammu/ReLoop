@@ -22,8 +22,9 @@ For hub workers and admins. No technical knowledge needed. Each task says which 
 10. [Today's overview and the KPIs](#10-todays-overview-and-the-kpis)
 11. [Putting a shop on the map](#11-putting-a-shop-on-the-map-admin)
 12. [Managing staff](#12-managing-staff-admin)
-13. [Deleting an account on request](#13-deleting-an-account-on-request-admin)
-14. [If something goes wrong](#14-if-something-goes-wrong)
+13. [Warranty claims](#13-warranty-claims)
+14. [Deleting an account on request](#14-deleting-an-account-on-request-admin)
+15. [If something goes wrong](#15-if-something-goes-wrong)
 
 ---
 
@@ -209,7 +210,19 @@ Only shops that agreed can appear on the public `/locations` map. The map shows 
 3. When someone leaves, press **Remove admin** and **Remove from hub staff**.
 4. ReLoop always keeps at least one admin: the last admin can't be removed. Every change is recorded.
 
-## 13. Deleting an account on request (admin)
+## 13. Warranty claims
+
+**Page:** `/hub/warranty` (menu: **Warranty claims**)
+
+Grade A and B devices have a 30-day warranty from the sale for faults present at sale. Physical or liquid damage, misuse and repairs by others aren't covered. ReLoop chooses the remedy: repair first, then replacement, then refund. There are no change-of-mind returns.
+
+- Buyers who bought through their account open claims themselves from **Warranty claims** on their account. For walk-in sales, fill in **Log a claim for a walk-in sale** (item tag, the buyer's name and phone, what went wrong).
+- For each claim, write **What to tell the buyer** (needed to reject, replace or refund) and, if useful, a **Staff note** (never shown to the buyer). Then press **Accept**, **Repairing**, **Replaced**, **Refunded**, **Reject** or **Repaired: close**. The buyer is notified at each step, and the item's **History** records it.
+- A refunded or replaced device that comes back: record it on the item's page (**The buyer returned it…**).
+
+Closed claims are deleted 12 months after closing.
+
+## 14. Deleting an account on request (admin)
 
 **Page:** `/hub/deletions` (menu: **Account deletions**)
 
@@ -221,7 +234,7 @@ People ask for their account and data to be deleted from their account's **Profi
 
 Team members are removed from the team (**Team**) before their account can be deleted, and an admin's own account is deleted by another admin. On the demo site, the shared demo logins can't be deleted.
 
-## 14. If something goes wrong
+## 15. If something goes wrong
 
 | Problem                                                         | What to do                                                                                                                                                                        |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
