@@ -135,6 +135,16 @@ select check_name, ok
         and exists (select 1 from pg_constraint where conname = 'items_inspection_shape' and convalidated)
         and not exists (select 1 from public.items where status::text in ('listed', 'reserved') and inspection is null)
         and has_column_privilege('anon', 'public.items', 'inspection', 'SELECT')
-        and not has_column_privilege('anon', 'public.items', 'faults', 'SELECT'))
+        and not has_column_privilege('anon', 'public.items', 'faults', 'SELECT')),
+    (17, 'Item passport: visitors read the tag, category, stage and date only, and nothing of hidden items',
+        has_table_privilege('anon', 'public.item_passport', 'SELECT')
+        and not has_table_privilege('anon', 'public.item_passport', 'INSERT')
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'item_passport')
+            = array['item_id', 'category', 'part_type', 'stage', 'at']
+        and pg_get_viewdef('public.item_passport'::regclass) like '%NOT i.hidden%'
+        and pg_get_viewdef('public.item_passport'::regclass) not like '%note%'
+        and pg_get_viewdef('public.item_passport'::regclass) not like '%paise%'
+        and pg_get_viewdef('public.item_passport'::regclass) not like '%source%')
   ) as c(n, check_name, ok)
  order by n;

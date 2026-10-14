@@ -91,7 +91,9 @@ A shop that agreed in person at the counter doesn't need to accept in the app: a
 1. Choose the **Source** (repair shop, retailer, institution or household) and the **Partner shop** or **Institution**.
 2. Fill in **Category** (and **Part type** for parts), **Brand** and **Model**.
 3. Fill in **How we bought it**, **We paid (₹)** (0 for free scrap), **Payment method** and, if you have them, **Expected resale (₹)** and **Weight (kg)**.
-4. Save. The item gets the next **RL-JMU-** tag. Write the tag on the item. Press **Open item**.
+4. Save. The item gets the next **RL-JMU-** tag. Press **Open item**, then **Print tag**: a 62 × 29 mm label (one per page, for a label printer) with the tag and a QR code to the item's public **passport**. Stick it on the item (or write the tag on it if the printer is down).
+
+The **passport** (`/passport/RL-JMU-…`, button **Passport** on the item's page) shows anyone the item's journey with dates: received, inspected, data wiped, repaired, listed, sold or recycled. It never shows prices, notes, sources or buyers, and hidden items have no passport.
 
 **Inspecting and grading** (within 24 hours of arrival), on the item's page under **Inspect and grade (ReLoop Checked)**:
 

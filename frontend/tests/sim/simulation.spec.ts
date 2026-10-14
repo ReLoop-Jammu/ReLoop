@@ -354,3 +354,29 @@ test.describe("ReLoop Checked (simulated stock)", () => {
     await expect(page.getByRole("link", { name: "Warranty terms" })).toBeVisible();
   });
 });
+
+test.describe("item passport (simulated stock)", () => {
+  test("a listed item's passport shows its journey, without prices or people", async ({ page }) => {
+    await page.goto("/shop?category=laptop");
+    await page.locator("main article a").first().click();
+    await page.getByRole("link", { name: "See its passport" }).click();
+    await expect(page).toHaveURL(/\/passport\/RL-JMU-\d+$/);
+    await expect(page.getByText("Received at the hub")).toBeVisible();
+    await expect(page.getByText("Listed for sale")).toBeVisible();
+    await expect(page.getByText("₹")).toHaveCount(0);
+    await expect(page.getByText(/Simulated Shop|Simulated Buyer/)).toHaveCount(0);
+  });
+
+  test("hub staff print an item's tag as a PDF", async ({ page, isMobile }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-staff@reloop.demo", "/hub/items?status=listed");
+    await page.locator("tbody tr a").first().click();
+    const pdf = page.waitForResponse((r) => /\/api\/tags\/RL-JMU-\d+$/.test(r.url()));
+    const popup = page.waitForEvent("popup");
+    await page.getByRole("button", { name: "Print tag" }).click();
+    const res = await pdf;
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toBe("application/pdf");
+    await (await popup).close();
+  });
+});

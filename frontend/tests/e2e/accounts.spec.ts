@@ -65,3 +65,8 @@ test.describe("warranty", () => {
     await expect(page.getByText("Warranty claims are kept in the shared database.")).toBeVisible();
   });
 });
+
+test("an unknown item passport is a not-found page", async ({ page }) => {
+  const res = await page.goto("/passport/RL-JMU-9999");
+  expect(res?.status()).toBe(404);
+});
