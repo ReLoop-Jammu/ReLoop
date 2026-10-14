@@ -48,3 +48,24 @@ test.describe("simulation site", () => {
     await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
   });
 });
+
+test.describe("menus by role (real logins)", () => {
+  test("the demo staff member sees their role and the hub link", async ({ page, isMobile }) => {
+    await loginAs(page, "demo-staff@reloop.demo", "/account");
+    if (isMobile) {
+      await page.getByRole("button", { name: "Open menu" }).click();
+      await expect(page.getByText("(Hub staff)")).toBeVisible();
+    } else {
+      await expect(
+        page.locator("header").getByRole("link", { name: "Hub", exact: true }),
+      ).toBeVisible();
+    }
+  });
+
+  test("the demo buyer gets no hub link", async ({ page }) => {
+    await loginAs(page, "demo-buyer@reloop.demo", "/account");
+    await expect(
+      page.locator("header").getByRole("link", { name: "Hub", exact: true }),
+    ).toHaveCount(0);
+  });
+});

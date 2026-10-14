@@ -21,6 +21,7 @@ export function ShopFilterBar({ filters }: { filters: ShopFilters }) {
       ref={formRef}
       action="/shop"
       scroll={false}
+      id="search"
       role="search"
       aria-label="Search and filter stock"
       className="mb-5 grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-3 shadow-soft lg:grid-cols-[minmax(0,1fr)_200px_200px]"
