@@ -39,6 +39,7 @@ const PAGES = [
   "/hub/team",
   "/hub/requests",
   "/hub/submissions",
+  "/hub/settings",
   "/account/change-password",
   "/this-page-does-not-exist",
 ];

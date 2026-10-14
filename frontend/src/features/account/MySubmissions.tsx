@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { myShopSubmissions, type ShopSubmission } from "@/features/hub/loop";
 import { IS_SIMULATION } from "@/lib/environment";
-import { SITE } from "@/lib/site";
+import { useSiteSettings } from "@/features/settings/context";
 import { formatPrice } from "@/lib/utils/money";
 
 const SHOWN: Record<string, string> = {
@@ -19,6 +19,7 @@ const SHOWN: Record<string, string> = {
 
 /** A shop owner's own submissions, with each status and ReLoop's offer. */
 export function MySubmissions() {
+  const { whatsapp } = useSiteSettings();
   const [rows, setRows] = useState<ShopSubmission[] | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -52,16 +53,14 @@ export function MySubmissions() {
             {r.status === "Rejected" && r.rejection_reason && (
               <p className="mt-1 text-muted">{r.rejection_reason}</p>
             )}
-            {(r.status === "Offered" || r.status === "Contacted") &&
-              SITE.whatsapp &&
-              !IS_SIMULATION && (
-                <a
-                  className="mt-1 inline-block font-semibold text-brand-600 underline"
-                  href={`https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Hi ReLoop, I accept your offer for submission #${r.id} (${r.item_name}).`)}`}
-                >
-                  Message us to accept
-                </a>
-              )}
+            {(r.status === "Offered" || r.status === "Contacted") && whatsapp && !IS_SIMULATION && (
+              <a
+                className="mt-1 inline-block font-semibold text-brand-600 underline"
+                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hi ReLoop, I accept your offer for submission #${r.id} (${r.item_name}).`)}`}
+              >
+                Message us to accept
+              </a>
+            )}
           </li>
         ))}
       </ul>

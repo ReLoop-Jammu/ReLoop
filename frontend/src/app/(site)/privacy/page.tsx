@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactDetail, LegalPage } from "@/components/legal/LegalPage";
+import { getSiteSettings } from "@/features/settings/server";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -7,7 +8,8 @@ export const metadata: Metadata = {
   description: "How ReLoop collects, uses and protects your personal data.",
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const site = await getSiteSettings();
   const officer = SITE.grievanceOfficer;
   return (
     <LegalPage title="Privacy policy" updated={SITE.legalUpdated}>
@@ -109,7 +111,7 @@ export default function PrivacyPage() {
           {officer ? `${officer.name} (${officer.designation})` : <ContactDetail value={null} />}
           <br />
           Email:{" "}
-          <ContactDetail value={officer?.email ?? SITE.supportEmail} href={(v) => `mailto:${v}`} />
+          <ContactDetail value={officer?.email ?? site.supportEmail} href={(v) => `mailto:${v}`} />
           {officer && (
             <>
               <br />

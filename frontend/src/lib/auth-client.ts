@@ -27,10 +27,28 @@ export function getSession(): AuthSession | null {
   }
 }
 
+/** Fired in this tab when the signed-in user or what they may do changes. */
+export const AUTH_EVENT = "reloop:auth";
+
+let accessVersion = 0;
+/** Goes up on every sign-in, sign-out and password change, so menus look up access again. */
+export const authVersion = () => accessVersion;
+
+/** Tells this tab's menus that the user's access may have changed. */
+export function accessChanged() {
+  if (typeof window === "undefined") return;
+  accessVersion++;
+  window.dispatchEvent(new Event(AUTH_EVENT));
+}
+
 export function saveSession(session: AuthSession | null) {
   if (typeof window === "undefined") return;
+  const before = Boolean(getSession()?.access_token);
   if (session) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   else window.localStorage.removeItem(STORAGE_KEY);
+  // "storage" events reach only other tabs; tell this tab's menus too when
+  // someone signs in or out (not on every token refresh).
+  if (before !== Boolean(session?.access_token)) accessChanged();
 }
 
 async function authRequest(path: string, body: Record<string, unknown>) {
@@ -302,6 +320,7 @@ export async function setNewPassword(session: AuthSession, password: string) {
     );
   }
   saveSession({ ...session, user: { id: data.id, ...(data.email ? { email: data.email } : {}) } });
+  accessChanged();
 }
 
 /* ---------------------------------------------------------------- temporary passwords */
@@ -347,6 +366,8 @@ export async function changePassword(password: string, currentPassword?: string)
   });
   const data = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) throw new Error(data.error ?? "Your password wasn't changed.");
+  // A forced change ends here, and with it the staff and admin lock-out.
+  accessChanged();
 }
 
 export const CHANGE_PASSWORD_PATH = "/account/change-password";
@@ -366,6 +387,8 @@ export async function myAccess(): Promise<Access | null> {
   if (!getSession()) return null;
   const response = await authenticatedFetch("/rest/v1/rpc/my_access", {
     method: "POST",
+    // Without the JSON type PostgREST looks for my_access(text) and answers 404.
+    headers: { "Content-Type": "application/json" },
     body: "{}",
   });
   if (!response.ok) return null;

@@ -16,7 +16,7 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 import { LOCATIONS } from "@/config/locations";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { WhatsAppButton } from "@/features/sell/components/WhatsAppButton";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 
 export const metadata: Metadata = {
   title: "What we accept",
@@ -26,30 +26,9 @@ export const metadata: Metadata = {
 
 const R = BUSINESS_RULES;
 
-/** From the business plan: the categories the hub grades and sells. */
-const WE_TAKE: { title: string; examples: string }[] = [
-  { title: "Phones and tablets", examples: "Smartphones, feature phones, tablets" },
-  { title: "Laptops", examples: "Any brand, including ones that don't switch on" },
-  { title: "Desktops", examples: "CPU cabinets, all-in-ones, lab and office PCs" },
-  { title: "Monitors", examples: "LCD and LED monitors" },
-  { title: "TVs", examples: "LCD, LED and smart TVs" },
-  { title: "Printers", examples: "Inkjet and laser printers" },
-  { title: "UPS units", examples: "Desktop and office UPS units" },
-  { title: "Small appliances", examples: "Mixers, irons, fans and similar" },
-  {
-    title: "Accessories and parts",
-    examples: "Chargers, cables, keyboards, mice, boards, RAM, hard drives, screens",
-  },
-];
-
-/** Policy choices, not in the business plan; kept short on purpose. */
-const WE_DONT_TAKE: string[] = [
-  "Large appliances: fridges, washing machines and air conditioners.",
-  "Anything that isn't electrical or electronic.",
-  "Leaking or swollen batteries, except handed over at the hub, where they go straight into the battery cabinet for the recycler.",
-];
-
-const WHO: { icon: LucideIcon; title: string; body: string; href?: string; cta?: string }[] = [
+const who = (
+  hubOpens: string,
+): { icon: LucideIcon; title: string; body: string; href?: string; cta?: string }[] => [
   {
     icon: Store,
     title: "Repair shops and retailers",
@@ -67,11 +46,14 @@ const WHO: { icon: LucideIcon; title: string; body: string; href?: string; cta?:
   {
     icon: Home,
     title: "Households",
-    body: `Drop-off only, at the hub once it opens in ${SITE.hubOpens}. We don't collect single items from homes.`,
+    body: `Drop-off only, at the hub once it opens in ${hubOpens}. We don't collect single items from homes.`,
   },
 ];
 
-export default function WhatWeAcceptPage() {
+export default async function WhatWeAcceptPage() {
+  const site = await getSiteSettings();
+  const WE_TAKE = site.acceptTake;
+  const WE_DONT_TAKE = site.acceptDont;
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
@@ -174,7 +156,7 @@ export default function WhatWeAcceptPage() {
           Who can sell to us
         </h2>
         <ul className="mt-5 grid gap-4 md:grid-cols-3" role="list">
-          {WHO.map(({ icon: Icon, title, body, href, cta }) => (
+          {who(site.hubOpens).map(({ icon: Icon, title, body, href, cta }) => (
             <li key={title} className="rounded-card border border-line bg-surface p-6 shadow-soft">
               <Icon className="size-6 text-brand-600" aria-hidden="true" />
               <h3 className="mt-3 text-lg font-semibold">{title}</h3>

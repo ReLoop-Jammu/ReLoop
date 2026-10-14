@@ -1,9 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-vi.mock("@/lib/site", () => ({
-  SITE: { whatsapp: "919000000000", supportEmail: "hello@example.in" },
-}));
-const { buildRequestText, handoffChannels, isValidPhone } = await import("./handoff");
+import { buildRequestText, handoffChannels, isValidPhone } from "./handoff";
+
+const site = { whatsapp: "919000000000", supportEmail: "hello@example.in" };
 
 describe("request handoff", () => {
   it("builds a readable message, skipping empty fields", () => {
@@ -16,7 +15,7 @@ describe("request handoff", () => {
   });
 
   it("creates WhatsApp and email links with the message encoded", () => {
-    const [wa, mail] = handoffChannels("Subject", "Hi & bye");
+    const [wa, mail] = handoffChannels("Subject", "Hi & bye", site);
     expect(wa.href).toBe("https://wa.me/919000000000?text=Hi%20%26%20bye");
     expect(mail.href).toBe("mailto:hello@example.in?subject=Subject&body=Hi%20%26%20bye");
   });

@@ -38,6 +38,17 @@ select check_name, ok
         and not has_column_privilege('anon', 'public.items', 'faults', 'SELECT')),
     (6, 'Shop submissions: only convert_submission() can mark a lot bought',
         exists (select 1 from pg_trigger where tgname = 'shop_submissions_guard_review')
-        and not has_function_privilege('authenticated', 'public.guard_submission_review()', 'EXECUTE'))
+        and not has_function_privilege('authenticated', 'public.guard_submission_review()', 'EXECUTE')),
+    (7, 'Settings: visitors read only public keys, and no pricing or capacity key is public',
+        not has_table_privilege('anon', 'public.app_settings', 'SELECT')
+        and has_table_privilege('anon', 'public.public_settings', 'SELECT')
+        and not exists (select 1 from public.app_settings where is_public
+                          and (key like 'pricing.target%' or key like 'pricing.handling%' or key like 'capacity.%'))
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'public_settings') = array['key', 'value']),
+    (8, 'Settings: only admins change them, through set_setting()',
+        not has_table_privilege('authenticated', 'public.app_settings', 'UPDATE')
+        and not has_table_privilege('authenticated', 'public.app_settings', 'INSERT')
+        and not has_function_privilege('anon', 'public.set_setting(text, jsonb)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

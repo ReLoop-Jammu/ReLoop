@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { IS_SIMULATION } from "@/lib/environment";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 
 export const metadata: Metadata = {
   title: "Forgot your password?",
@@ -19,7 +19,8 @@ const pretty = (n: string) => `+${n.slice(0, 2)} ${n.slice(2, 7)} ${n.slice(7)}`
  * they confirm who is asking. (Self-service reset is kept in the code for
  * when email sending is set up.)
  */
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  const site = await getSiteSettings();
   return (
     <Container className="py-12 sm:py-16">
       <div className="mx-auto max-w-lg">
@@ -46,22 +47,22 @@ export default function ForgotPasswordPage() {
           </p>
         )}
         <div className="mt-8 grid gap-3">
-          {SITE.whatsapp && !IS_SIMULATION && (
+          {site.whatsapp && !IS_SIMULATION && (
             <a
-              href={wa(SITE.whatsapp)}
+              href={wa(site.whatsapp)}
               className="flex items-center gap-3 rounded-card border border-line bg-surface p-4 font-semibold hover:border-line-strong"
             >
               <MessageCircle className="size-5 text-brand-600" aria-hidden="true" />
-              WhatsApp {pretty(SITE.whatsapp)}
+              WhatsApp {pretty(site.whatsapp)}
             </a>
           )}
-          {SITE.supportEmail && !IS_SIMULATION && (
+          {site.supportEmail && !IS_SIMULATION && (
             <a
-              href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Forgot my ReLoop password")}`}
+              href={`mailto:${site.supportEmail}?subject=${encodeURIComponent("Forgot my ReLoop password")}`}
               className="flex items-center gap-3 rounded-card border border-line bg-surface p-4 font-semibold hover:border-line-strong"
             >
               <Mail className="size-5 text-brand-600" aria-hidden="true" />
-              {SITE.supportEmail}
+              {site.supportEmail}
             </a>
           )}
         </div>

@@ -1,14 +1,14 @@
+"use client";
+
 import { MessageCircle } from "lucide-react";
 import { buttonClasses } from "@/components/ui/Button";
 import { IS_SIMULATION } from "@/lib/environment";
-import { SITE } from "@/lib/site";
+import { useSiteSettings } from "@/features/settings/context";
 
 /** A wa.me click-to-chat link to ReLoop's public WhatsApp number, with the message filled in. */
-export function whatsappChatUrl(message: string) {
+export function whatsappChatUrl(message: string, whatsapp: string | null) {
   if (IS_SIMULATION) return null; // The simulation never messages the real number.
-  return SITE.whatsapp
-    ? `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(message)}`
-    : null;
+  return whatsapp ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}` : null;
 }
 
 type Props = {
@@ -25,7 +25,8 @@ export function WhatsAppButton({
   variant = "secondary",
   className,
 }: Props) {
-  const href = whatsappChatUrl(message);
+  const { whatsapp } = useSiteSettings();
+  const href = whatsappChatUrl(message, whatsapp);
   if (!href) return null;
   return (
     <a

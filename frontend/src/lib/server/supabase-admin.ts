@@ -13,6 +13,8 @@ const URL_ = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?
   "",
 );
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+// Calls made as the caller (their own token) need only the publishable key.
+const CALLER_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || SERVICE_KEY;
 
 export const isConfigured = () => Boolean(URL_ && SERVICE_KEY);
 
@@ -36,7 +38,7 @@ export const bearer = (request: Request) =>
 /** The user behind an access token, or null if the token isn't valid. */
 export async function userFromToken(token: string): Promise<{ id: string; email?: string } | null> {
   const r = await fetch(`${URL_}/auth/v1/user`, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` },
+    headers: { apikey: CALLER_KEY, Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
   if (!r.ok) return null;
@@ -75,7 +77,7 @@ export async function callerIsAdmin(token: string): Promise<boolean> {
   const r = await fetch(`${URL_}/rest/v1/rpc/is_admin`, {
     method: "POST",
     headers: {
-      apikey: SERVICE_KEY,
+      apikey: CALLER_KEY,
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },

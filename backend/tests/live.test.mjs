@@ -1687,3 +1687,79 @@ describe("v1 security baseline (20261026000001)", () => {
     assert.equal(log.rows[0].n, 1);
   });
 });
+
+describe("settings (20261027000001)", () => {
+  let db;
+  let admin;
+  let staff;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+  });
+  const set = (who, key, value) =>
+    as(db, who, (tx) =>
+      tx.query("select public.set_setting($1, $2)", [key, JSON.stringify(value)]),
+    );
+
+  test("visitors read only the public settings, through the view", async () => {
+    const { rows } = await as(db, null, (tx) => tx.query("select key from public.public_settings"));
+    const keys = rows.map((r) => r.key);
+    assert.ok(keys.includes("contact.whatsapp") && keys.includes("accept.dont"));
+    for (const hidden of ["pricing.target_margin_pct", "pricing.handling_paise", "capacity.racks"])
+      assert.ok(!keys.includes(hidden), hidden);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.app_settings")),
+      /permission denied/,
+    );
+    const mine = await as(db, buyer, (tx) => tx.query("select * from public.app_settings"));
+    assert.equal(mine.rows.length, 0, "signed-in non-staff see no settings");
+    const hub = await as(db, staff, (tx) => tx.query("select key from public.app_settings"));
+    assert.ok(
+      hub.rows.some((r) => r.key === "pricing.target_margin_pct"),
+      "staff read them all",
+    );
+  });
+
+  test("only admins change settings, with the right type, and each change is logged", async () => {
+    await set(admin, "contact.hours", "Mon–Sat, 10:00–18:00 IST");
+    await set(admin, "accept.dont", ["Fridges"]);
+    const { rows } = await db.query(
+      "select value from public.app_settings where key = 'accept.dont'",
+    );
+    assert.deepEqual(rows[0].value, ["Fridges"]);
+    await assert.rejects(set(admin, "capacity.racks", "lots"), /must be a JSON number/);
+    await assert.rejects(set(admin, "secret.key", 1), /Unknown setting/);
+    await assert.rejects(set(staff, "contact.hours", "x"), /Only admins/);
+    await assert.rejects(set(null, "contact.hours", "x"), /permission denied/);
+    await assert.rejects(
+      as(db, admin, (tx) =>
+        tx.query("update public.app_settings set value = '1' where key = 'capacity.racks'"),
+      ),
+      /permission denied/,
+      "no direct writes: only set_setting",
+    );
+    const log = await db.query(
+      "select detail from public.admin_audit_log where action = 'setting_change' order by id",
+    );
+    assert.deepEqual(
+      log.rows.map((r) => r.detail),
+      ["contact.hours", "accept.dont"],
+    );
+  });
+
+  test("an empty text setting is stored as null (SQL NULL from the API too); other types refuse it", async () => {
+    // PostgREST turns {"p_value": null} into SQL NULL, not JSON null.
+    const clear = (key) =>
+      as(db, admin, (tx) => tx.query("select public.set_setting($1, null)", [key]));
+    await clear("contact.email");
+    const { rows } = await db.query(
+      "select jsonb_typeof(value) as t from public.app_settings where key = 'contact.email'",
+    );
+    assert.equal(rows[0].t, "null");
+    await assert.rejects(clear("capacity.racks"), /must be a JSON number/);
+  });
+});

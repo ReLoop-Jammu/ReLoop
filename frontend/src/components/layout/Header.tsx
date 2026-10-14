@@ -5,24 +5,26 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { NAV_GROUPS } from "@/config/navigation";
 import { LOCATIONS } from "@/config/locations";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
+import { IS_SIMULATION } from "@/lib/environment";
 import { AccountMenu } from "./AccountMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 import { NavMenu } from "./NavMenu";
 
-export function Header() {
+export async function Header() {
+  const site = await getSiteSettings();
   return (
     <>
       <div className="bg-brand-950 text-sm text-white/80">
         <Container className="flex min-h-9 items-center justify-between gap-4 py-1.5">
           <p>Jammu pilot: pickups every {LOCATIONS.route.days.join(" and ")} from partner shops</p>
-          {SITE.supportPhone && SITE.whatsapp && (
+          {site.supportPhone && site.whatsapp && !IS_SIMULATION && (
             <a
-              href={`https://wa.me/${SITE.whatsapp}`}
+              href={`https://wa.me/${site.whatsapp}`}
               className="hidden font-medium whitespace-nowrap text-white hover:underline sm:inline"
             >
-              WhatsApp {SITE.supportPhone}
+              WhatsApp {site.supportPhone}
             </a>
           )}
         </Container>

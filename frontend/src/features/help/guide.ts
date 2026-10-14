@@ -19,10 +19,10 @@ export const GUIDE_VALUES: Record<string, string> = {
 export type Part = { text: string } | { path: string };
 
 /** Splits a step into text and site paths ("{site}/account" → a link to /account). */
-export function guideParts(step: string): Part[] {
+export function guideParts(step: string, values: Record<string, string> = GUIDE_VALUES): Part[] {
   const filled = step.replace(
     /\{(days|days_hi|whatsapp|hours|hours_hi)\}/g,
-    (_, k: string) => GUIDE_VALUES[k],
+    (_, k: string) => values[k] ?? GUIDE_VALUES[k],
   );
   return filled
     .split(/\{site\}(\/[a-z/-]*)/)

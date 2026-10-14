@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { Logo } from "@/components/brand/Logo";
 import { DRIVE_LINK, LOCATIONS } from "@/config/locations";
 import { DriveQr, Sheet } from "@/features/print/Sheet";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 
 export const metadata: Metadata = { title: "Partner-shop poster (A4)" };
 
 const TAKES = ["Phones", "Laptops", "Chargers", "Cables", "Small appliances", "Batteries"];
 
-export default function PartnerPosterPage() {
+export default async function PartnerPosterPage() {
+  const site = await getSiteSettings();
   return (
     <Sheet>
       <header className="flex items-center justify-between bg-brand-950 px-[16mm] py-[10mm]">
@@ -59,11 +60,11 @@ export default function PartnerPosterPage() {
             <p className="mt-[2mm] text-[13pt] text-ink-soft">
               Hub, pickup route and where scrap goes
             </p>
-            {SITE.supportPhone && (
+            {site.supportPhone && (
               <p className="mt-[7mm] text-[13pt]">
                 WhatsApp
                 <span className="block font-display text-[24pt] font-bold">
-                  {SITE.supportPhone}
+                  {site.supportPhone}
                 </span>
               </p>
             )}

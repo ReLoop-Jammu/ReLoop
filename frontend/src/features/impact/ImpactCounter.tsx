@@ -1,9 +1,14 @@
 import { Container } from "@/components/ui/Container";
-import { SITE } from "@/lib/site";
 import { formatKg, showImpactNumbers, type ImpactTotals } from "./totals";
 
 /** Home-page impact strip: real totals, or the pilot date until there are any. */
-export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
+export function ImpactCounter({
+  totals,
+  hubOpens,
+}: {
+  totals: ImpactTotals | null;
+  hubOpens: string;
+}) {
   return (
     <section aria-labelledby="impact-heading" className="py-10 sm:py-12">
       <Container>
@@ -38,7 +43,7 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
               ))}
             </dl>
           ) : (
-            <p className="mt-3 text-2xl font-bold sm:text-3xl">Pilot starts {SITE.hubOpens}</p>
+            <p className="mt-3 text-2xl font-bold sm:text-3xl">Pilot starts {hubOpens}</p>
           )}
         </div>
       </Container>

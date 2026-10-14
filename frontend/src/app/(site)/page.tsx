@@ -21,6 +21,7 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
 import { getImpactTotals } from "@/features/impact/queries";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
+import { getSiteSettings } from "@/features/settings/server";
 import { getLatestShopItems, isSampleStock } from "@/features/shop/queries";
 import { env } from "@/lib/env";
 import { SITE } from "@/lib/site";
@@ -65,10 +66,11 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
 ];
 
 export default async function HomePage() {
-  const [latest, sample, impact] = await Promise.all([
+  const [latest, sample, impact, site] = await Promise.all([
     getLatestShopItems(8),
     isSampleStock(),
     getImpactTotals(),
+    getSiteSettings(),
   ]);
 
   const organizationJsonLd = {
@@ -79,8 +81,8 @@ export default async function HomePage() {
     logo: `${env.NEXT_PUBLIC_SITE_URL}/icon.svg`,
     description: SITE.description,
     areaServed: "Jammu, India",
-    ...(SITE.supportEmail && { email: SITE.supportEmail }),
-    ...(SITE.supportPhone && { telephone: SITE.supportPhone }),
+    ...(site.supportEmail && { email: site.supportEmail }),
+    ...(site.supportPhone && { telephone: site.supportPhone }),
   };
 
   return (
@@ -104,7 +106,7 @@ export default async function HomePage() {
               <span className="rounded-full bg-grade-a-bg px-2 py-0.5 text-xs font-semibold text-grade-a">
                 New
               </span>
-              Hub opening in Jammu, {SITE.hubOpens}
+              Hub opening in Jammu, {site.hubOpens}
             </span>
             <h1 className="mt-6 text-[2.6rem] leading-[1.02] font-bold sm:text-6xl lg:text-[4.25rem]">
               Collect. Grade.
@@ -151,7 +153,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <ImpactCounter totals={impact} />
+      <ImpactCounter totals={impact} hubOpens={site.hubOpens} />
 
       {/* Grades */}
       <section className="py-16 sm:py-20" aria-labelledby="grades-heading">
@@ -175,7 +177,7 @@ export default async function HomePage() {
             title={sample ? "How our stock will look" : "Latest graded stock"}
             description={
               sample
-                ? `Sample items for now. Real stock appears here once the hub opens in ${SITE.hubOpens}.`
+                ? `Sample items for now. Real stock appears here once the hub opens in ${site.hubOpens}.`
                 : "Tagged, tested and ready for pickup or delivery in Jammu."
             }
             actions={

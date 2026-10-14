@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils/cn";
-import { GUIDE, guideParts, type Lang } from "./guide";
+import { useSiteSettings } from "@/features/settings/context";
+import { GUIDE, GUIDE_VALUES, guideParts, type Lang } from "./guide";
 
 const KEY = "reloop-help-lang";
 
@@ -21,6 +22,13 @@ const subscribe = (onChange: () => void) => {
 
 /** The shop-owner guide with an English / Hindi toggle (remembered in this browser only). */
 export function HelpGuide() {
+  const site = useSiteSettings();
+  // The contact details come from the settings (the Hindi hours stay as written).
+  const values = {
+    ...GUIDE_VALUES,
+    whatsapp: site.supportPhone ?? GUIDE_VALUES.whatsapp,
+    hours: site.hours ?? "",
+  };
   const stored = useSyncExternalStore(subscribe, storedLang, () => "en" as Lang);
   // The choice made on this page wins, even when storage is blocked.
   const [picked, setPicked] = useState<Lang | null>(null);
@@ -80,7 +88,7 @@ export function HelpGuide() {
               <ul className="mt-3 grid list-disc gap-2 pl-5 leading-relaxed text-ink-soft">
                 {s[lang].steps.map((step) => (
                   <li key={step}>
-                    {guideParts(step).map((p, i) =>
+                    {guideParts(step, values).map((p, i) =>
                       "path" in p ? (
                         <Link
                           key={i}

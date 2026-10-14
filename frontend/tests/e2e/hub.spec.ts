@@ -184,3 +184,11 @@ test.describe("the loop in the hub (device mode)", () => {
     });
   }
 });
+
+test.describe("settings (admin only)", () => {
+  test("asks visitors to log in and shows no settings", async ({ page }) => {
+    await page.goto("/hub/settings");
+    await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Settings" })).toHaveCount(0);
+  });
+});
