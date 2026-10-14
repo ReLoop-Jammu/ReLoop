@@ -9,9 +9,7 @@ import {
   type ShopOwner,
   type VerificationStatus,
 } from "../shop-reviews";
-import { linkVisitCounts, type LinkVisitCount } from "@/features/locations/link-visits";
 import { LOCATIONS } from "@/config/locations";
-import { shortUrl, TRACKED_LINKS } from "@/config/tracked-links";
 import { RequireRole } from "./RequireRole";
 import { hubInput, PageTitle, Panel } from "./ui";
 
@@ -25,7 +23,6 @@ export function ShopReviewPage() {
   return (
     <RequireRole role="admin">
       <ShopReviews />
-      <TrackedLinks />
     </RequireRole>
   );
 }
@@ -159,49 +156,6 @@ function Detail({ label, value }: { label: string; value: string | null }) {
       <dt className="text-muted">{label}</dt>
       <dd className="min-w-0 break-words">{value || "—"}</dd>
     </div>
-  );
-}
-
-function TrackedLinks() {
-  const [counts, setCounts] = useState<LinkVisitCount[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    linkVisitCounts()
-      .then(setCounts)
-      .catch(() => setFailed(true));
-  }, []);
-  const n = (slug: string, key: "this_month" | "all_time") =>
-    counts ? (counts.find((c) => c.slug === slug)?.[key] ?? 0) : "—";
-  return (
-    <Panel title="Tracked links" className="mb-6">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-xs text-muted">
-            <tr>
-              <th className="py-1 pr-3 font-medium">Link</th>
-              <th className="py-1 pr-3 font-medium">Used for</th>
-              <th className="py-1 pr-3 text-right font-medium">This month</th>
-              <th className="py-1 text-right font-medium">All time</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {TRACKED_LINKS.map((l) => (
-              <tr key={l.slug}>
-                <td className="py-1.5 pr-3 font-mono text-xs">/go/{l.slug}</td>
-                <td className="py-1.5 pr-3">{l.use}</td>
-                <td className="py-1.5 pr-3 text-right tabular-nums">{n(l.slug, "this_month")}</td>
-                <td className="py-1.5 text-right tabular-nums">{n(l.slug, "all_time")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-2 text-xs text-muted">
-        Clicks on the short links (for example {shortUrl(TRACKED_LINKS[0])}). Link previews and
-        crawlers aren&apos;t counted. The list of links is in docs/report/tracked-links.md.
-        {failed && " The counts couldn't be loaded."}
-      </p>
-    </Panel>
   );
 }
 

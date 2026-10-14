@@ -1,52 +1,36 @@
 "use client";
 
-import {
-  Settings,
-  BadgeCheck,
-  ClipboardList,
-  Database,
-  ExternalLink,
-  Inbox,
-  LayoutDashboard,
-  PackageOpen,
-  PackagePlus,
-  Recycle,
-  Store,
-  UserCog,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { ExternalLink, Search } from "lucide-react";
+import Form from "next/form";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { LogoMark } from "@/components/brand/Logo";
 import { SHARED_DATABASE } from "@/features/inventory/store";
 import { logoutAccount } from "@/lib/auth-client";
+import { useAccess } from "@/lib/use-access";
 import { cn } from "@/lib/utils/cn";
+import { useHubBadges } from "../badges";
+import { HUB_TOOLS, isToolActive, TOOL_GROUPS } from "../tools";
 import { HUB_ERROR_EVENT } from "../useHubData";
 import { RequireRole } from "./RequireRole";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/hub", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/hub/intake", label: "Intake", icon: PackagePlus },
-  { href: "/hub/items", label: "Items", icon: ClipboardList },
-  { href: "/hub/requests", label: "Requests", icon: Inbox },
-  { href: "/hub/submissions", label: "Shop submissions", icon: PackageOpen },
-  { href: "/hub/partners", label: "Shops & institutions", icon: Store },
-  { href: "/hub/handovers", label: "Recycler handovers", icon: Recycle },
-  { href: "/hub/shops", label: "Shop verification", icon: BadgeCheck },
-  { href: "/hub/users", label: "Users", icon: Users },
-  { href: "/hub/team", label: "Team", icon: UserCog },
-  { href: "/hub/settings", label: "Settings", icon: Settings },
-  { href: "/hub/data", label: "Data & exports", icon: Database },
-];
+/**
+ * The menu: admin screens only for admins (on a hub laptop without the shared
+ * database there are no accounts, so every screen is listed).
+ */
+function useMenu() {
+  const a = useAccess();
+  const admin = !SHARED_DATABASE || (a.state === "ready" && Boolean(a.access?.is_admin));
+  return HUB_TOOLS.filter((t) => t.role === "staff" || admin);
+}
 
 export function HubShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas lg:flex-row">
-      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:border-r lg:border-b-0">
+      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5 lg:py-6">
           <Link href="/hub" className="flex items-center gap-2 font-display text-lg font-bold">
             <LogoMark id="hub" inverted className="size-7" />
@@ -59,29 +43,9 @@ export function HubShell({ children }: { children: ReactNode }) {
             Public site <ExternalLink className="size-3" aria-hidden="true" />
           </Link>
         </div>
+        <HubSearch />
         <nav aria-label="Hub" className="overflow-x-auto px-2 pb-3 lg:px-3">
-          <ul className="flex gap-1 lg:flex-col">
-            {NAV.map(({ href, label, icon: Icon }) => {
-              const active = href === "/hub" ? pathname === "/hub" : pathname.startsWith(href);
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition",
-                      active
-                        ? "bg-white/15 font-semibold text-white"
-                        : "text-white/70 hover:bg-white/5 hover:text-white",
-                    )}
-                  >
-                    <Icon className="size-4" aria-hidden="true" />
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <HubMenu pathname={pathname} />
         </nav>
       </aside>
       <div className="min-w-0 flex-1">
@@ -113,15 +77,87 @@ export function HubShell({ children }: { children: ReactNode }) {
 }
 
 function SignOut() {
-  const router = useRouter();
   return (
     <button
       type="button"
       className="font-semibold text-brand-600 underline"
-      onClick={() => void logoutAccount().then(() => router.push("/login?next=%2Fhub"))}
+      onClick={() => void logoutAccount().then(() => window.location.replace("/?signed-out=1"))}
     >
       Log out
     </button>
+  );
+}
+
+function HubMenu({ pathname }: { pathname: string }) {
+  const tools = useMenu();
+  const badges = useHubBadges();
+  return (
+    <div className="flex gap-1 lg:flex-col lg:gap-4">
+      {TOOL_GROUPS.map((group) => {
+        const inGroup = tools.filter((t) => t.group === group);
+        if (!inGroup.length) return null;
+        return (
+          <div key={group} className="flex gap-1 lg:block">
+            <p className="hidden px-3 pb-1 text-xs font-medium text-white/50 lg:block">{group}</p>
+            <ul className="flex gap-1 lg:flex-col">
+              {inGroup.map(({ href, label, icon: Icon, badge }) => {
+                const active = isToolActive(href, pathname);
+                const count = badge ? badges?.[badge] : null;
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition",
+                        active
+                          ? "bg-white/15 font-semibold text-white"
+                          : "text-white/70 hover:bg-white/5 hover:text-white",
+                      )}
+                    >
+                      <Icon className="size-4" aria-hidden="true" />
+                      {label}
+                      {count ? (
+                        <span className="ml-auto rounded-full bg-gold-400 px-1.5 text-xs font-semibold text-brand-950 tabular-nums">
+                          {count}
+                          <span className="sr-only"> waiting</span>
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Find an item by its RL-JMU tag, a shop or (admins) an account. */
+function HubSearch() {
+  return (
+    <Form
+      action="/hub/search"
+      role="search"
+      aria-label="Search the hub"
+      className="px-4 pb-3 lg:px-5"
+    >
+      <label htmlFor="hub-search" className="sr-only">
+        Search the hub
+      </label>
+      <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 focus-within:ring-2 focus-within:ring-gold-400">
+        <Search className="size-4 text-white/60" aria-hidden="true" />
+        <input
+          id="hub-search"
+          name="q"
+          type="search"
+          placeholder="RL-JMU tag, shop or person"
+          className="min-h-10 w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
+        />
+      </div>
+    </Form>
   );
 }
 

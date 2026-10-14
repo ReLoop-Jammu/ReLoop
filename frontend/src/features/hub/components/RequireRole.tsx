@@ -18,6 +18,11 @@ const noSubscribe = () => () => {};
 export function RequireRole({ role, children }: { role: StaffRole; children: ReactNode }) {
   const pathname = usePathname();
   const signedIn = useSyncExternalStore(noSubscribe, isSignedIn, () => false);
+  const search = useSyncExternalStore(
+    noSubscribe,
+    () => window.location.search,
+    () => "",
+  );
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [failed, setFailed] = useState(false);
   const [mustChange, setMustChange] = useState(false);
@@ -48,7 +53,7 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
           An admin reset your password. Set your own before using the hub.
         </p>
         <Link
-          href={`${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(pathname)}`}
+          href={`${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(pathname + search)}`}
           className={buttonClasses({ className: "mt-4" })}
         >
           Change password
@@ -70,22 +75,44 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
     <div className="max-w-lg rounded-card border border-line bg-surface p-6">
       <ShieldAlert className="size-6 text-brand-600" aria-hidden="true" />
       <h1 className="mt-3 text-xl font-bold">
-        {state === "signed-out" ? "Log in to continue" : `For ${who} only`}
+        {state === "signed-out"
+          ? "Log in to continue"
+          : state === "error"
+            ? "We couldn't check your access"
+            : `For ${who} only`}
       </h1>
       <p className="mt-2 text-sm text-muted">
         {state === "signed-out" &&
-          `This page is for ${who}. Log in with your ReLoop account to continue.`}
-        {state === "denied" && "Your account doesn't have access to this page."}
-        {state === "error" && "We couldn't check your access. Log in again and retry."}
+          `This page is for ${who}. Log in with your ReLoop account and you'll come back here.`}
+        {state === "denied" &&
+          (role === "admin"
+            ? "Your account can use the hub, but not this admin page. Ask an admin if you need something from it."
+            : "Your account doesn't have access to the hub. If you work at the hub, ask an admin to add you to the team.")}
+        {state === "error" && "Log in again and retry. If it keeps happening, tell an admin."}
       </p>
-      {state !== "denied" && (
-        <Link
-          href={`/login?next=${encodeURIComponent(pathname)}`}
-          className={buttonClasses({ className: "mt-4" })}
-        >
-          Log in
+      <div className="mt-4 flex flex-wrap gap-3">
+        {state !== "denied" && (
+          <Link
+            href={`/login?next=${encodeURIComponent(pathname + search)}`}
+            className={buttonClasses()}
+          >
+            Log in
+          </Link>
+        )}
+        {state === "denied" && role === "admin" && (
+          <Link href="/hub" className={buttonClasses()}>
+            Back to the hub overview
+          </Link>
+        )}
+        {state === "denied" && role === "staff" && (
+          <Link href="/account" className={buttonClasses()}>
+            Go to your account
+          </Link>
+        )}
+        <Link href="/" className={buttonClasses({ variant: "secondary" })}>
+          Public site
         </Link>
-      )}
+      </div>
     </div>
   );
 }

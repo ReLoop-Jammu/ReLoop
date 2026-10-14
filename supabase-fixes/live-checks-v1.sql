@@ -49,6 +49,17 @@ select check_name, ok
     (8, 'Settings: only admins change them, through set_setting()',
         not has_table_privilege('authenticated', 'public.app_settings', 'UPDATE')
         and not has_table_privilege('authenticated', 'public.app_settings', 'INSERT')
-        and not has_function_privilege('anon', 'public.set_setting(text, jsonb)', 'EXECUTE'))
+        and not has_function_privilege('anon', 'public.set_setting(text, jsonb)', 'EXECUTE')),
+    (9, 'Hub queues, link series and audit log: visitors cannot call them, and each checks the caller first',
+        not has_function_privilege('anon', 'public.hub_badges()', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.link_visit_series(integer)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.admin_audit_entries(text, bigint, integer)', 'EXECUTE')
+        and (select bool_and(p.prosecdef and p.proconfig @> array['search_path=""'])
+               from pg_proc p where p.oid in ('public.hub_badges()'::regprocedure,
+                                              'public.link_visit_series(integer)'::regprocedure,
+                                              'public.admin_audit_entries(text, bigint, integer)'::regprocedure))
+        and pg_get_functiondef('public.admin_audit_entries(text, bigint, integer)'::regprocedure) like '%if not public.is_admin()%'
+        and pg_get_functiondef('public.hub_badges()'::regprocedure) like '%if not public.is_staff()%'
+        and pg_get_functiondef('public.link_visit_series(integer)'::regprocedure) like '%if not public.is_admin()%')
   ) as c(n, check_name, ok)
  order by n;

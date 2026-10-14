@@ -152,7 +152,7 @@ Besides the live checks, 90 database tests replay every query the site makes in 
 
 ## 4. KPI definitions
 
-These are exactly what the dashboard (`/hub`) computes, in `frontend/src/features/inventory/stats.ts`. Months are calendar months.
+These are exactly what the KPI page (`/hub/kpis`) computes, in `frontend/src/features/inventory/stats.ts`. Months are calendar months.
 
 **Stock** (`dashboardStats`):
 

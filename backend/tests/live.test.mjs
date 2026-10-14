@@ -1763,3 +1763,118 @@ describe("settings (20261027000001)", () => {
     await assert.rejects(clear("capacity.racks"), /must be a JSON number/);
   });
 });
+
+describe("hub home: badges and link series (20261028000001)", () => {
+  let db;
+  let admin;
+  let staff;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+    const owner = await shopOwner(db, "Waiting", { gstin: "01ABCDE1234F1Z5" });
+    await db.exec("alter table public.submissions disable trigger user");
+    await db.query(
+      `insert into public.submissions (kind, fields, status) values
+         ('reservation', '{}', 'new'), ('reservation', '{}', 'done'),
+         ('enquiry', '{}', 'new'), ('institution_pickup', '{}', 'new')`,
+    );
+    await db.exec("alter table public.submissions enable trigger user");
+    await db.exec("alter table public.shop_submissions disable trigger user");
+    await db.query(
+      `insert into public.shop_submissions (shop_owner_id, item_name, status) values
+         ($1, 'TV', 'Pending'), ($1, 'Laptop', 'Offered'), ($1, 'Phone', 'Rejected')`,
+      [owner],
+    );
+    await db.exec("alter table public.shop_submissions enable trigger user");
+    await db.query(
+      `insert into public.link_visits (slug, source, medium, visited_at) values
+         ('drive', 'qr', 'print', now()), ('drive', 'qr', 'print', now()),
+         ('ig-bio', 'instagram', 'bio', now() - interval '2 days'),
+         ('ig-bio', 'instagram', 'bio', now() - interval '200 days')`,
+    );
+  });
+  const badges = (who) =>
+    as(db, who, (tx) => tx.query("select public.hub_badges() as b")).then((r) => r.rows[0].b);
+
+  test("staff see the queues; only admins also see shops waiting for verification", async () => {
+    const forStaff = await badges(staff);
+    assert.deepEqual(forStaff, {
+      new_requests: 3,
+      new_reservations: 1,
+      new_institution_pickups: 1,
+      new_questions: 1,
+      new_submissions: 1,
+      offers_waiting: 1,
+      pending_shops: null,
+    });
+    assert.equal((await badges(admin)).pending_shops, 1);
+    await assert.rejects(badges(buyer), /Only hub staff/);
+    await assert.rejects(badges(null), /permission denied/);
+  });
+
+  test("admins see visits per link per day; others can't", async () => {
+    const series = (who, days) =>
+      as(db, who, (tx) =>
+        tx.query("select day::text, slug, visits from public.link_visit_series($1)", [days]),
+      );
+    const { rows } = await series(admin, 30);
+    assert.deepEqual(
+      rows.map((r) => [r.slug, Number(r.visits)]),
+      [
+        ["ig-bio", 1],
+        ["drive", 2],
+      ],
+    );
+    assert.equal((await series(admin, 366)).rows.length, 3);
+    // A visit at 00:30 India time on the first day of the window is counted.
+    await db.query(
+      `insert into public.link_visits (slug, source, medium, visited_at) values
+         ('wa', 'whatsapp', 'share',
+          (((now() at time zone 'Asia/Kolkata')::date - 6)::timestamp + interval '30 minutes')
+            at time zone 'Asia/Kolkata')`,
+    );
+    const week = await series(admin, 7);
+    assert.ok(
+      week.rows.some((r) => r.slug === "wa"),
+      "the first day starts at midnight IST",
+    );
+    const sixDays = await series(admin, 6);
+    assert.ok(!sixDays.rows.some((r) => r.slug === "wa"), "and the day before is left out");
+    await assert.rejects(series(admin, 0), /between 1 and 366/);
+    await assert.rejects(series(staff, 30), /Only admins/);
+    await assert.rejects(series(null, 30), /permission denied/);
+  });
+
+  test("admins read the audit log with names, page by page; nobody else can", async () => {
+    for (const action of ["role_change", "setting_change", "setting_change"])
+      await db.query(
+        "insert into public.admin_audit_log (admin_id, target_user_id, action, detail) values ($1, $2, $3, 'x')",
+        [admin, action === "role_change" ? staff : null, action],
+      );
+    const entries = (who, ...args) =>
+      as(db, who, (tx) =>
+        tx.query("select * from public.admin_audit_entries($1, $2, $3)", [
+          args[0] ?? null,
+          args[1] ?? null,
+          args[2] ?? null,
+        ]),
+      ).then((r) => r.rows);
+    const all = await entries(admin);
+    assert.equal(all.length, 3);
+    assert.equal(all[2].action, "role_change");
+    assert.equal(all[2].admin_name, "Admin");
+    assert.equal(all[2].target_name, "Staff");
+    const page = await entries(admin, null, all[0].id, 1);
+    assert.deepEqual(
+      page.map((r) => r.id),
+      [all[1].id],
+    );
+    assert.equal((await entries(admin, "role_change")).length, 1);
+    await assert.rejects(entries(staff), /Only admins/);
+    await assert.rejects(entries(null), /permission denied/);
+  });
+});

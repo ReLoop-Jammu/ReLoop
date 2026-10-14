@@ -21,8 +21,9 @@ Copy the **short link**; it's what people should see and tap. The full form is w
 
 ## Reading the counts
 
-1. Log in with an admin account and open **`/hub/shops`**.
-2. The **Tracked links** panel shows, for each link, the clicks **this month** (India time) and **all time**.
+1. Log in with an admin account and open **`/hub/links`** (hub menu: **Links & QR codes**).
+2. **Visits over time** shows visits per day or per week (weeks start on Monday) for the last 30 days, 90 days or 12 months, in India time. **Visits per day (CSV)** downloads the same numbers, one row per day and link.
+3. The table below shows, for each link, the visits in the chosen period, **this month** and **all time**.
 
 What counts as a click:
 
@@ -39,6 +40,6 @@ But **the ReLoop Vercel team is on the free Hobby plan, and Hobby doesn't show a
 
 So:
 
-- **The source of truth for "where did visitors come from" is the Tracked links panel on `/hub/shops`.**
+- **The source of truth for "where did visitors come from" is `/hub/links` (Links & QR codes).**
 - Vercel Analytics is still useful for which pages people read after they arrive.
 - If the team later upgrades to Web Analytics Plus, the UTM tags are already in place: nothing needs changing.

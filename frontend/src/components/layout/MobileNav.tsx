@@ -10,6 +10,7 @@ import { CHANGE_PASSWORD_PATH } from "@/lib/auth-client";
 import { roleLabel, useAccess } from "@/lib/use-access";
 import { HeaderSearch } from "./HeaderSearch";
 import { ReportProblem } from "./ReportProblem";
+import { LoginLink } from "./LoginLink";
 import { useDisclosure } from "./use-disclosure";
 
 /** Below 1024 px: everything the desktop header has, in one panel. */
@@ -80,9 +81,7 @@ export function MobileNav() {
           <div className="rounded-card border border-line bg-surface p-3">
             {a.state === "signed-out" ? (
               <div className="grid grid-cols-2 gap-2">
-                <Link href="/login" className={buttonClasses({ variant: "secondary" })}>
-                  Log in
-                </Link>
+                <LoginLink className={buttonClasses({ variant: "secondary" })} />
                 <Link href="/register" className={buttonClasses({ variant: "ghost" })}>
                   Create account
                 </Link>

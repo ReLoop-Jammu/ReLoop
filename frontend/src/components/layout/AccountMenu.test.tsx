@@ -7,7 +7,10 @@ vi.mock("@/lib/use-access", async (orig) => ({
   ...(await orig<typeof import("@/lib/use-access")>()),
   useAccess: () => state,
 }));
-vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn() }),
+}));
 const { AccountMenu } = await import("./AccountMenu");
 
 const access = (over: object) => ({

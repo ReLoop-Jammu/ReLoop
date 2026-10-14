@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginAs } from "./helpers";
+import { DEMO_PASSWORD, loginAs } from "./helpers";
 
 test.describe("simulation site", () => {
   test("every page says it is a simulation, and search engines are kept out", async ({
@@ -37,9 +37,9 @@ test.describe("simulation site", () => {
     await expect(page.getByText("items reused")).toBeVisible();
   });
 
-  test("the demo admin reaches the hub dashboard with six months of data", async ({ page }) => {
-    await loginAs(page, "demo-admin@reloop.demo", "/hub");
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  test("the demo admin reaches the hub KPIs with six months of data", async ({ page }) => {
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/kpis");
+    await expect(page.getByRole("heading", { name: "KPIs" })).toBeVisible();
     await expect(page.getByText("Active partner shops")).toBeVisible();
   });
 
@@ -97,5 +97,59 @@ test.describe("settings", () => {
       // An earlier failed run may have left the test value; empty means the built-in hours.
       await save(before === TEST_HOURS ? "" : before);
     }
+  });
+});
+
+test.describe("hub home and landing (real logins)", () => {
+  test("hub staff land on the hub overview, without the admin screens", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel(/email/i).fill("demo-staff@reloop.demo");
+    await page.getByLabel(/password/i).fill(DEMO_PASSWORD);
+    await page.getByRole("button", { name: /log in/i }).click();
+    await expect(page).toHaveURL(/\/hub$/, { timeout: 20_000 });
+    await expect(page.getByRole("heading", { level: 1, name: /Good to see you/ })).toBeVisible();
+    const menu = page.getByRole("navigation", { name: "Hub" });
+    await expect(menu.getByRole("link", { name: "Intake", exact: true })).toBeVisible();
+    for (const name of ["Users", "Team", "Audit log", "Settings"])
+      await expect(menu.getByRole("link", { name, exact: true })).toHaveCount(0);
+    await page.goto("/hub/audit");
+    await expect(page.getByRole("heading", { name: "For ReLoop admins only" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Back to the hub overview" })).toBeVisible();
+  });
+
+  test("a buyer comes back to the page they logged in from", async ({ page, isMobile }) => {
+    test.skip(isMobile, "the header link is the same in the mobile menu");
+    await page.goto("/what-we-accept");
+    await page.locator("header").getByRole("link", { name: "Log in" }).click();
+    await page.getByLabel(/email/i).fill("demo-buyer@reloop.demo");
+    await page.getByLabel(/password/i).fill(DEMO_PASSWORD);
+    await page.getByRole("button", { name: /log in/i }).click();
+    await expect(page).toHaveURL(/\/what-we-accept$/, { timeout: 20_000 });
+  });
+
+  test("the demo admin sees the queues, link visits per day and the audit log", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub");
+    await expect(page.getByText("Loading the queues…")).toHaveCount(0, { timeout: 15_000 });
+    await expect(
+      page
+        .getByRole("link", {
+          name: /waiting for verification|to review|new reservation|to answer|to schedule|answer/,
+        })
+        .first(),
+    ).toBeVisible();
+    await page.goto("/hub/links");
+    await expect(page.getByRole("heading", { name: "Visits over time" })).toBeVisible();
+    await expect(page.getByText(/Most in one day: \d+/)).toBeVisible({ timeout: 15_000 });
+    await page.goto("/hub/audit");
+    await expect(page.getByRole("table", { name: "Audit log entries" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.goto("/account");
+    await expect(page.getByRole("heading", { name: "Your hub tools" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Audit log/ })).toBeVisible();
   });
 });

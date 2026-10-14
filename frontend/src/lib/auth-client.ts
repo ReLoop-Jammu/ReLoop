@@ -394,3 +394,30 @@ export async function myAccess(): Promise<Access | null> {
   if (!response.ok) return null;
   return (await response.json()) as Access;
 }
+
+/**
+ * Where to go after logging in. A page that sent you to log in (?next=) comes
+ * first. Otherwise hub staff and admins go to the hub, and everyone else back
+ * to the page they logged in from (?from=), or their account.
+ */
+export function loginDestination(
+  search: string,
+  access: Pick<Access, "is_staff" | "is_admin"> | null,
+): string {
+  const params = new URLSearchParams(search);
+  if (params.get("next")) {
+    const next = safeNext(search, "");
+    if (next) return next;
+  }
+  if (access?.is_staff || access?.is_admin) return "/hub";
+  const from = params.get("from");
+  return from ? safeNext(`?next=${encodeURIComponent(from)}`) : "/account";
+}
+
+/** The login link for a page: it brings you back there afterwards (not for staff, who go to the hub). */
+export function loginHref(pathname: string, search = "") {
+  const here = pathname + search;
+  return here === "/" || /^\/(login|register)(\/|$)/.test(pathname)
+    ? "/login"
+    : `/login?from=${encodeURIComponent(here)}`;
+}

@@ -92,7 +92,7 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 
 ## 8. Outreach and reporting (round 4)
 
-- **Tracked links** (`/go/ig-bio`, `/go/ig-post`, `/go/ig-story`, `/go/wa`, `/go/drive`) are counted in `link_visits` and shown to admins on `/hub/shops`. Vercel Analytics receives the UTM tags, but the free Hobby plan can't break visits down by them (that needs Web Analytics Plus). See `docs/report/tracked-links.md`.
+- **Tracked links** (`/go/ig-bio`, `/go/ig-post`, `/go/ig-story`, `/go/wa`, `/go/drive`) are counted in `link_visits` and shown to admins on `/hub/links`, per day or week, with a CSV. Vercel Analytics receives the UTM tags, but the free Hobby plan can't break visits down by them (that needs Web Analytics Plus). See `docs/report/tracked-links.md`.
 - **The impact counter** on the home page reads the `impact_totals` view. "Active partner shops" counts hub partners marked active, not verified website accounts.
 - **What we don't take** (large appliances, non-electronics, leaking batteries except at the hub) is a team policy choice; the business plan doesn't list exclusions.
 - **Hindi** on `/help` and in `docs/report/shop-owner-guide.md` hasn't been checked by a native speaker yet. The printables are English-only until it has.
