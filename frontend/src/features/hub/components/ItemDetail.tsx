@@ -25,9 +25,11 @@ import {
   saveItem,
   saveRepairJob,
   setItemStatus,
+  SHARED_DATABASE,
 } from "@/features/inventory/store";
 import type { Partner } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
+import { siteFetch } from "@/lib/auth-client";
 import { CHECKLISTS } from "../checklists";
 import {
   checklistOf,
@@ -112,7 +114,12 @@ export function ItemDetail({ id }: { id: string }) {
             {item.buyMode})
           </>
         }
-        actions={item.grade && <GradeBadge grade={item.grade} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {SHARED_DATABASE && <TagButtons id={item.id} />}
+            {item.grade && <GradeBadge grade={item.grade} />}
+          </div>
+        }
       />
       {msg && (
         <p role="status" className="mb-4 rounded-lg bg-grade-a-bg px-4 py-2 text-sm text-grade-a">
@@ -811,5 +818,41 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
         <p className="text-sm text-muted">This item has left the hub.</p>
       )}
     </Panel>
+  );
+}
+
+/** Print the item's tag (a 62 × 29 mm PDF with the passport QR code) and open its public passport. */
+function TagButtons({ id }: { id: string }) {
+  const [error, setError] = useState("");
+  async function printTag() {
+    setError("");
+    try {
+      const r = await siteFetch(`/api/tags/${encodeURIComponent(id)}`);
+      if (!r.ok) throw new Error("The tag couldn't be made. Please try again.");
+      const url = URL.createObjectURL(await r.blob());
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The tag couldn't be made.");
+    }
+  }
+  return (
+    <>
+      <Button size="sm" variant="secondary" onClick={() => void printTag()}>
+        Print tag
+      </Button>
+      <Link
+        href={`/passport/${id}`}
+        target="_blank"
+        className="text-sm font-semibold text-brand-600 underline"
+      >
+        Passport
+      </Link>
+      {error && (
+        <span role="alert" className="text-sm text-danger">
+          {error}
+        </span>
+      )}
+    </>
   );
 }

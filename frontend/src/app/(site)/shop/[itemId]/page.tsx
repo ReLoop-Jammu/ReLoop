@@ -210,6 +210,17 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             <Package className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             Item {item.id} is held at the ReLoop hub. Reserve it and we&apos;ll confirm availability
             before you pay.
+            {!item.sample && (
+              <>
+                {" "}
+                <Link
+                  href={`/passport/${item.id}`}
+                  className="font-semibold text-brand-600 underline"
+                >
+                  See its passport
+                </Link>
+              </>
+            )}
           </p>
         </div>
       </div>

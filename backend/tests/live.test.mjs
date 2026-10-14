@@ -3028,3 +3028,62 @@ describe("ReLoop Checked (20261102000001)", () => {
     });
   });
 });
+
+describe("item passport (20261103000001)", () => {
+  let db;
+  let staff;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+  });
+
+  test("anyone sees an item's stages and dates, never prices, notes or sources; hidden items have none", async () => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, source_name, category, buy_mode, buy_paise, grade, status, current_paise, list_paise,
+                                 wipe_method, wiped_at, inspection, inspected_at, faults)
+       values ('repair_shop', 'Sharma Mobiles', 'phone', 'cash', 250000, 'A', 'graded', 600000, 600000,
+               'reset_overwrite', now(), '{"version": 1, "checks": {}}', now(), 'Cracked back')
+       returning id`,
+    );
+    const id = rows[0].id;
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'listed', listed_at = now() where id = $1", [id]),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set current_paise = 500000 where id = $1", [id]),
+    );
+    await as(db, staff, (tx) =>
+      tx.query(
+        "insert into public.item_events (item_id, type, note) values ($1, 'note', 'Customer is Asha, 9000000001')",
+        [id],
+      ),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'sold' where id = $1", [id]),
+    );
+    const passport = await as(db, null, (tx) =>
+      tx.query("select * from public.item_passport where item_id = $1 order by at, stage", [id]),
+    );
+    assert.deepEqual(Object.keys(passport.rows[0]).sort(), [
+      "at",
+      "category",
+      "item_id",
+      "part_type",
+      "stage",
+    ]);
+    assert.deepEqual(
+      new Set(passport.rows.map((r) => r.stage)),
+      new Set(["received", "inspected", "data_wiped", "listed", "price_changed", "sold"]),
+    );
+    const text = JSON.stringify(passport.rows);
+    for (const secret of ["Sharma", "Asha", "9000000001", "250000", "Cracked", "6000", "5000"])
+      assert.ok(!text.includes(secret), secret);
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = true where id = $1", [id]),
+    );
+    const gone = await as(db, null, (tx) =>
+      tx.query("select 1 from public.item_passport where item_id = $1", [id]),
+    );
+    assert.equal(gone.rows.length, 0);
+  });
+});
