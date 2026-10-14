@@ -10,6 +10,7 @@ import { controlClasses } from "@/components/ui/controls";
 import { IS_SIMULATION } from "@/lib/environment";
 import { SimulationFormNote } from "@/components/layout/SimulationFormNote";
 import { HandoffPanel } from "./HandoffPanel";
+import { StatusLink } from "./StatusLink";
 
 export type Field = {
   name: string;
@@ -45,6 +46,10 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState<string | null>(null);
   const [saved, setSaved] = useState(true);
+  const [tracking, setTracking] = useState<{ token: string | null; linked: boolean }>({
+    token: null,
+    linked: false,
+  });
 
   const set = (name: string, value: string) => {
     setValues((v) => ({ ...v, [name]: value }));
@@ -74,7 +79,9 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
       title,
       fields.map((f) => [f.label, values[f.name] ?? ""]),
     );
-    setSaved((await addSubmission(kind, values, itemId)).saved);
+    const result = await addSubmission(kind, values, itemId);
+    setSaved(result.saved);
+    setTracking({ token: result.statusToken, linked: result.linked });
     setSent(text);
   };
 
@@ -88,6 +95,7 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
               : "We couldn't keep a copy of this request, so please send it to us below."}
           </p>
         )}
+        {saved && tracking.token && <StatusLink token={tracking.token} linked={tracking.linked} />}
         <HandoffPanel
           subject={`ReLoop: ${title}`}
           text={sent}

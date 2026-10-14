@@ -38,6 +38,7 @@ describe("overview queues", async () => {
       new_submissions: 0,
       offers_waiting: 3,
       pending_shops: null,
+      deletion_requests: null,
     };
     expect(queueTodos(base).map((t) => [t.key, t.count])).toEqual([
       ["offers_waiting", 3],

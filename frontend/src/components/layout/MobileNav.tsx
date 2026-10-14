@@ -10,6 +10,7 @@ import { CHANGE_PASSWORD_PATH } from "@/lib/auth-client";
 import { roleLabel, useAccess } from "@/lib/use-access";
 import { HeaderSearch } from "./HeaderSearch";
 import { ReportProblem } from "./ReportProblem";
+import { useNotifications } from "@/features/account/notifications-store";
 import { LoginLink } from "./LoginLink";
 import { useDisclosure } from "./use-disclosure";
 
@@ -19,6 +20,8 @@ export function MobileNav() {
   const { open, root, button, toggle } = useDisclosure();
   const panelId = useId();
   const a = useAccess();
+  const notes = useNotifications();
+  const unread = a.state === "signed-out" ? 0 : (notes?.filter((n) => !n.read_at).length ?? 0);
   const access = a.state === "ready" ? a.access : null;
 
   return (
@@ -108,6 +111,30 @@ export function MobileNav() {
                   className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
                 >
                   My account
+                </Link>
+                <Link
+                  href="/account/requests"
+                  className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
+                >
+                  My requests
+                </Link>
+                <Link
+                  href="/account/notifications"
+                  className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
+                >
+                  Notifications
+                  {unread > 0 && (
+                    <span className="ml-2 rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
+                      {unread}
+                      <span className="sr-only"> unread</span>
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href="/account/settings"
+                  className="flex min-h-11 items-center rounded-lg px-2 hover:bg-sunken"
+                >
+                  Profile and settings
                 </Link>
                 <Link
                   href={CHANGE_PASSWORD_PATH}

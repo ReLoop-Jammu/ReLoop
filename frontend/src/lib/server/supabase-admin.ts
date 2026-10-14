@@ -47,6 +47,27 @@ export async function userFromToken(token: string): Promise<{ id: string; email?
 }
 
 /**
+ * Like userFromToken, but tells an invalid or expired token ("invalid") apart
+ * from the auth service being unreachable or rate-limited ("unavailable").
+ */
+export async function checkToken(
+  token: string,
+): Promise<{ id: string; email?: string } | "invalid" | "unavailable"> {
+  try {
+    const r = await fetch(`${URL_}/auth/v1/user`, {
+      headers: { apikey: CALLER_KEY, Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (r.status === 401 || r.status === 403) return "invalid";
+    if (!r.ok) return "unavailable";
+    const user = (await r.json()) as { id?: string; email?: string };
+    return user.id ? { id: user.id, ...(user.email ? { email: user.email } : {}) } : "invalid";
+  } catch {
+    return "unavailable";
+  }
+}
+
+/**
  * Whether `password` is this email's current password, checked with a
  * throwaway sign-in that is signed out again at once. Throws when the auth
  * service can't answer (rate limit, outage), so that isn't mistaken for a

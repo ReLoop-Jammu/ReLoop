@@ -674,6 +674,56 @@ export function buildSeed({ today = new Date(), auth = "supabase" } = {}) {
       );
     }
 
+  // The demo buyer's own requests (sent while logged in): the latest few
+  // reservations and questions, one of them cancelled by the hub with a
+  // reason. And a booked institution pickup, to show the booking stages.
+  const demoBuyer = byKey.buyer;
+  const latest = requests
+    .filter((r) => r.kind === "reservation" || r.kind === "enquiry")
+    .sort((a, b) => b.created_at - a.created_at)
+    .slice(0, 4);
+  latest.forEach((r, i) => {
+    r.buyer_id = demoBuyer.id;
+    r.fields = { ...r.fields, name: demoBuyer.name, phone: demoBuyer.phone };
+    if (i === 3) {
+      r.status = "cancelled";
+      r.handled_at = at(new Date(r.created_at.getTime() + 5 * HOUR));
+      r.closed_at = r.handled_at;
+      r.cancelled_by = "staff";
+      r.cancel_reason = "Sold in the hub shop before we could hold it (simulated)";
+    }
+  });
+  const booking = requests.find((r) => r.kind === "institution_pickup" && r.status === "new");
+  if (booking) {
+    booking.status = "scheduled";
+    booking.handled_at = booking.created_at;
+    // The next Tuesday or Friday after today.
+    const next = new Date(end);
+    do next.setUTCDate(next.getUTCDate() + 1);
+    while (![2, 5].includes(next.getUTCDay()));
+    booking.scheduled_for = next.toISOString().slice(0, 10);
+  }
+  const notifications = latest
+    .filter((r) => r.status !== "new")
+    .map((r) => ({
+      user_id: demoBuyer.id,
+      kind: `request_${r.status}`,
+      title:
+        r.status === "cancelled"
+          ? `Your reservation for ${r.item_id} was cancelled`
+          : r.status === "sold"
+            ? `Your reservation for ${r.item_id} is complete`
+            : r.status === "done"
+              ? `Your question about ${r.item_id} is done`
+              : `ReLoop has your ${r.kind === "enquiry" ? "question" : "reservation"} for ${r.item_id}`,
+      body:
+        r.cancel_reason ??
+        (r.status === "contacted" ? "We'll be in touch on WhatsApp or by phone." : ""),
+      href: "/account/requests",
+      created_at: r.handled_at ?? r.created_at,
+      read_at: null,
+    }));
+
   // Shop owner accounts and their submissions (the demo shop plus four more).
   const shopAccounts = [
     {
@@ -793,6 +843,8 @@ delete from public.item_photos;
 delete from public.repair_jobs;
 delete from public.consignments;
 delete from public.submissions;
+delete from public.notifications;
+delete from public.deletion_requests;
 update public.items set parent_id = null, handover_id = null;
 delete from public.items;
 delete from public.handovers;
@@ -954,8 +1006,27 @@ alter table public.submissions disable trigger user;`);
   sql.push(
     ...inserts(
       "public.submissions",
-      ["id", "kind", "fields", "status", "item_id", "created_at", "handled_at", "closed_at"],
-      requests,
+      [
+        "id",
+        "kind",
+        "fields",
+        "status",
+        "item_id",
+        "created_at",
+        "handled_at",
+        "closed_at",
+        "buyer_id",
+        "scheduled_for",
+        "cancelled_by",
+        "cancel_reason",
+      ],
+      requests.map((r) => ({
+        buyer_id: null,
+        scheduled_for: null,
+        cancelled_by: r.status === "cancelled" ? "staff" : null,
+        cancel_reason: null,
+        ...r,
+      })),
     ),
   );
   sql.push(`alter table public.items enable trigger user;
@@ -992,9 +1063,17 @@ alter table public.submissions enable trigger user;`);
   sql.push(
     ...inserts("public.link_visits", ["slug", "source", "medium", "visited_at"], visits, 1000),
   );
+  sql.push(
+    ...inserts(
+      "public.notifications",
+      ["user_id", "kind", "title", "body", "href", "created_at", "read_at"],
+      notifications,
+    ),
+  );
   sql.push(`update public.item_counters set last_number = ${counter} where hub_code = 'JMU';`);
   // Simulation-only guards (created here, never by a migration): visitors share
-  // the demo logins, so nobody can change their passwords, emails or roles.
+  // the demo logins, so nobody can change their passwords, emails, roles,
+  // names, phones or shop details, or delete them.
   // The seed itself runs with simulation.seeding = on.
   sql.push(`create or replace function simulation.keep_demo_accounts()
 returns trigger
@@ -1023,10 +1102,13 @@ drop trigger if exists keep_demo_accounts on public.admin_users;
 create trigger keep_demo_accounts before update or delete on public.admin_users
   for each row execute function simulation.keep_demo_accounts();
 drop trigger if exists keep_demo_accounts on public.profiles;
-create trigger keep_demo_accounts before update of role, must_change_password on public.profiles
+create trigger keep_demo_accounts before update of role, must_change_password, full_name, phone on public.profiles
+  for each row execute function simulation.keep_demo_accounts();
+drop trigger if exists keep_demo_accounts on public.shop_owners;
+create trigger keep_demo_accounts before update of shop_name, owner_name, phone, gstin, business_address, verification_status or delete on public.shop_owners
   for each row execute function simulation.keep_demo_accounts();
 drop trigger if exists keep_demo_accounts on auth.users;
-create trigger keep_demo_accounts before update on auth.users
+create trigger keep_demo_accounts before update or delete on auth.users
   for each row execute function simulation.keep_demo_accounts();
 select set_config('simulation.seeding', 'off', true);`);
 

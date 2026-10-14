@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import type { Submission } from "@/features/inventory/model";
 import { SHARED_DATABASE, setItemStatus } from "@/features/inventory/store";
 import { IS_SIMULATION } from "@/lib/environment";
-import { listRequests, setRequestStatus, type HubRequest } from "../loop";
+import { cancelRequest, listRequests, setRequestStatus, type HubRequest } from "../loop";
 import { reportHubError } from "../useHubData";
 import { hubInput, PageTitle, Panel } from "./ui";
 
@@ -15,7 +15,16 @@ const KINDS: { value: Submission["kind"]; label: string }[] = [
   { value: "enquiry", label: "Questions" },
   { value: "institution_pickup", label: "Institution pickups" },
 ];
-const STATUSES: Submission["status"][] = ["new", "contacted", "sold", "cancelled", "done"];
+const STATUSES: Submission["status"][] = [
+  "new",
+  "contacted",
+  "scheduled",
+  "collected",
+  "sold",
+  "cancelled",
+  "done",
+];
+const OPEN = new Set<Submission["status"]>(["new", "contacted", "scheduled", "collected"]);
 
 const waLink = (phone: string) => {
   const digits = phone.replace(/\D/g, "");
@@ -36,7 +45,7 @@ export function RequestsPage() {
   const shown = (rows ?? []).filter(
     (r) =>
       (kind === "all" || r.kind === kind) &&
-      (status === "open" ? r.status === "new" || r.status === "contacted" : r.status === status),
+      (status === "open" ? OPEN.has(r.status) : r.status === status),
   );
 
   return (
@@ -72,7 +81,7 @@ export function RequestsPage() {
                 value={status}
                 onChange={(e) => setStatus(e.target.value as typeof status)}
               >
-                <option value="open">Open (new or contacted)</option>
+                <option value="open">Open (new, contacted, scheduled or collected)</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -105,6 +114,9 @@ export function RequestsPage() {
 function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [pickupDate, setPickupDate] = useState(row.scheduled_for ?? "");
+  const [cancelling, setCancelling] = useState(false);
+  const [reason, setReason] = useState("");
   const name = row.fields.name ?? row.fields.contact ?? "";
   const phone = row.fields.phone ?? "";
   const label = KINDS.find((k) => k.value === row.kind)?.label ?? row.kind;
@@ -143,8 +155,23 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
         </h3>
         <span className="text-xs text-muted">
           {new Date(row.created_at).toLocaleString("en-IN")} · <strong>{row.status}</strong>
+          {row.status === "scheduled" && row.scheduled_for && <> for {row.scheduled_for}</>}
         </span>
       </div>
+      {row.from_account && (
+        <p className="mt-1 text-xs text-muted">
+          Sent from a ReLoop account: the person follows it under My requests and is notified of
+          each change.
+        </p>
+      )}
+      {row.status === "cancelled" && (
+        <p className="mt-1 text-ink-soft">
+          {row.cancelled_by === "buyer"
+            ? "Cancelled by the person who sent it."
+            : "Cancelled by ReLoop"}
+          {row.cancel_reason && <>: {row.cancel_reason}</>}
+        </p>
+      )}
       {phone && (
         <p className="mt-1">
           {phone} ·{" "}
@@ -178,7 +205,7 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
             Mark contacted
           </Button>
         )}
-        {row.kind === "reservation" && row.item_id && row.status !== "sold" && (
+        {row.kind === "reservation" && row.item_id && OPEN.has(row.status) && (
           <Button
             size="sm"
             variant="secondary"
@@ -190,7 +217,7 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
             Mark item reserved
           </Button>
         )}
-        {row.item_id && row.status !== "sold" && (
+        {row.item_id && OPEN.has(row.status) && (
           <Button
             size="sm"
             disabled={busy}
@@ -204,27 +231,85 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
             Mark item sold
           </Button>
         )}
-        {row.kind === "institution_pickup" && row.status !== "done" && (
+        {row.kind === "institution_pickup" &&
+          ["new", "contacted", "scheduled"].includes(row.status) && (
+            <form
+              className="flex flex-wrap items-end gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!pickupDate) return setError("Choose the pickup date.");
+                void act(() => setRequestStatus(row.id, "scheduled", pickupDate));
+              }}
+            >
+              <label className="grid gap-1 text-xs font-medium">
+                Pickup date
+                <input
+                  type="date"
+                  className={hubInput}
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                />
+              </label>
+              <Button size="sm" variant="secondary" type="submit" disabled={busy}>
+                {row.status === "scheduled" ? "Change date" : "Schedule pickup"}
+              </Button>
+            </form>
+          )}
+        {row.kind === "institution_pickup" && row.status === "scheduled" && (
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => void act(() => setRequestStatus(row.id, "collected"))}
+          >
+            Mark collected
+          </Button>
+        )}
+        {row.kind !== "reservation" && OPEN.has(row.status) && row.status !== "new" && (
           <Button
             size="sm"
             variant="secondary"
             disabled={busy}
             onClick={() => void act(() => setRequestStatus(row.id, "done"))}
           >
-            Pickup done
+            {row.kind === "institution_pickup" ? "Pickup done" : "Done"}
           </Button>
         )}
-        {row.status !== "cancelled" && row.status !== "sold" && (
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={busy}
-            onClick={() => void act(() => setRequestStatus(row.id, "cancelled"))}
-          >
-            Cancel
+        {OPEN.has(row.status) && !cancelling && (
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setCancelling(true)}>
+            Cancel…
           </Button>
         )}
       </div>
+      {cancelling && (
+        <form
+          className="mt-3 flex flex-wrap items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void act(async () => {
+              await cancelRequest(row.id, reason);
+              setCancelling(false);
+            });
+          }}
+        >
+          <label className="grid min-w-64 flex-1 gap-1 text-xs font-medium">
+            Reason (the person sees it)
+            <input
+              className={hubInput}
+              value={reason}
+              maxLength={300}
+              placeholder="For example: sold in the shop before we could reserve it"
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </label>
+          <Button size="sm" variant="dark" type="submit" disabled={busy}>
+            Cancel the request
+          </Button>
+          <Button size="sm" variant="ghost" type="button" onClick={() => setCancelling(false)}>
+            Keep it
+          </Button>
+        </form>
+      )}
       {error && (
         <p role="alert" className="mt-2 text-danger">
           {error}

@@ -25,13 +25,14 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
   - The temporary password is shown once, and stays valid until the person changes it, with no time limit. Until then, `is_admin()` and `is_staff()` are false and the site sends them to `/account/change-password`.
   - Each reset is logged in `admin_audit_log` (who, whom, when; never the password).
   - `/resend-confirmation` is no longer linked anywhere. It and the self-service reset code are kept for when email sending is set up.
-  - Nobody gets email notifications (offers, reservations, verification). WhatsApp is the channel.
+  - Nobody gets email or phone notifications. Updates on requests, offers, verification and deletion requests appear only on the site (the bell and `/account/notifications`, kept 90 days), so people see them only when they visit. WhatsApp stays the channel for anything urgent.
 - **Login sessions live in the browser** (`localStorage`), not in secure HTTP-only cookies. A script injected into the page could read them.
   - Sessions are refreshed automatically shortly before the hourly access token expires. If the refresh fails, the user is logged out.
   - Fix: cookie-based sessions via server routes. The earlier, reverted commit `39f28da` shows the shape.
 - **One shared admin account.** The team still shares one admin login, so the audit log can't tell people apart. Fix: give each person their own account on `/hub/team` (ReLoop always keeps at least one admin).
 - **GSTIN is checked for format only** (15 letters or numbers), not against the government's GST database. A person still reviews every shop on `/hub/shops`.
-- **Shop owners aren't notified** when they're verified, rejected or sent an offer; they see each on `/account` and accept offers by WhatsApp.
+- **Shop owners accept offers by WhatsApp** for now (accepting in the app comes with offers and pickups). They get an on-site notification when they're verified, rejected or sent an offer.
+- **Requests sent while logged out can't be linked to an account later.** Only their private status link shows their stage; deleting an account can't reach them (they're deleted 12 months after closing).
 
 ## 3. Security and abuse
 

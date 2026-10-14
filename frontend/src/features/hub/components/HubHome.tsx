@@ -40,6 +40,17 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       level: "act",
     },
     {
+      key: "deletion_requests",
+      count: b.deletion_requests ?? 0,
+      label: plural(
+        b.deletion_requests ?? 0,
+        "account deletion request (answer within 30 days)",
+        "account deletion requests (answer within 30 days)",
+      ),
+      href: "/hub/deletions",
+      level: "act",
+    },
+    {
       key: "new_submissions",
       count: b.new_submissions,
       label: plural(

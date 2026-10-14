@@ -107,7 +107,11 @@ select check_name, ok
         and not has_function_privilege('authenticated', 'public.purge_closed_requests(timestamptz)', 'EXECUTE')),
     (26, 'Retention: the daily clean-up job is scheduled',
         exists (select 1 from cron.job where jobname = 'reloop-request-retention' and active
-                  and command like '%purge_closed_requests%')),
+                  and (command like '%purge_closed_requests%'
+                       -- since 20261029000001 one job runs every retention rule, requests first
+                       or (command like '%purge_expired_personal_data%'
+                           and exists (select 1 from pg_proc where proname = 'purge_expired_personal_data'
+                                         and prosrc like '%public.purge_closed_requests(now_at)%'))))),
     (27, 'Tracked links: Row Level Security is on, and visitors and signed-in users cannot read or write clicks',
         (select relrowsecurity from pg_class where oid = 'public.link_visits'::regclass)
         and not has_table_privilege('anon', 'public.link_visits', 'SELECT')
