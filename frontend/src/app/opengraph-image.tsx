@@ -16,7 +16,7 @@ export default function OpengraphImage() {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: 72,
-        background: "linear-gradient(135deg, #1e6b9e 0%, #0c2e45 100%)",
+        background: "linear-gradient(135deg, #26436c 0%, #0e1a27 100%)",
         color: "white",
       }}
     >
@@ -35,7 +35,7 @@ export default function OpengraphImage() {
           <circle cx="42" cy="91.18" r="11.5" fill="#ffffff" />
         </svg>
         <span>
-          ReLoop<span style={{ color: "#e8b83a" }}>.</span>
+          ReLoop<span style={{ color: "#e9b26e" }}>.</span>
         </span>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
@@ -48,7 +48,7 @@ export default function OpengraphImage() {
             fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: -2,
-            color: "#efc553",
+            color: "#e9b26e",
           }}
         >
           Resell what still works.

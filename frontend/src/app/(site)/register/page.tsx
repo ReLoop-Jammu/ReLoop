@@ -101,7 +101,7 @@ export default function RegisterPage() {
         </div>
         <form
           onSubmit={submit}
-          className="mt-6 space-y-4 rounded-2xl border border-line bg-surface p-5 sm:p-7"
+          className="mt-6 space-y-4 rounded-card border border-line bg-surface p-5 sm:p-7"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-1.5 text-sm font-medium">

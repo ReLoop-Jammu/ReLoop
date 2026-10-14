@@ -139,9 +139,7 @@ export default function ImpactPage() {
               key={s.label}
               className="rounded-card border border-line bg-surface p-6 shadow-soft"
             >
-              <span className="text-xs font-semibold tracking-wider text-muted uppercase">
-                {s.label}
-              </span>
+              <span className="text-xs font-semibold text-muted">{s.label}</span>
               <strong className="mt-3 block font-display text-3xl font-bold text-brand-600">
                 {s.value}
                 {i < 2 && <sup className="ml-0.5 text-xs text-muted">1</sup>}

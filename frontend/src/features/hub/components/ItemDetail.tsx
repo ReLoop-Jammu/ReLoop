@@ -313,7 +313,7 @@ function WipeForm({ onDone }: { onDone: (m: WipeMethod) => void }) {
   return (
     <div className="flex flex-wrap items-end gap-2">
       <label className="flex-1">
-        <span className="mb-1 block text-xs font-semibold text-ink-soft uppercase">Method</span>
+        <span className="mb-1 block text-xs font-semibold text-ink-soft">Method</span>
         <Select value={method} onChange={(e) => setMethod(e.target.value as WipeMethod)}>
           <option value="reset_overwrite">Factory reset + overwrite</option>
           <option value="drive_wipe">Drive wipe</option>

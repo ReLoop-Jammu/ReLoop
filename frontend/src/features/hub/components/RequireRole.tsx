@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonClasses } from "@/components/ui/Button";
 import { ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,7 +41,7 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
   const state = gateState({ signedIn, allowed, failed });
   if (mustChange) {
     return (
-      <div className="max-w-lg rounded-2xl border border-line bg-surface p-6">
+      <div className="max-w-lg rounded-card border border-line bg-surface p-6">
         <ShieldAlert className="size-6 text-brand-600" aria-hidden="true" />
         <h1 className="mt-3 text-xl font-bold">Choose a new password first</h1>
         <p className="mt-2 text-sm text-muted">
@@ -48,7 +49,7 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
         </p>
         <Link
           href={`${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(pathname)}`}
-          className="mt-4 inline-flex min-h-10 items-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white"
+          className={buttonClasses({ className: "mt-4" })}
         >
           Change password
         </Link>
@@ -66,7 +67,7 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
 
   const who = role === "admin" ? "ReLoop admins" : "ReLoop hub staff";
   return (
-    <div className="max-w-lg rounded-2xl border border-line bg-surface p-6">
+    <div className="max-w-lg rounded-card border border-line bg-surface p-6">
       <ShieldAlert className="size-6 text-brand-600" aria-hidden="true" />
       <h1 className="mt-3 text-xl font-bold">
         {state === "signed-out" ? "Log in to continue" : `For ${who} only`}
@@ -80,7 +81,7 @@ export function RequireRole({ role, children }: { role: StaffRole; children: Rea
       {state !== "denied" && (
         <Link
           href={`/login?next=${encodeURIComponent(pathname)}`}
-          className="mt-4 inline-flex min-h-10 items-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white"
+          className={buttonClasses({ className: "mt-4" })}
         >
           Log in
         </Link>

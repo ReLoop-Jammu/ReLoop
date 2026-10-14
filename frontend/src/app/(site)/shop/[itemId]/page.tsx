@@ -159,14 +159,14 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             sample={item.sample}
           />
 
-          <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted uppercase">
+          <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted">
             What grade {item.grade} means
           </h2>
           <p className="mt-2 leading-relaxed text-ink-soft">{grade.description}</p>
 
           {item.description && (
             <>
-              <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted uppercase">
+              <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted">
                 About this item
               </h2>
               <p className="mt-2 leading-relaxed text-ink-soft">{item.description}</p>
@@ -175,7 +175,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
 
           {(item.checks.length > 0 || item.dataWiped) && (
             <>
-              <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted uppercase">
+              <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted">
                 Tested at the hub
               </h2>
               <ul className="mt-3 grid grid-cols-2 gap-2">

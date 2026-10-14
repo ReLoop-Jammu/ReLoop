@@ -4,9 +4,9 @@ type Props = { eyebrow?: string; title: string; description: string; actions: Re
 
 export function CtaBanner({ eyebrow, title, description, actions }: Props) {
   return (
-    <div className="relative overflow-hidden rounded-panel bg-gold-500 px-6 py-10 sm:px-12 sm:py-14">
+    <div className="relative overflow-hidden rounded-panel bg-gold-400 px-6 py-10 sm:px-12 sm:py-14">
       <div
-        className="absolute -top-24 -right-16 size-72 rounded-full bg-gold-400"
+        className="absolute -top-24 -right-16 size-72 rounded-full bg-gold-500/40"
         aria-hidden="true"
       />
       <div
@@ -15,13 +15,9 @@ export function CtaBanner({ eyebrow, title, description, actions }: Props) {
       />
       <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
         <div className="max-w-2xl">
-          {eyebrow && (
-            <p className="text-xs font-semibold tracking-[0.14em] text-brand-950/70 uppercase">
-              {eyebrow}
-            </p>
-          )}
+          {eyebrow && <p className="text-sm font-semibold text-brand-950">{eyebrow}</p>}
           <h2 className="mt-2 text-3xl font-bold text-brand-950 sm:text-4xl">{title}</h2>
-          <p className="mt-3 text-lg leading-relaxed text-brand-950/75">{description}</p>
+          <p className="mt-3 text-lg leading-relaxed text-brand-950">{description}</p>
         </div>
         <div className="flex flex-wrap gap-3">{actions}</div>
       </div>

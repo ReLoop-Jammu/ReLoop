@@ -6,6 +6,7 @@ import { addSubmission } from "@/features/inventory/store";
 import type { Submission } from "@/features/inventory/model";
 import { cn } from "@/lib/utils/cn";
 import { buildRequestText, isValidPhone } from "../handoff";
+import { controlClasses } from "@/components/ui/controls";
 import { IS_SIMULATION } from "@/lib/environment";
 import { SimulationFormNote } from "@/components/layout/SimulationFormNote";
 import { HandoffPanel } from "./HandoffPanel";
@@ -32,8 +33,8 @@ type Props = {
   itemId?: string;
 };
 
-export const inputClass =
-  "min-h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-base text-ink transition placeholder:text-muted hover:border-line-strong focus:border-brand-500 focus:ring-3 focus:ring-brand-500/15 focus:outline-none aria-[invalid=true]:border-danger sm:text-sm";
+/** The shared control style (components/ui/controls.ts), kept under its old name for the forms that import it. */
+export const inputClass = controlClasses();
 
 /** Generic sell-side request form with inline validation and WhatsApp/email handoff. */
 export function RequestForm({ kind, title, fields, submitLabel, initial = {}, itemId }: Props) {

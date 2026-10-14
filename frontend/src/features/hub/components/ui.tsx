@@ -1,8 +1,11 @@
 import type { ComponentProps, ReactNode } from "react";
+import { controlClasses } from "@/components/ui/controls";
+import { Field, Input as SharedInput, Select as SharedSelect } from "@/components/ui/Field";
+import { Stat } from "@/components/ui/Stat";
 import { cn } from "@/lib/utils/cn";
 
-export const hubInput =
-  "min-h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink transition placeholder:text-muted hover:border-line-strong focus:border-brand-500 focus:ring-3 focus:ring-brand-500/15 focus:outline-none";
+/** The hub's compact control style (shared with the site: components/ui/controls.ts). */
+export const hubInput = controlClasses({ dense: true });
 
 export function PageTitle({
   title,
@@ -36,9 +39,7 @@ export function Panel({
   actions?: ReactNode;
 }) {
   return (
-    <section
-      className={cn("rounded-card border border-line bg-surface p-5 shadow-soft", className)}
-    >
+    <section className={cn("rounded-card border border-line bg-surface p-5", className)}>
       {(title || actions) && (
         <div className="mb-4 flex items-center justify-between gap-3">
           {title && <h2 className="font-sans text-base font-semibold tracking-normal">{title}</h2>}
@@ -50,65 +51,15 @@ export function Panel({
   );
 }
 
-type FieldProps = {
-  label: string;
-  hint?: string;
-  children: ReactNode;
-  className?: string;
-  htmlFor?: string;
-};
-
-/**
- * Label + control. The control is nested inside the <label>, so it is
- * always associated, even without an id. Pass htmlFor only to override.
- */
-export function Field({ label, hint, children, className, htmlFor }: FieldProps) {
-  return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold tracking-wide text-ink-soft uppercase">{label}</span>
-        {children}
-      </label>
-      {hint && <span className="text-xs text-muted">{hint}</span>}
-    </div>
-  );
-}
+/** Hub forms use the shared field and controls, at the compact size. */
+export { Field, Stat };
 
 export function Input(props: ComponentProps<"input">) {
-  return <input {...props} className={cn(hubInput, props.className)} />;
+  return <SharedInput dense {...props} />;
 }
 
 export function Select(props: ComponentProps<"select">) {
-  return <select {...props} className={cn(hubInput, props.className)} />;
-}
-
-export function Stat({
-  label,
-  value,
-  target,
-  ok,
-}: {
-  label: string;
-  value: string;
-  target?: string;
-  ok?: boolean | null;
-}) {
-  return (
-    <div className="rounded-card border border-line bg-surface p-4 shadow-soft">
-      <p className="text-xs font-medium text-muted">{label}</p>
-      <p className="mt-1 font-display text-3xl font-bold text-ink">{value}</p>
-      {target && (
-        <p
-          className={cn(
-            "mt-1 text-xs font-medium",
-            ok === true ? "text-grade-a" : ok === false ? "text-grade-c" : "text-muted",
-          )}
-        >
-          Target {target}
-        </p>
-      )}
-    </div>
-  );
+  return <SharedSelect dense {...props} />;
 }
 
 /** Rupee text field that reports paise. Empty string means "no value". */

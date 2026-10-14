@@ -109,7 +109,7 @@ export function ShopSubmissionForm() {
 
   if (!loggedIn) {
     return (
-      <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <div className="rounded-card border border-line bg-surface p-6 sm:p-8">
         <h3 className="text-xl font-bold text-ink">Log in to submit items</h3>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           Shop submissions are available to registered shop owners after ReLoop verifies their
@@ -156,7 +156,7 @@ export function ShopSubmissionForm() {
   return (
     <form onSubmit={submit} className="space-y-8">
       <SimulationFormNote />
-      <section className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
+      <section className="rounded-card border border-line bg-surface p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-ink">Shop and contact details</h3>
         <p className="mt-1 text-sm text-muted">
           We use these details to contact you about your items.
@@ -242,7 +242,7 @@ export function ShopSubmissionForm() {
         </div>
 
         {items.map((item, index) => (
-          <fieldset key={index} className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
+          <fieldset key={index} className="rounded-card border border-line bg-surface p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <legend className="font-semibold text-ink">Item {index + 1}</legend>
               {items.length > 1 && (

@@ -109,7 +109,7 @@ export default function SellPage() {
           <div className="mt-8 overflow-hidden rounded-card border border-line bg-surface shadow-soft">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">What ReLoop pays for each grade</caption>
-              <thead className="bg-sunken text-xs tracking-wider text-muted uppercase">
+              <thead className="bg-sunken text-xs text-muted">
                 <tr>
                   <th scope="col" className="px-5 py-3 font-semibold">
                     Grade

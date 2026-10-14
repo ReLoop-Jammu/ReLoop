@@ -88,7 +88,7 @@ export default function AccountPage() {
             {error}
           </p>
         ) : profile ? (
-          <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
+          <div className="mt-8 rounded-card border border-line bg-surface p-6">
             <h2 className="text-xl font-bold">Welcome, {profile.full_name}</h2>
             <p className="mt-2 text-muted">Account type: {ROLE_LABEL[profile.role] ?? "Buyer"}</p>
             {profile.role === "shop_owner" && (

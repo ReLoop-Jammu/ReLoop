@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: "list",
   timeout: 60_000,
   use: {
-    baseURL: process.env.SIM_BASE_URL ?? "https://re-loop-demo.vercel.app",
+    baseURL: process.env.SIM_BASE_URL ?? "https://re-loop-demo-beige.vercel.app",
     trace: "on-first-retry",
   },
   projects: [

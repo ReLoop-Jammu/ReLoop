@@ -3,20 +3,16 @@ import { cn } from "@/lib/utils/cn";
 
 type Props = { children: ReactNode; className?: string; tone?: "light" | "dark" };
 
-/** Small label above headings. */
+/** A short section label in sentence case, used only where it names the section's subject. */
 export function Eyebrow({ children, className, tone = "light" }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 text-xs font-semibold tracking-[0.14em] uppercase",
+        "inline-block text-sm font-semibold",
         tone === "light" ? "text-brand-600" : "text-gold-400",
         className,
       )}
     >
-      <span
-        className={cn("h-px w-6", tone === "light" ? "bg-brand-600" : "bg-gold-400")}
-        aria-hidden="true"
-      />
       {children}
     </span>
   );

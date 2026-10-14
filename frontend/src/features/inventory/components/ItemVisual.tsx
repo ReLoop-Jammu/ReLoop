@@ -43,9 +43,9 @@ const PART_ICON: Partial<Record<PartType, LucideIcon>> = {
 };
 
 const TINT: Record<"A" | "B" | "C", string> = {
-  A: "bg-cat-devices-bg text-cat-devices",
-  B: "bg-cat-bulk-bg text-cat-bulk",
-  C: "bg-cat-repairable-bg text-cat-repairable",
+  A: "bg-grade-a-bg text-grade-a",
+  B: "bg-grade-b-bg text-grade-b",
+  C: "bg-grade-c-bg text-grade-c",
 };
 
 type Props = {
