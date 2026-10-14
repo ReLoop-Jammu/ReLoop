@@ -70,3 +70,13 @@ test("an unknown item passport is a not-found page", async ({ page }) => {
   const res = await page.goto("/passport/RL-JMU-9999");
   expect(res?.status()).toBe(404);
 });
+
+test("How we price explains bands, savings and price cuts, without internal figures", async ({
+  page,
+}) => {
+  await page.goto("/how-we-price");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText(/A grade B range is 75% of the grade A range/)).toBeVisible();
+  await expect(page.getByText(/less than 180 days old/)).toBeVisible();
+  await expect(page.getByText(/margin|we paid|buy price/i)).toHaveCount(0);
+});

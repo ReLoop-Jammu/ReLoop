@@ -13,6 +13,11 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { href: "/shop", label: "Shop", description: "Tested, graded and data-wiped electronics" },
       {
+        href: "/how-we-price",
+        label: "How we price",
+        description: "Fair-price ranges, savings against new, price cuts",
+      },
+      {
         href: "/warranty",
         label: "Warranty & delivery",
         description: "30 days on grade A and B devices",
@@ -27,7 +32,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         href: "/sell/shops",
         label: "Repair shops & retailers",
-        description: "Cash on pickup, Tuesday and Friday",
+        description: "Tuesday and Friday pickups, paid in cash or UPI",
       },
       {
         href: "/sell/institutions",

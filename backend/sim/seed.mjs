@@ -333,7 +333,8 @@ export function buildSeed({ today = new Date(), auth = "supabase" } = {}) {
         item.id,
         cutAt,
         "price_changed",
-        `₹${item.list_paise / 100} → ₹${item.current_paise / 100}`,
+        // The same format the database writes (log_item_change), so price history reads it.
+        `${Math.floor(item.list_paise / 100)} → ${Math.floor(item.current_paise / 100)}`,
       );
     }
     const downgradeAt = new Date(listedAt.getTime() + 75 * DAY);
@@ -674,6 +675,45 @@ export function buildSeed({ today = new Date(), auth = "supabase" } = {}) {
       );
     }
 
+  // Reference prices (labelled simulated) for every category and the parts:
+  // the grade A band around each category's typical resale, checked recently.
+  // Some listed items also have a recorded price new.
+  const references = [
+    ...Object.entries(RESALE_A).map(([category, rupees]) => ({
+      category,
+      part_type: null,
+      low_paise: roundTo(rupees * 0.75 * 100, 5000),
+      typical_paise: rupees * 100,
+      high_paise: roundTo(rupees * 1.3 * 100, 5000),
+      source: "Simulated reference (from the business plan's average resale prices)",
+      checked_on: new Date(end.getTime() - int(5, 40) * DAY).toISOString().slice(0, 10),
+    })),
+    ...[
+      ["ram", 600, 900, 1300],
+      ["storage", 800, 1200, 1700],
+      ["screen", 1200, 1800, 2600],
+      ["battery", 500, 800, 1200],
+      ["charger", 250, 400, 600],
+      ["board", 1500, 2200, 3200],
+    ].map(([part, lo, mid, hi]) => ({
+      category: "part",
+      part_type: part,
+      low_paise: lo * 100,
+      typical_paise: mid * 100,
+      high_paise: hi * 100,
+      source: "Simulated reference (parts)",
+      checked_on: new Date(end.getTime() - int(5, 40) * DAY).toISOString().slice(0, 10),
+    })),
+  ];
+  for (const it of items)
+    if (it.status === "listed" && it.category !== "part" && chance(0.4)) {
+      it.new_price_paise = roundTo(RESALE_A[it.category] * between(2.2, 3.2) * 100, 10000);
+      it.new_price_source = "Simulated: typical price new in Jammu shops";
+      it.new_price_checked_on = new Date(end.getTime() - int(3, 60) * DAY)
+        .toISOString()
+        .slice(0, 10);
+    }
+
   // The demo buyer's own requests (sent while logged in): the latest few
   // reservations and questions, one of them cancelled by the hub with a
   // reason. And a booked institution pickup, to show the booking stages.
@@ -975,6 +1015,7 @@ delete from public.submissions;
 delete from public.notifications;
 delete from public.deletion_requests;
 delete from public.warranty_claims;
+delete from public.reference_prices;
 delete from public.payouts;
 delete from public.payout_counters;
 delete from public.pickups;
@@ -1112,6 +1153,9 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
     "returned_at",
     "inspection",
     "inspected_at",
+    "new_price_paise",
+    "new_price_source",
+    "new_price_checked_on",
   ];
   // One listing staff hid (a photo to retake) and one sale that came back.
   const hiddenOne = items.find((i) => i.status === "listed" && i.category !== "part");
@@ -1166,6 +1210,9 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
     .map((i) => ({
       hidden: false,
       returned_at: null,
+      new_price_paise: null,
+      new_price_source: "",
+      new_price_checked_on: null,
       ...i,
       inspection: inspectionOf(i),
       inspected_at: i.grade ? (i.graded_at ?? i.received_at) : null,
@@ -1297,6 +1344,13 @@ alter table public.submissions enable trigger user;`);
   );
   sql.push(
     ...inserts("public.link_visits", ["slug", "source", "medium", "visited_at"], visits, 1000),
+  );
+  sql.push(
+    ...inserts(
+      "public.reference_prices",
+      ["category", "part_type", "low_paise", "typical_paise", "high_paise", "source", "checked_on"],
+      references,
+    ),
   );
   sql.push(
     ...inserts(

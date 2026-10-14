@@ -29,8 +29,8 @@ export default function ShopsPage() {
         <BenefitList
           items={[
             {
-              title: "Cash on pickup",
-              body: "Paid at our price list when we collect. No waiting for items to sell.",
+              title: "Paid when we collect",
+              body: "In cash or by UPI, at the offer you accepted, with a numbered receipt. No waiting for items to sell.",
             },
             {
               title: "A fixed route",
