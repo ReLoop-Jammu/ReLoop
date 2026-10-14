@@ -29,7 +29,8 @@ export default async function PrivacyPage() {
           <li>
             <strong>When you sell to us:</strong> your name, phone number, and, for shops and
             institutions, the business name, market or address and a contact person. We also record
-            the items you hand over and what we paid for them.
+            the items you hand over, what we paid for them and how (cash, or UPI with its payment
+            reference), with a numbered receipt.
           </li>
           <li>
             <strong>When you buy or reserve an item:</strong> your name, phone number, and your

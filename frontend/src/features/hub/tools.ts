@@ -26,10 +26,14 @@ export type HubBadges = {
   new_questions: number;
   new_submissions: number;
   offers_waiting: number;
+  offers_accepted: number;
+  payouts_due: number;
+  pickups_next: number;
   pending_shops: number | null;
   deletion_requests: number | null;
 };
-export type BadgeKey = "new_requests" | "new_submissions" | "pending_shops" | "deletion_requests";
+export type BadgeKey =
+  "new_requests" | "new_submissions" | "offers_accepted" | "pending_shops" | "deletion_requests";
 
 export type HubTool = {
   href: string;
@@ -40,7 +44,8 @@ export type HubTool = {
   /** Who may open it: hub staff (admins included) or admins only. */
   role: "staff" | "admin";
   group: "Daily work" | "Records" | "Admin";
-  badge?: BadgeKey;
+  /** Counts shown on the menu entry (added together). */
+  badge?: BadgeKey | BadgeKey[];
 };
 
 /** Every hub screen, in menu order. The menu, the account page and the overview all read this. */
@@ -85,7 +90,8 @@ export const HUB_TOOLS: readonly HubTool[] = [
     icon: PackageOpen,
     role: "staff",
     group: "Daily work",
-    badge: "new_submissions",
+    // New lots to review, and accepted ones to collect.
+    badge: ["new_submissions", "offers_accepted"],
   },
   {
     href: "/hub/partners",
@@ -190,3 +196,11 @@ export function toolsFor(access: { is_staff: boolean; is_admin: boolean } | null
 /** Whether a menu entry is the current page (the overview only on /hub itself). */
 export const isToolActive = (href: string, pathname: string) =>
   href === "/hub" ? pathname === "/hub" : pathname === href || pathname.startsWith(`${href}/`);
+
+/** A tool's badge count: the sum of its keys, or null when there is nothing to show. */
+export function badgeCount(tool: Pick<HubTool, "badge">, badges: HubBadges | null): number | null {
+  if (!tool.badge || !badges) return null;
+  const keys = Array.isArray(tool.badge) ? tool.badge : [tool.badge];
+  const n = keys.reduce((sum, k) => sum + (badges[k] ?? 0), 0);
+  return n || null;
+}

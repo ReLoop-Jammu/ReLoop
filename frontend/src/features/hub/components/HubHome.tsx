@@ -62,6 +62,39 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       level: "act",
     },
     {
+      key: "pickups_next",
+      count: b.pickups_next,
+      label: plural(
+        b.pickups_next,
+        "pickup on the next route day",
+        "pickups on the next route day",
+      ),
+      href: "/hub/submissions",
+      level: "act",
+    },
+    {
+      key: "offers_accepted",
+      count: b.offers_accepted,
+      label: plural(
+        b.offers_accepted,
+        "accepted offer to collect and turn into hub items",
+        "accepted offers to collect and turn into hub items",
+      ),
+      href: "/hub/submissions",
+      level: "act",
+    },
+    {
+      key: "payouts_due",
+      count: b.payouts_due,
+      label: plural(
+        b.payouts_due,
+        "bought lot to record the payment for",
+        "bought lots to record the payment for",
+      ),
+      href: "/hub/submissions",
+      level: "act",
+    },
+    {
       key: "offers_waiting",
       count: b.offers_waiting,
       label: plural(

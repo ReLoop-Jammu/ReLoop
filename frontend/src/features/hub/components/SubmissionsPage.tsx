@@ -1,17 +1,25 @@
 "use client";
 
+import { Download } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { CATEGORIES, PART_TYPES, type Category, type PartType } from "@/features/inventory/model";
 import { SHARED_DATABASE } from "@/features/inventory/store";
 import { formatPrice } from "@/lib/utils/money";
+import { downloadReceipt } from "@/features/account/api";
 import {
   convertSubmission,
   guessCategory,
+  listPayouts,
+  listPickups,
   listShopSubmissions,
   makeOffer,
+  recordPayout,
   rejectSubmission,
+  setPickupStatus,
+  type HubPayout,
+  type HubPickup,
   type ShopSubmission,
 } from "../loop";
 import { reportHubError } from "../useHubData";
@@ -19,15 +27,28 @@ import { hubInput, PageTitle, Panel } from "./ui";
 
 const GROUPS = [
   { title: "Waiting for review", statuses: ["Pending", "Under Review"] },
+  { title: "Accepted: collect on the route", statuses: ["Accepted"] },
   { title: "Offered: waiting for the shop", statuses: ["Offered", "Contacted"] },
-  { title: "Purchased", statuses: ["Purchased", "Processing", "Completed"] },
+  { title: "Bought", statuses: ["Purchased", "Processing", "Completed"] },
+  { title: "Declined by the shop", statuses: ["Declined"] },
   { title: "Rejected", statuses: ["Rejected"] },
 ];
 
+const today = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+
 export function SubmissionsPage() {
   const [rows, setRows] = useState<ShopSubmission[] | null>(null);
+  const [pickups, setPickups] = useState<HubPickup[]>([]);
+  const [payouts, setPayouts] = useState<HubPayout[]>([]);
   const load = useCallback(() => {
-    listShopSubmissions().then(setRows).catch(reportHubError);
+    Promise.all([listShopSubmissions(), listPickups(), listPayouts()])
+      .then(([s, p, m]) => {
+        setRows(s);
+        setPickups(p);
+        setPayouts(m);
+      })
+      .catch(reportHubError);
   }, []);
   useEffect(() => {
     if (SHARED_DATABASE) load();
@@ -37,7 +58,7 @@ export function SubmissionsPage() {
     <>
       <PageTitle
         title="Shop submissions"
-        description="Items partner shops want to sell to ReLoop. Make an offer or reject; once the shop accepts (by WhatsApp), turn the offer into hub items."
+        description="Items partner shops want to sell to ReLoop. Make an offer or reject. The shop accepts or declines on its account; accepting books the next route day. Once collected, turn the lot into hub items, then record the payment for its receipt."
       />
       {!SHARED_DATABASE ? (
         <p className="text-sm text-muted">Shop submissions are kept in the shared database.</p>
@@ -53,7 +74,13 @@ export function SubmissionsPage() {
               ) : (
                 <ul className="divide-y divide-line">
                   {group.map((r) => (
-                    <SubmissionRow key={r.id} row={r} onChanged={load} />
+                    <SubmissionRow
+                      key={r.id}
+                      row={r}
+                      pickup={pickups.find((p) => p.shop_submission_id === r.id)}
+                      payout={payouts.find((p) => p.shop_submission_id === r.id)}
+                      onChanged={load}
+                    />
                   ))}
                 </ul>
               )}
@@ -65,7 +92,17 @@ export function SubmissionsPage() {
   );
 }
 
-function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () => void }) {
+function SubmissionRow({
+  row,
+  pickup,
+  payout,
+  onChanged,
+}: {
+  row: ShopSubmission;
+  pickup: HubPickup | undefined;
+  payout: HubPayout | undefined;
+  onChanged: () => void;
+}) {
   const guess = guessCategory(`${row.description ?? ""} ${row.item_name}`);
   const [offer, setOffer] = useState(row.offer_price === null ? "" : String(row.offer_price));
   const [note, setNote] = useState("");
@@ -91,6 +128,8 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
   const id = `sub-${row.id}`;
   const reviewing = row.status === "Pending" || row.status === "Under Review";
   const offered = row.status === "Offered" || row.status === "Contacted";
+  const accepted = row.status === "Accepted";
+  const bought = ["Purchased", "Processing", "Completed"].includes(row.status);
 
   return (
     <li className="py-4 text-sm">
@@ -125,6 +164,30 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
         </p>
       )}
       {row.rejection_reason && <p className="mt-1 text-danger">Rejected: {row.rejection_reason}</p>}
+      {(accepted || row.status === "Declined") && row.owner_response_at && (
+        <p className="mt-1">
+          {accepted ? "Accepted" : "Declined"} by the shop on{" "}
+          {new Date(row.owner_response_at).toLocaleDateString("en-IN")}
+          {row.owner_note && <> · “{row.owner_note}”</>}
+        </p>
+      )}
+      {pickup && pickup.status === "scheduled" && (
+        <p className="mt-1 flex flex-wrap items-center gap-2">
+          <span>
+            Pickup <strong>{pickup.route_date}</strong>
+            {pickup.market && <> · {pickup.market}</>}
+            {pickup.times_missed > 0 && <> · moved {pickup.times_missed}×</>}
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            onClick={() => void act(() => setPickupStatus(pickup.id, "missed"))}
+          >
+            Missed: move to the next route day
+          </Button>
+        </p>
+      )}
       {row.status === "Purchased" && row.purchase_price !== null && (
         <p className="mt-1">
           Purchased for {formatPrice(Number(row.purchase_price) * 100)} ·{" "}
@@ -174,10 +237,11 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
         </div>
       )}
 
-      {offered && (
+      {(offered || accepted) && (
         <div className="mt-3 rounded-lg border border-line p-3">
           <p className="text-xs font-semibold">
-            Shop accepted? Create {row.quantity} hub item{row.quantity === 1 ? "" : "s"}:
+            {accepted ? "Collected?" : "Bought at the counter (the shop agreed in person)?"} Create{" "}
+            {row.quantity} hub item{row.quantity === 1 ? "" : "s"}:
           </p>
           <div className="mt-2 flex flex-wrap items-end gap-2">
             <label htmlFor={`${id}-cat`} className="grid gap-1 text-xs font-medium">
@@ -236,6 +300,9 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
           </div>
         </div>
       )}
+      {bought && row.purchase_price !== null && Number(row.purchase_price) > 0 && (
+        <PayoutBox row={row} payout={payout} onChanged={onChanged} />
+      )}
       {tags.length > 0 && (
         <p role="status" className="mt-2 text-grade-a">
           Created{" "}
@@ -256,5 +323,124 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
         </p>
       )}
     </li>
+  );
+}
+
+/** A bought lot's payment: the receipt once recorded, or the form to record it. */
+function PayoutBox({
+  row,
+  payout,
+  onChanged,
+}: {
+  row: ShopSubmission;
+  payout: HubPayout | undefined;
+  onChanged: () => void;
+}) {
+  const [method, setMethod] = useState<"cash" | "upi">("cash");
+  const [paidAt, setPaidAt] = useState(today);
+  const [reference, setReference] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const id = `pay-${row.id}`;
+  if (payout)
+    return (
+      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg bg-sunken p-3">
+        <span>
+          Paid {formatPrice(payout.amount_paise)} by {payout.method === "upi" ? "UPI" : "cash"} on{" "}
+          {payout.paid_at} · receipt <span className="font-mono">{payout.receipt_no}</span>
+          {payout.reference && <> · ref {payout.reference}</>}
+        </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() =>
+            void downloadReceipt(payout.receipt_no).catch((e: unknown) =>
+              setError(e instanceof Error ? e.message : "The receipt couldn't be downloaded."),
+            )
+          }
+        >
+          <Download className="size-4" aria-hidden="true" /> Receipt (PDF)
+        </Button>
+        {error && (
+          <p role="alert" className="w-full text-danger">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  return (
+    <form
+      className="mt-3 rounded-lg border border-line p-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError("");
+        recordPayout(row.id, { method, paidAt, reference, note })
+          .then(onChanged)
+          .catch((err: unknown) =>
+            setError(err instanceof Error ? err.message : "That didn't work."),
+          )
+          .finally(() => setBusy(false));
+      }}
+    >
+      <p className="text-xs font-semibold">
+        Record the payment of {formatPrice(Number(row.purchase_price) * 100)} (the shop gets a
+        numbered receipt):
+      </p>
+      <div className="mt-2 flex flex-wrap items-end gap-2">
+        <label htmlFor={`${id}-method`} className="grid gap-1 text-xs font-medium">
+          Paid by
+          <select
+            id={`${id}-method`}
+            className={hubInput}
+            value={method}
+            onChange={(e) => setMethod(e.target.value as "cash" | "upi")}
+          >
+            <option value="cash">Cash</option>
+            <option value="upi">UPI</option>
+          </select>
+        </label>
+        <label htmlFor={`${id}-date`} className="grid gap-1 text-xs font-medium">
+          Date paid
+          <input
+            id={`${id}-date`}
+            type="date"
+            className={hubInput}
+            value={paidAt}
+            max={today()}
+            onChange={(e) => setPaidAt(e.target.value)}
+          />
+        </label>
+        <label htmlFor={`${id}-ref`} className="grid gap-1 text-xs font-medium">
+          UPI reference (staff only)
+          <input
+            id={`${id}-ref`}
+            className={hubInput}
+            maxLength={80}
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+          />
+        </label>
+        <label htmlFor={`${id}-note`} className="grid min-w-48 flex-1 gap-1 text-xs font-medium">
+          Internal note (staff only)
+          <input
+            id={`${id}-note`}
+            className={hubInput}
+            maxLength={300}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
+        <Button size="sm" type="submit" disabled={busy}>
+          {busy ? "Saving…" : "Record payment"}
+        </Button>
+      </div>
+      {error && (
+        <p role="alert" className="mt-2 text-danger">
+          {error}
+        </p>
+      )}
+    </form>
   );
 }

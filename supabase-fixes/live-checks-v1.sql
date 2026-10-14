@@ -88,6 +88,22 @@ select check_name, ok
         not has_function_privilege('anon', 'public.approve_account_deletion(uuid)', 'EXECUTE')
         and pg_get_functiondef('public.approve_account_deletion(uuid)'::regprocedure) like '%if not public.is_admin()%'
         and pg_get_functiondef('public.refuse_account_deletion(uuid, text)'::regprocedure) like '%if not public.is_admin()%'
-        and pg_get_functiondef('public.deletion_queue()'::regprocedure) like '%if not public.is_admin()%')
+        and pg_get_functiondef('public.deletion_queue()'::regprocedure) like '%if not public.is_admin()%'),
+    (13, 'Payouts and pickups: staff read them; a shop sees only its own, never the payment reference or note',
+        not has_table_privilege('anon', 'public.payouts', 'SELECT')
+        and not has_table_privilege('anon', 'public.pickups', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.payouts', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.payouts', 'UPDATE')
+        and not has_table_privilege('authenticated', 'public.pickups', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.pickups', 'UPDATE')
+        and not has_table_privilege('authenticated', 'public.payout_counters', 'SELECT')
+        and (select bool_and(c.relrowsecurity) from pg_class c
+              where c.oid in ('public.payouts'::regclass, 'public.pickups'::regclass, 'public.payout_counters'::regclass))
+        and exists (select 1 from pg_policies where tablename = 'payouts' and qual like '%is_staff()%')
+        and pg_get_functiondef('public.my_payouts()'::regprocedure) not like '%reference%'
+        and pg_get_functiondef('public.my_payouts()'::regprocedure) not like '%internal_note%'
+        and pg_get_functiondef('public.payout_receipt(text)'::regprocedure) not like '%p.reference%'
+        and pg_get_functiondef('public.record_payout(bigint, text, date, text, text)'::regprocedure) like '%if not public.is_staff()%'
+        and not has_function_privilege('anon', 'public.respond_to_offer(bigint, boolean, text)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

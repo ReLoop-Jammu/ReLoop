@@ -38,22 +38,22 @@ How to sell your shop's old, broken and dead electronics to ReLoop, step by step
 
 | English | हिन्दी |
 | --- | --- |
-| Open `/account`. Under "My submissions" each item shows its status: "Waiting for review", "Offer made", "Not accepted" or "Bought by ReLoop". | `/account` खोलें। "My submissions" में हर सामान का स्टेटस दिखता है: "Waiting for review", "Offer made", "Not accepted" या "Bought by ReLoop"। |
+| Open `/account`. Under "My submissions" each item shows its status: "Waiting for review", "Offer made", "You accepted: pickup booked", "You declined the offer", "Not accepted" or "Bought by ReLoop". The bell at the top tells you when something changes. | `/account` खोलें। "My submissions" में हर सामान का स्टेटस दिखता है: "Waiting for review", "Offer made", "You accepted: pickup booked", "You declined the offer", "Not accepted" या "Bought by ReLoop"। कुछ बदलने पर ऊपर की घंटी में सूचना आती है। |
 | "Offer made" shows our price per item and a short note. "Not accepted" shows the reason. | "Offer made" में प्रति नग हमारी कीमत और एक छोटा नोट दिखता है। "Not accepted" में कारण लिखा होता है। |
-| To accept, tap "Message us to accept". It opens WhatsApp with your submission number filled in. You can also ask us questions there. | ऑफ़र मानने के लिए "Message us to accept" दबाएँ। इससे WhatsApp खुलेगा और आपका सबमिशन नंबर पहले से लिखा होगा। सवाल भी वहीं पूछ सकते हैं। |
+| To accept, tap "Accept the offer": we book the pickup on the next route day and show the date. Or tap "Decline…" and tell us why if you like. Questions are welcome on WhatsApp. | ऑफ़र मानने के लिए "Accept the offer" दबाएँ: हम अगले रूट वाले दिन पिकअप बुक करते हैं और तारीख़ वहीं दिखती है। मना करना हो तो "Decline…" दबाएँ और चाहें तो कारण लिखें। सवाल WhatsApp पर पूछ सकते हैं। |
 
 ## 5. Pickup / पिकअप
 
 | English | हिन्दी |
 | --- | --- |
-| We collect by e-rickshaw on our Tuesday and Friday route through Raghunath Bazaar, Residency Road and Gandhi Nagar. We confirm the day with you on WhatsApp. | हम मंगलवार और शुक्रवार को रघुनाथ बाज़ार, रेज़िडेंसी रोड और गांधी नगर के रास्ते ई-रिक्शा से सामान उठाते हैं। दिन हम WhatsApp पर पक्का करते हैं। |
+| We collect by e-rickshaw on our Tuesday and Friday route through Raghunath Bazaar, Residency Road and Gandhi Nagar. Your pickup day shows under "My submissions"; if we can't come, it moves to the next route day and we tell you. | हम मंगलवार और शुक्रवार को रघुनाथ बाज़ार, रेज़िडेंसी रोड और गांधी नगर के रास्ते ई-रिक्शा से सामान उठाते हैं। आपके पिकअप का दिन "My submissions" में दिखता है; अगर हम न आ पाएँ, तो वह अगले रूट वाले दिन पर चला जाता है और हम आपको बताते हैं। |
 | Keep the items together at your counter so the pickup is quick. The route and stops are on `/locations`. | सामान अपने काउंटर पर एक साथ रखें, ताकि पिकअप जल्दी हो जाए। रूट और स्टॉप `/locations` पर देखें। |
 
 ## 6. Payment / भुगतान
 
 | English | हिन्दी |
 | --- | --- |
-| You are paid in cash when we collect, at the offer you accepted. | सामान उठाते समय, आपके माने हुए ऑफ़र के हिसाब से नकद भुगतान होता है। |
+| You are paid in cash or by UPI, at the offer you accepted. Each payment has a receipt number (RL-PAY-…); download the receipt as a PDF under "Payments from ReLoop" on your account. | आपके माने हुए ऑफ़र के हिसाब से नकद या UPI से भुगतान होता है। हर भुगतान की एक रसीद संख्या (RL-PAY-…) होती है; रसीद PDF में अपने खाते के "Payments from ReLoop" से डाउनलोड करें। |
 | You don't wait for the items to sell: once we buy them, they are ReLoop's. | सामान बिकने का इंतज़ार नहीं करना पड़ता: खरीदने के बाद सामान ReLoop का हो जाता है। |
 
 ## 7. Contact us / हमसे संपर्क करें

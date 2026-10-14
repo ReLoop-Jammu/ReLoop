@@ -11,7 +11,7 @@ import { logoutAccount } from "@/lib/auth-client";
 import { useAccess } from "@/lib/use-access";
 import { cn } from "@/lib/utils/cn";
 import { useHubBadges } from "../badges";
-import { HUB_TOOLS, isToolActive, TOOL_GROUPS } from "../tools";
+import { badgeCount, HUB_TOOLS, isToolActive, TOOL_GROUPS } from "../tools";
 import { HUB_ERROR_EVENT } from "../useHubData";
 import { RequireRole } from "./RequireRole";
 
@@ -102,7 +102,7 @@ function HubMenu({ pathname }: { pathname: string }) {
             <ul className="flex gap-1 lg:flex-col">
               {inGroup.map(({ href, label, icon: Icon, badge }) => {
                 const active = isToolActive(href, pathname);
-                const count = badge ? badges?.[badge] : null;
+                const count = badgeCount({ badge }, badges);
                 return (
                   <li key={href}>
                     <Link
@@ -119,8 +119,8 @@ function HubMenu({ pathname }: { pathname: string }) {
                       {label}
                       {count ? (
                         <span className="ml-auto rounded-full bg-gold-400 px-1.5 text-xs font-semibold text-brand-950 tabular-nums">
-                          {count}
-                          <span className="sr-only"> waiting</span>
+                          <span aria-hidden="true">{count}</span>
+                          <span className="sr-only">, {count} waiting</span>
                         </span>
                       ) : null}
                     </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { authenticatedFetch, getSession } from "@/lib/auth-client";
+import { authenticatedFetch, getSession, siteFetch } from "@/lib/auth-client";
 import type { RequestStage } from "@/features/requests/stages";
 
 /** Calls a database function as the signed-in user; the database's message becomes the error. */
@@ -101,3 +101,50 @@ export const myDeletionRequest = () =>
 export const requestDeletion = (reason: string) =>
   rpc<string>("request_account_deletion", { p_reason: reason });
 export const withdrawDeletion = () => rpc<null>("withdraw_account_deletion");
+
+// ---------------------------------------------------------------- offers, pickups and payouts (shop owners)
+
+/** Accepts (booking the next route day, returned) or declines ReLoop's offer. */
+export const respondToOffer = (submission: number, accept: boolean, note = "") =>
+  rpc<string | null>("respond_to_offer", {
+    p_submission: submission,
+    p_accept: accept,
+    p_note: note,
+  });
+
+export type MyPickup = {
+  shop_submission_id: number;
+  item_name: string;
+  route_date: string;
+  status: "scheduled" | "collected" | "cancelled";
+  times_missed: number;
+};
+export const myPickups = () => rpc<MyPickup[]>("my_pickups");
+
+export type MyPayout = {
+  receipt_no: string;
+  shop_submission_id: number;
+  item_name: string;
+  quantity: number;
+  amount_paise: number;
+  method: "cash" | "upi";
+  paid_at: string;
+};
+export const myPayouts = () =>
+  rpc<MyPayout[]>("my_payouts").then((r) =>
+    r.map((p) => ({ ...p, amount_paise: Number(p.amount_paise) })),
+  );
+
+/** Downloads a receipt PDF (the owner's own, or any for staff). */
+export async function downloadReceipt(receiptNo: string) {
+  const r = await siteFetch(`/api/payouts/${encodeURIComponent(receiptNo)}`);
+  if (!r.ok) throw new Error("The receipt couldn't be downloaded. Please try again.");
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${receiptNo}.pdf`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
