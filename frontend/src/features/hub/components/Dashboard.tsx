@@ -36,8 +36,8 @@ export function Dashboard() {
   return (
     <>
       <PageTitle
-        title="Dashboard"
-        description={now.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+        title="KPIs"
+        description={`The business plan's targets: ${now.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`}
         actions={
           <Link href="/hub/intake" className={buttonClasses({ size: "sm" })}>
             <PackagePlus className="size-4" aria-hidden="true" /> Log new item

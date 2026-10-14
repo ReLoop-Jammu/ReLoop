@@ -5,7 +5,7 @@ For hub workers and admins. No technical knowledge needed. Each task says which 
 **Who can do what**
 
 - **Hub staff** can do everything in this guide except the tasks marked **(admin)**.
-- **Admins** can do everything, including shop verification, password resets, the partner map and the team.
+- **Admins** can do everything, including shop verification, password resets, the partner map, the team, link and QR visits (`/hub/links`), the audit log (`/hub/audit`) and the settings (`/hub/settings`). Staff don't see these screens in the menu.
 - Log in at `/login` with your own account. Ask an admin to give you access (see [Managing staff](#12-managing-staff)).
 
 **Contents**
@@ -19,7 +19,7 @@ For hub workers and admins. No technical knowledge needed. Each task says which 
 7. [Reservations, questions and institution bookings](#7-reservations-questions-and-institution-bookings)
 8. [Marking an item sold](#8-marking-an-item-sold)
 9. [Logging a recycler handover](#9-logging-a-recycler-handover)
-10. [Reading the KPI dashboard](#10-reading-the-kpi-dashboard)
+10. [Today's overview and the KPIs](#10-todays-overview-and-the-kpis)
 11. [Putting a shop on the map](#11-putting-a-shop-on-the-map-admin)
 12. [Managing staff](#12-managing-staff-admin)
 13. [If something goes wrong](#13-if-something-goes-wrong)
@@ -148,11 +148,17 @@ Do this every time the authorised recycler collects: when the scrap cage reaches
 4. For an institution's e-waste, fill in **On behalf of (institution)** so its name is on the record.
 5. Press **Save handover (… items)**. Keep the paper receipt; file it under the receipt number.
 
-## 10. Reading the KPI dashboard
+## 10. Today's overview and the KPIs
 
-**Page:** `/hub` (menu: **Dashboard**)
+**Page:** `/hub` (menu: **Overview**). After logging in, hub staff and admins land here.
 
-| On the dashboard                                                   | What it counts                                                                               |
+- **Requests and submissions** lists what is waiting: new shop submissions, offers waiting for the shop's answer, new reservations, institution pickups and questions, and (admins) shops waiting for verification. Each line opens the page to deal with it. The same counts appear as badges in the hub menu.
+- **Stock** lists items overdue for grading or listing, a full scrap cage, batteries waiting, and listed items that reach the day-45 price cut or the day-75 downgrade within the next 7 days.
+- The search box at the top of the menu finds an item by its tag (or just its number, for example `42`), a brand or model, a shop or an institution; admins also find accounts.
+
+**Page:** `/hub/kpis` (menu: **KPIs**)
+
+| On the KPI page                                                    | What it counts                                                                               |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | Items in this month                                                | Items logged this month. Parts taken from a C item aren't counted again.                     |
 | Reused (A + B + C)                                                 | Share of graded items that were A, B or C, so not scrap.                                     |
@@ -169,7 +175,7 @@ Do this every time the authorised recycler collects: when the scrap cage reaches
 - a full scrap cage, or too long since the last handover (book the recycler);
 - batteries waiting for the weekly collection.
 
-Spreadsheets (CSV) of the KPIs and items can be downloaded from the dashboard. They leave out supplier contact names and phone numbers.
+Spreadsheets (CSV) of the KPIs and items can be downloaded from the KPI page. They leave out supplier contact names and phone numbers.
 
 ## 11. Putting a shop on the map (admin)
 

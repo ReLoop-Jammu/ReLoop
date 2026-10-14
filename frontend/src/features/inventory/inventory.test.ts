@@ -3,7 +3,7 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 import { formatItemId, isItemId, nextItemId, parseItemNumber } from "./ids";
 import { shipsAcrossIndia, needsDataWipe } from "./model";
 import { cutPrice, estimateBuyPrice, likelyGrade } from "./pricing";
-import { applyStockRules, hubAlerts } from "./rules";
+import { applyStockRules, hubAlerts, stockRulesDue } from "./rules";
 import { dashboardStats } from "./stats";
 import { makeItem } from "./test-helpers";
 
@@ -179,5 +179,40 @@ describe("item rules", () => {
   it("keeps the plan's numbers in one place", () => {
     expect(BUSINESS_RULES.jammuDeliveryPaise).toBe(5_000);
     expect(BUSINESS_RULES.warrantyDays).toBe(30);
+  });
+});
+
+describe("stock rules due soon (hub overview)", () => {
+  const listed = (id: string, extra = {}) =>
+    makeItem({
+      id,
+      status: "listed",
+      grade: "A",
+      listedAt: day(0).toISOString(),
+      currentPaise: 100_000,
+      ...extra,
+    });
+
+  it("lists items the day-45 cut or the day-75 downgrade reaches within a week", () => {
+    const items = [
+      listed("RL-JMU-0001"),
+      listed("RL-JMU-0002", { priceCutAt: day(45).toISOString() }),
+    ];
+    expect(stockRulesDue(items, day(37))).toEqual({ priceCut: [], downgrade: [] });
+    expect(stockRulesDue(items, day(38))).toEqual({ priceCut: ["RL-JMU-0001"], downgrade: [] });
+    expect(stockRulesDue(items, day(45))).toEqual({ priceCut: [], downgrade: [] });
+    expect(stockRulesDue(items, day(70))).toEqual({
+      priceCut: [],
+      downgrade: ["RL-JMU-0001", "RL-JMU-0002"],
+    });
+  });
+
+  it("ignores parts, grade C and anything not listed", () => {
+    const items = [
+      listed("RL-JMU-0003", { category: "part", partType: "screen" }),
+      listed("RL-JMU-0004", { grade: "C", category: "part", partType: "board" }),
+      makeItem({ id: "RL-JMU-0005", status: "sold", listedAt: day(0).toISOString() }),
+    ];
+    expect(stockRulesDue(items, day(70))).toEqual({ priceCut: [], downgrade: [] });
   });
 });

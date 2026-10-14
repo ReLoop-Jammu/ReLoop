@@ -49,7 +49,7 @@ reloop/
 │  ├─ src/
 │  │  ├─ app/                    # routes only; thin, compose features
 │  │  │  ├─ (site)/ shop/, sell/, how-it-works/, where-scrap-goes/, warranty/, impact/, legal …
-│  │  │  ├─ hub/      staff tool: dashboard, intake, items, partners, handovers, data
+│  │  │  ├─ hub/      staff tool: overview, intake, items, requests, KPIs, admin screens
 │  │  │  ├─ hub/login                                        (step 3, with Supabase)
 │  │  │  └─ layout.tsx, error.tsx, not-found.tsx, sitemap.ts, robots.ts
 │  │  ├─ features/               # one folder per domain; the ONLY code that fetches data
@@ -107,7 +107,7 @@ Business rules (no selling without a wipe, the day-45/75 rules, public-only colu
   - `/`, `/shop`, `/shop/[RL-JMU-id]`
   - `/sell` (+ `/sell/shops`, `/sell/institutions`, `/sell/consignment`, `/sell/list-yourself`)
   - `/how-it-works`, `/where-scrap-goes`, `/warranty`, `/impact`, `/contact`, `/privacy`, `/terms`
-- **Staff (noindex, not linked):** `/hub` (dashboard), `/hub/intake`, `/hub/items`, `/hub/items/[id]`, `/hub/partners`, `/hub/handovers`, `/hub/data`
+- **Staff (noindex; Hub link in the account menu for staff):** `/hub` (overview of to-dos), `/hub/intake`, `/hub/items`, `/hub/items/[id]`, `/hub/requests`, `/hub/submissions`, `/hub/partners`, `/hub/handovers`, `/hub/kpis`, `/hub/data`, `/hub/search`; admins also `/hub/shops`, `/hub/users`, `/hub/team`, `/hub/links`, `/hub/audit`, `/hub/settings`. The menu, account cards and overview come from `frontend/src/features/hub/tools.ts`.
 - **Later:** `/hub/login` once Supabase auth is connected
 
 ## 6. Design system

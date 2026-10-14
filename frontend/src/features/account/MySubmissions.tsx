@@ -34,8 +34,7 @@ export function MySubmissions() {
   if (rows.length === 0) return <p className="mt-4 text-sm text-muted">No submissions yet.</p>;
   return (
     <div className="mt-5">
-      <h3 className="font-semibold">My submissions</h3>
-      <ul className="mt-2 divide-y divide-line rounded-xl border border-line text-sm">
+      <ul className="divide-y divide-line rounded-xl border border-line text-sm">
         {rows.map((r) => (
           <li key={r.id} className="p-3">
             <p className="flex flex-wrap justify-between gap-2">

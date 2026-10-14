@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAuthRedirect, safeNext } from "./auth-client";
+import { loginDestination, loginHref, parseAuthRedirect, safeNext } from "./auth-client";
 
 describe("reset links", () => {
   it("reads a recovery session from the link", () => {
@@ -66,5 +66,39 @@ describe("safeNext", () => {
   it("uses the caller's fallback when there is no usable next page", () => {
     expect(safeNext("", "/hub")).toBe("/hub");
     expect(next("//x", "/")).toBe("/");
+  });
+});
+
+describe("where login takes you", () => {
+  const staff = { is_staff: true, is_admin: false };
+  const buyer = { is_staff: false, is_admin: false };
+
+  it("returns to the page that asked you to log in, for everyone", () => {
+    expect(loginDestination("?next=%2Fhub%2Fitems%2FRL-JMU-0042", buyer)).toBe(
+      "/hub/items/RL-JMU-0042",
+    );
+    expect(loginDestination("?next=%2Faccount%2Fchange-password", staff)).toBe(
+      "/account/change-password",
+    );
+  });
+
+  it("takes hub staff and admins to the hub, and others back where they were", () => {
+    expect(loginDestination("?from=%2Fshop", staff)).toBe("/hub");
+    expect(loginDestination("?from=%2Fshop%3Fq%3Ddell", buyer)).toBe("/shop?q=dell");
+    expect(loginDestination("", buyer)).toBe("/account");
+    expect(loginDestination("", null)).toBe("/account");
+  });
+
+  it("ignores unsafe places", () => {
+    expect(loginDestination("?next=https%3A%2F%2Fevil.example", buyer)).toBe("/account");
+    expect(loginDestination("?from=%2F%2Fevil.example", buyer)).toBe("/account");
+    expect(loginDestination("?next=%2F%2Fevil.example", staff)).toBe("/hub");
+  });
+
+  it("builds a login link that comes back to the page", () => {
+    expect(loginHref("/shop/RL-JMU-0042")).toBe("/login?from=%2Fshop%2FRL-JMU-0042");
+    expect(loginHref("/shop", "?q=dell")).toBe("/login?from=%2Fshop%3Fq%3Ddell");
+    expect(loginHref("/")).toBe("/login");
+    expect(loginHref("/login")).toBe("/login");
   });
 });

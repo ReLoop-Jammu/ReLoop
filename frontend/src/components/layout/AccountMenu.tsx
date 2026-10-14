@@ -7,6 +7,7 @@ import { buttonClasses } from "@/components/ui/Button";
 import { CHANGE_PASSWORD_PATH, logoutAccount } from "@/lib/auth-client";
 import { roleLabel, useAccess } from "@/lib/use-access";
 import { cn } from "@/lib/utils/cn";
+import { LoginLink } from "./LoginLink";
 import { useDisclosure } from "./use-disclosure";
 
 async function signOut() {
@@ -20,11 +21,7 @@ export function AccountMenu() {
   const { open, root, button, toggle } = useDisclosure();
   const panelId = useId();
   if (a.state === "signed-out") {
-    return (
-      <Link href="/login" className={buttonClasses({ variant: "secondary", size: "sm" })}>
-        Log in
-      </Link>
-    );
+    return <LoginLink className={buttonClasses({ variant: "secondary", size: "sm" })} />;
   }
   const access = a.state === "ready" ? a.access : null;
   const staff = Boolean(access?.is_staff);

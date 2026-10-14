@@ -4,6 +4,7 @@
 import "leaflet/dist/leaflet.css";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { SignedOutNotice } from "@/components/layout/SignedOutNotice";
 import { SkipLink } from "@/components/layout/SkipLink";
 
 /** Public website chrome: header, main content, footer. */
@@ -13,6 +14,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <SkipLink />
       <Header />
       <main id="main" className="flex-1">
+        <SignedOutNotice />
         {children}
       </main>
       <Footer />

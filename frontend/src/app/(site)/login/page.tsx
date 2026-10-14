@@ -6,12 +6,7 @@ import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { inputClass } from "@/features/sell/components/RequestForm";
-import {
-  CHANGE_PASSWORD_PATH,
-  loginAccount,
-  mustChangePassword,
-  safeNext,
-} from "@/lib/auth-client";
+import { CHANGE_PASSWORD_PATH, loginAccount, loginDestination, myAccess } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,13 +20,15 @@ export default function LoginPage() {
     setError("");
     try {
       await loginAccount(email, password);
-      const next = safeNext(window.location.search);
-      // After an admin reset, a new password comes before anything else.
-      router.push(
-        (await mustChangePassword())
-          ? `${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(next)}`
-          : next,
-      );
+      const access = await myAccess().catch(() => null);
+      // After an admin reset, a new password comes before anything else; the
+      // hub is closed until then, so staff land on their account afterwards.
+      if (access?.must_change_password) {
+        const after = loginDestination(window.location.search, null);
+        router.push(`${CHANGE_PASSWORD_PATH}?next=${encodeURIComponent(after)}`);
+      } else {
+        router.push(loginDestination(window.location.search, access));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed. Please try again.");
     } finally {

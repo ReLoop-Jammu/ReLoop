@@ -1,5 +1,8 @@
-import { Dashboard } from "@/features/hub/components/Dashboard";
+import type { Metadata } from "next";
+import { HubHome } from "@/features/hub/components/HubHome";
 
-export default function HubDashboardPage() {
-  return <Dashboard />;
+export const metadata: Metadata = { title: "Overview" };
+
+export default function HubOverviewPage() {
+  return <HubHome />;
 }

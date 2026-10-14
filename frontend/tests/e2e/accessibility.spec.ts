@@ -40,6 +40,10 @@ const PAGES = [
   "/hub/requests",
   "/hub/submissions",
   "/hub/settings",
+  "/hub/kpis",
+  "/hub/links",
+  "/hub/audit",
+  "/hub/search?q=dell",
   "/account/change-password",
   "/this-page-does-not-exist",
 ];

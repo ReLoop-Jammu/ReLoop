@@ -33,7 +33,7 @@ test.describe("hub (staff tool)", () => {
     await page.getByRole("button", { name: "List online" }).click();
     await expect(page.getByText(/Listed at ₹6,000/).first()).toBeVisible();
 
-    await page.goto("/hub");
+    await page.goto("/hub/kpis");
     await expect(page.getByText("Items in this month")).toBeVisible();
 
     await page.goto("/hub/data");
@@ -138,7 +138,7 @@ test.describe("KPI dashboard exports", () => {
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
 
-    await page.goto("/hub");
+    await page.goto("/hub/kpis");
     await expect(page.getByText(/Grade A: 1/)).toBeVisible();
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: "Items (CSV)" }).click();
@@ -191,4 +191,82 @@ test.describe("settings (admin only)", () => {
     await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Settings" })).toHaveCount(0);
   });
+});
+
+test.describe("hub overview, menu and search", () => {
+  test("the overview lists today's stock to-dos and links to the KPIs", async ({ page }) => {
+    await page.goto("/hub");
+    await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+    await expect(page.getByText("No stock rule or handover needs you today.")).toBeVisible();
+    await expect(page.getByText(/arrive in the shared database/)).toBeVisible();
+
+    await page.goto("/hub/intake");
+    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Category").selectOption("monitor");
+    await page.getByLabel("Brand").fill("Lenovo");
+    await page.getByLabel("Grade (if tested now)").selectOption("A");
+    await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
+    // A freshly graded item isn't overdue for anything yet.
+    await page.goto("/hub");
+    await expect(page.getByText("No stock rule or handover needs you today.")).toBeVisible();
+    await page.getByRole("link", { name: "KPIs", exact: true }).first().click();
+    await expect(page).toHaveURL(/\/hub\/kpis$/);
+    await expect(page.getByRole("heading", { level: 1, name: "KPIs" })).toBeVisible();
+  });
+
+  test("the menu groups the screens, and on a hub laptop lists the admin ones too", async ({
+    page,
+  }) => {
+    await page.goto("/hub");
+    const menu = page.getByRole("navigation", { name: "Hub" });
+    for (const name of ["Overview", "Intake", "KPIs", "Links & QR codes", "Audit log", "Settings"])
+      await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Overview", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  test("search finds an item by its tag number and a shop by its market", async ({ page }) => {
+    await page.goto("/hub/partners");
+    await page.getByLabel("Shop name").fill("Gupta Electronics");
+    await page.getByLabel("Phone").first().fill("9876543211");
+    await page.getByRole("button", { name: "Add shop" }).click();
+    await page.goto("/hub/intake");
+    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Category").selectOption("monitor");
+    await page.getByLabel("Brand").fill("Dell");
+    await page.getByLabel("Grade (if tested now)").selectOption("A");
+    await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
+
+    await page.goto("/hub");
+    await page.getByRole("searchbox", { name: "Search the hub" }).fill("1");
+    await page.getByRole("searchbox", { name: "Search the hub" }).press("Enter");
+    await expect(page).toHaveURL(/\/hub\/search\?q=1$/);
+    await expect(page.getByRole("link", { name: /RL-JMU-0001/ })).toBeVisible();
+
+    await page.goto("/hub/search?q=raghunath");
+    await expect(page.getByRole("link", { name: /Gupta Electronics/ })).toBeVisible();
+    await expect(page.getByText(/No items match/)).toBeVisible();
+  });
+
+  for (const [path, heading] of [
+    ["/hub/links", "Links & QR codes"],
+    ["/hub/audit", "Audit log"],
+  ]) {
+    test(`${path} is for admins: visitors are asked to log in`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { name: "Log in to continue" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: heading })).toHaveCount(0);
+      await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute(
+        "href",
+        `/login?next=${encodeURIComponent(path)}`,
+      );
+      await expect(page.getByRole("link", { name: "Public site" }).last()).toBeVisible();
+    });
+  }
 });

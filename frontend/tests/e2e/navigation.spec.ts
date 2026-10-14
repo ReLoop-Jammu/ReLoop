@@ -88,3 +88,38 @@ test.describe("navigation", () => {
     await expect(report).toHaveAttribute("href", /^https:\/\/wa\.me\/919871276179\?text=/);
   });
 });
+
+test.describe("signing out and in", () => {
+  test("after logging out the home page says so once, and the flag leaves the address", async ({
+    page,
+  }) => {
+    await page.goto("/?signed-out=1");
+    await expect(page.getByRole("status").filter({ hasText: "You're logged out" })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole("button", { name: "Dismiss" }).click();
+    await expect(page.getByText("You're logged out")).toHaveCount(0);
+
+    // It also goes away on the next page, without being dismissed.
+    await page.goto("/?signed-out=1");
+    await expect(page.getByText("You're logged out")).toBeVisible();
+    await page.locator("footer").getByRole("link", { name: "What we accept" }).click();
+    await expect(page).toHaveURL(/\/what-we-accept$/);
+    await expect(page.getByText("You're logged out")).toHaveCount(0);
+  });
+
+  test("the header's log-in link brings you back to the page you were on", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the mobile menu has the same link");
+    await page.goto("/what-we-accept");
+    await expect(page.locator("header").getByRole("link", { name: "Log in" })).toHaveAttribute(
+      "href",
+      "/login?from=%2Fwhat-we-accept",
+    );
+    // Filters in the address come along too, read when the link is clicked.
+    await page.goto("/shop?q=dell");
+    await page.locator("header").getByRole("link", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/login\?from=%2Fshop%3Fq%3Ddell$/);
+  });
+});

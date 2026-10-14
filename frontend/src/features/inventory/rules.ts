@@ -54,7 +54,12 @@ export function applyStockRules(items: readonly Item[], now: Date): Item[] {
   return changed;
 }
 
-export type Alert = { level: "warn" | "act"; message: string; itemIds?: string[] };
+export type Alert = {
+  key: "ungraded" | "unlisted" | "scrap_cage" | "batteries" | "price_cut_soon";
+  level: "warn" | "act";
+  message: string;
+  itemIds?: string[];
+};
 
 /** Service-level reminders from the plan. Shown to staff, never applied automatically. */
 export function hubAlerts(
@@ -72,6 +77,7 @@ export function hubAlerts(
   );
   if (ungraded.length)
     alerts.push({
+      key: "ungraded",
       level: "act",
       message: `${ungraded.length} item(s) not graded within 24 hours`,
       itemIds: ungraded.map((i) => i.id),
@@ -86,6 +92,7 @@ export function hubAlerts(
   );
   if (unlisted.length)
     alerts.push({
+      key: "unlisted",
       level: "act",
       message: `${unlisted.length} A/B item(s) not listed within 48 hours`,
       itemIds: unlisted.map((i) => i.id),
@@ -101,6 +108,7 @@ export function hubAlerts(
       daysSinceHandover >= BUSINESS_RULES.scrapHandover.daysTrigger)
   ) {
     alerts.push({
+      key: "scrap_cage",
       level: "act",
       message: `Scrap cage holds ${cageKg.toFixed(1)} kg${Number.isFinite(daysSinceHandover) ? `, ${daysSinceHandover} days since last handover` : ""}: book a recycler pickup`,
       itemIds: cage.map((i) => i.id),
@@ -116,6 +124,7 @@ export function hubAlerts(
     (!lastBattery || daysBetween(lastBattery.date, now) >= BUSINESS_RULES.batteryHandoverDays)
   ) {
     alerts.push({
+      key: "batteries",
       level: "act",
       message: `${batteries.length} item(s) with batteries waiting: batteries go out every week`,
       itemIds: batteries.map((i) => i.id),
@@ -131,10 +140,41 @@ export function hubAlerts(
   );
   if (dueForCut.length)
     alerts.push({
+      key: "price_cut_soon",
       level: "warn",
       message: `${dueForCut.length} listing(s) reach the 45-day price cut within a week: feature them on Instagram`,
       itemIds: dueForCut.map((i) => i.id),
     });
 
   return alerts;
+}
+
+/**
+ * Listed items the daily stock rules will reach within `withinDays`: the
+ * day-45 price cut and the day-75 downgrade to C. Lets staff promote or
+ * re-price them first. Mirrors applyStockRules' conditions.
+ */
+export function stockRulesDue(
+  items: readonly Item[],
+  now: Date,
+  withinDays = 7,
+): { priceCut: string[]; downgrade: string[] } {
+  const priceCut: string[] = [];
+  const downgrade: string[] = [];
+  for (const item of items) {
+    if (item.status !== "listed" || !item.listedAt) continue;
+    const days = daysBetween(item.listedAt, now);
+    const toDowngrade = BUSINESS_RULES.downgradeToC.afterDays - days;
+    const toCut = BUSINESS_RULES.priceCut.afterDays - days;
+    if (
+      toDowngrade > 0 &&
+      toDowngrade <= withinDays &&
+      item.grade !== "C" &&
+      item.category !== "part"
+    )
+      downgrade.push(item.id);
+    else if (toCut > 0 && toCut <= withinDays && !item.priceCutAt && item.currentPaise)
+      priceCut.push(item.id);
+  }
+  return { priceCut, downgrade };
 }
