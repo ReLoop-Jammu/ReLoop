@@ -43,3 +43,25 @@ test("the privacy page explains deletion, status links and notifications", async
     page.getByText("Notifications on the site are deleted after 90 days."),
   ).toBeVisible();
 });
+
+test.describe("warranty", () => {
+  test("the warranty page sets out the terms and how to claim", async ({ page }) => {
+    await page.goto("/warranty");
+    await expect(page.getByText(/Not covered: physical or liquid damage/)).toBeVisible();
+    await expect(page.getByText(/a repair first, then a replacement/)).toBeVisible();
+    await expect(
+      page.getByText(/We don't take returns because you changed your mind/),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Warranty claims" })).toHaveAttribute(
+      "href",
+      "/account/warranty",
+    );
+  });
+
+  test("the claims pages ask visitors to log in", async ({ page }) => {
+    await page.goto("/account/warranty");
+    await expect(page).toHaveURL(/\/login\?next=%2Faccount%2Fwarranty$/);
+    await page.goto("/hub/warranty");
+    await expect(page.getByText("Warranty claims are kept in the shared database.")).toBeVisible();
+  });
+});

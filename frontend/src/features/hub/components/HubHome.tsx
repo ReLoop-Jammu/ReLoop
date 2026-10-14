@@ -95,6 +95,13 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       level: "act",
     },
     {
+      key: "open_claims",
+      count: b.open_claims,
+      label: plural(b.open_claims, "open warranty claim", "open warranty claims"),
+      href: "/hub/warranty",
+      level: "act",
+    },
+    {
       key: "offers_waiting",
       count: b.offers_waiting,
       label: plural(

@@ -40,6 +40,7 @@ describe("badge counts", () => {
       offers_accepted: 1,
       payouts_due: 0,
       pickups_next: 0,
+      open_claims: 0,
       pending_shops: null,
       deletion_requests: null,
     };
@@ -63,6 +64,7 @@ describe("overview queues", async () => {
       offers_accepted: 0,
       payouts_due: 0,
       pickups_next: 0,
+      open_claims: 0,
       pending_shops: null,
       deletion_requests: null,
     };

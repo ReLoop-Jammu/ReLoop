@@ -1,5 +1,6 @@
 import { MapPin, Package, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactDetail } from "@/components/legal/LegalPage";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -63,15 +64,35 @@ export default async function WarrantyPage() {
             Grade C parts are tested before sale but are sold as parts: please check compatibility
             with your device first.
           </p>
-          <p className="mt-6 rounded-xl bg-sunken p-4 text-sm leading-relaxed text-ink-soft">
-            Full warranty terms (what is covered and how claims are handled) will be published here
-            before the shop opens.
-          </p>
+          <h3 className="mt-6 font-semibold text-ink">What the warranty covers</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed text-ink-soft">
+            <li>
+              Faults that were there when you bought the device, for {BUSINESS_RULES.warrantyDays}{" "}
+              days from the sale.
+            </li>
+            <li>
+              Not covered: physical or liquid damage, misuse, or repairs by anyone other than
+              ReLoop.
+            </li>
+            <li>
+              ReLoop decides the remedy: a repair first, then a replacement with a similar device,
+              then a refund.
+            </li>
+            <li>We don&apos;t take returns because you changed your mind.</li>
+          </ul>
         </div>
         <div className="rounded-panel border border-line bg-sunken p-7 sm:p-9">
           <h2 className="text-xl font-semibold">Making a claim</h2>
           <p className="mt-3 leading-relaxed text-ink-soft">
-            Contact us with your item ID and what went wrong.
+            Bought through your ReLoop account? Open the claim from{" "}
+            <Link href="/account/warranty" className="font-semibold text-brand-600 underline">
+              Warranty claims
+            </Link>{" "}
+            on your account: you see each step there.
+          </p>
+          <p className="mt-3 leading-relaxed text-ink-soft">
+            Bought at the hub? Contact us with the item&apos;s ID (it starts with RL-JMU) and what
+            went wrong, and we&apos;ll log the claim for you.
           </p>
           <p className="mt-4 font-medium text-ink">
             <ContactDetail value={site.supportPhone ?? site.supportEmail} />

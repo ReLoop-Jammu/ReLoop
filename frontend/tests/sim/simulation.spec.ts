@@ -321,3 +321,23 @@ test.describe("listing controls (real logins)", () => {
     await visitor.context().close();
   });
 });
+
+test.describe("warranty claims (real logins)", () => {
+  test.skip(({ isMobile }) => isMobile, "one viewport is enough for shared demo data");
+
+  test("the demo buyer sees their device's warranty and open claim; staff see it in the hub", async ({
+    page,
+    browser,
+  }) => {
+    await loginAs(page, "demo-buyer@reloop.demo", "/account/warranty");
+    await expect(page.getByText(/days? of warranty left/).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Waiting for ReLoop").first()).toBeVisible();
+    const staff = await (await browser.newContext()).newPage();
+    await loginAs(staff, "demo-staff@reloop.demo", "/hub/warranty");
+    await expect(staff.getByText(/The battery drops from 100% to 20%/)).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(staff.getByRole("button", { name: "Accept" }).first()).toBeVisible();
+    await staff.context().close();
+  });
+});

@@ -1819,6 +1819,7 @@ describe("hub home: badges and link series (20261028000001)", () => {
       offers_accepted: 0,
       payouts_due: 0,
       pickups_next: 0,
+      open_claims: 0,
       pending_shops: null,
       deletion_requests: null,
     });
@@ -2763,5 +2764,185 @@ describe("listing controls (20261031000001)", () => {
       (await history(id)).filter((x) => x.type === "data_wiped"),
       [{ type: "data_wiped", note: "reset + overwrite" }],
     );
+  });
+});
+
+describe("warranty claims (20261101000001)", () => {
+  let db;
+  let staff;
+  let buyer;
+  let other;
+  let admin;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+    other = await createUser(db, "Other");
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+  });
+  // A sold item and, unless walkIn, the buyer's reservation for it.
+  const sold = async ({ who = buyer, grade = "A", daysAgo = 3, walkIn = false } = {}) => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, buy_mode, grade, current_paise, list_paise, status,
+                                 listed_at, wiped_at, sold_at, sold_paise, brand, model)
+       values ('repair_shop', 'laptop', 'cash', $1, 900000, 900000, 'sold', now() - interval '40 days', now(),
+               now() - make_interval(days => $2), 900000, 'Dell', 'Latitude')
+       returning id`,
+      [grade, daysAgo],
+    );
+    if (!walkIn) {
+      await db.exec("alter table public.submissions disable trigger user");
+      await db.query(
+        "insert into public.submissions (kind, fields, status, item_id, buyer_id) values ('reservation', '{}', 'sold', $1, $2)",
+        [rows[0].id, who],
+      );
+      await db.exec("alter table public.submissions enable trigger user");
+    }
+    return rows[0].id;
+  };
+  const open = (who, item, fault = "Screen flickers after an hour") =>
+    as(db, who, (tx) =>
+      tx.query("select public.open_warranty_claim($1, $2) as id", [item, fault]),
+    ).then((r) => r.rows[0].id);
+  const decide = (who, id, status, resolution = "", note = "") =>
+    as(db, who, (tx) =>
+      tx.query("select public.decide_warranty_claim($1, $2, $3, $4)", [
+        id,
+        status,
+        resolution,
+        note,
+      ]),
+    );
+
+  test("a buyer claims for an item bought through their account, within 30 days, for grades A and B", async () => {
+    const item = await sold();
+    const items = await as(db, buyer, (tx) =>
+      tx.query("select item_id, days_left from public.my_warranty_items()"),
+    );
+    assert.deepEqual(items.rows, [{ item_id: item, days_left: 27 }]);
+    await assert.rejects(open(other, item), /wasn't bought through your account/);
+    await assert.rejects(open(buyer, item, "bad"), /5 to 1000/);
+    const id = await open(buyer, item);
+    await assert.rejects(open(buyer, item), /already an open claim/);
+    const mine = await as(db, buyer, (tx) =>
+      tx.query("select item_id, status from public.my_warranty_claims()"),
+    );
+    assert.deepEqual(mine.rows, [{ item_id: item, status: "open" }]);
+    assert.equal(
+      (await as(db, other, (tx) => tx.query("select * from public.my_warranty_claims()"))).rows
+        .length,
+      0,
+    );
+    assert.equal(
+      (await as(db, buyer, (tx) => tx.query("select * from public.warranty_claims"))).rows.length,
+      0,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.warranty_claims")),
+      /permission denied/,
+    );
+    assert.ok(id);
+    await assert.rejects(open(buyer, await sold({ daysAgo: 31 })), /no longer under warranty/);
+    await assert.rejects(open(buyer, await sold({ grade: "C" })), /no longer under warranty/);
+  });
+
+  test("staff decide; the buyer sees the outcome, never the staff note, and is notified", async () => {
+    const item = await sold();
+    const id = await open(buyer, item);
+    await assert.rejects(decide(buyer, id, "approved"), /Only hub staff/);
+    await assert.rejects(decide(staff, id, "rejected", ""), /at least 5 characters/);
+    await decide(
+      staff,
+      id,
+      "approved",
+      "Bring it to the hub; we'll check the screen",
+      "Likely loose cable",
+    );
+    await decide(staff, id, "repairing");
+    await decide(staff, id, "replaced", "Swapped for the same model, RL tag on the receipt");
+    await assert.rejects(decide(staff, id, "closed"), /already closed/);
+    const mine = (
+      await as(db, buyer, (tx) =>
+        tx.query("select * from public.my_warranty_claims() where id = $1", [id]),
+      )
+    ).rows[0];
+    assert.equal(mine.status, "replaced");
+    assert.equal(mine.resolution, "Swapped for the same model, RL tag on the receipt");
+    assert.ok(!JSON.stringify(mine).includes("loose cable"));
+    const n = await as(db, buyer, (tx) =>
+      tx.query("select kind from public.notifications where kind like 'warranty_%' order by id"),
+    );
+    assert.deepEqual(
+      n.rows.map((r) => r.kind),
+      ["warranty_approved", "warranty_repairing", "warranty_replaced"],
+    );
+    const history = await db.query(
+      "select type from public.item_events where item_id = $1 and type like 'warranty%' order by id",
+      [item],
+    );
+    assert.deepEqual(
+      history.rows.map((r) => r.type),
+      ["warranty_claim", "warranty_approved", "warranty_repairing", "warranty_replaced"],
+    );
+  });
+
+  test("staff log walk-in claims with the buyer's contact; others can't", async () => {
+    const item = await sold({ walkIn: true });
+    const log = (who, name, phone) =>
+      as(db, who, (tx) =>
+        tx.query("select public.log_warranty_claim($1, $2, $3, 'Battery drains overnight') as id", [
+          item,
+          name,
+          phone,
+        ]),
+      );
+    await assert.rejects(log(buyer, "Ravi", "9000000001"), /Only hub staff/);
+    await assert.rejects(log(staff, "", "9000000001"), /name and a phone/);
+    await log(staff, "Ravi", "9000000001");
+    const seen = await as(db, staff, (tx) =>
+      tx.query("select opened_by, contact_name from public.warranty_claims where item_id = $1", [
+        item,
+      ]),
+    );
+    assert.deepEqual(seen.rows, [{ opened_by: "staff", contact_name: "Ravi" }]);
+    const b = (await as(db, staff, (tx) => tx.query("select public.hub_badges() as b"))).rows[0].b;
+    assert.ok(b.open_claims >= 1);
+  });
+
+  test("closed claims are purged after 12 months; deleting the account drops the person from a claim", async () => {
+    const item = await sold({ who: other });
+    const id = await open(other, item);
+    await decide(staff, id, "rejected", "Liquid damage isn't covered");
+    await db.query(
+      "update public.warranty_claims set closed_at = now() - interval '13 months' where id = $1",
+      [id],
+    );
+    const { rows } = await db.query("select public.purge_expired_personal_data() as r");
+    assert.ok(rows[0].r.warranty_claims >= 1);
+    assert.equal(
+      (await db.query("select 1 from public.warranty_claims where id = $1", [id])).rows.length,
+      0,
+    );
+
+    const kept = await open(other, await sold({ who: other }));
+    await db.query(
+      "update public.warranty_claims set contact_name = 'Other', contact_phone = '9000000009' where id = $1",
+      [kept],
+    );
+    const rid = (
+      await as(db, other, (tx) => tx.query("select public.request_account_deletion('') as id"))
+    ).rows[0].id;
+    await as(db, admin, (tx) => tx.query("select public.approve_account_deletion($1)", [rid]));
+    const after = await db.query(
+      "select buyer_id, contact_name, contact_phone, fault from public.warranty_claims where id = $1",
+      [kept],
+    );
+    assert.deepEqual(after.rows[0], {
+      buyer_id: null,
+      contact_name: "",
+      contact_phone: "",
+      fault: "Screen flickers after an hour",
+    });
   });
 });
