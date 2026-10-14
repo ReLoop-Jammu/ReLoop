@@ -3,9 +3,16 @@
 import { useEffect, useRef } from "react";
 import { LOCATIONS, type PartnerShop } from "@/config/locations";
 
-const BRAND = "#0f766e";
-const ROUTE = "#b45309";
-const RECYCLER = "#475569";
+// Same values as the --color-map-* tokens in globals.css (a unit test checks).
+export const MAP_COLORS = {
+  hub: "#26436c",
+  route: "#9a5f17",
+  recycler: "#a3412f",
+  partner: "#2f6b4f",
+};
+const BRAND = MAP_COLORS.hub;
+const ROUTE = MAP_COLORS.route;
+const RECYCLER = MAP_COLORS.recycler;
 
 /**
  * Interactive OpenStreetMap of the hub area, the pickup route, partner shops
@@ -62,7 +69,11 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
       });
 
       for (const shop of partnerShops) {
-        L.circleMarker([shop.lat, shop.lng], { radius: 7, color: BRAND, fillOpacity: 0.9 })
+        L.circleMarker([shop.lat, shop.lng], {
+          radius: 7,
+          color: MAP_COLORS.partner,
+          fillOpacity: 0.9,
+        })
           .bindTooltip(`${shop.name}, ${shop.market}`)
           .addTo(map);
       }

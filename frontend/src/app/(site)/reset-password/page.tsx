@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
         {link.kind === "recovery" ? (
           <form
             onSubmit={submit}
-            className="mt-8 space-y-4 rounded-2xl border border-line bg-surface p-5 sm:p-7"
+            className="mt-8 space-y-4 rounded-card border border-line bg-surface p-5 sm:p-7"
           >
             <label className="grid gap-1.5 text-sm font-medium">
               New password
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
             </Button>
           </form>
         ) : (
-          <div className="mt-8 rounded-2xl border border-line bg-surface p-5 text-sm sm:p-7">
+          <div className="mt-8 rounded-card border border-line bg-surface p-5 text-sm sm:p-7">
             <p role={link.kind === "error" ? "alert" : undefined}>
               {link.kind === "error"
                 ? link.message

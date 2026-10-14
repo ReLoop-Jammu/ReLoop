@@ -8,10 +8,7 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
     <section aria-labelledby="impact-heading" className="py-10 sm:py-12">
       <Container>
         <div className="rounded-panel bg-brand-950 px-6 py-8 text-white sm:px-10">
-          <h2
-            id="impact-heading"
-            className="text-sm font-semibold tracking-wide text-gold-400 uppercase"
-          >
+          <h2 id="impact-heading" className="text-sm font-semibold text-gold-400">
             Our impact so far
           </h2>
           {showImpactNumbers(totals) ? (

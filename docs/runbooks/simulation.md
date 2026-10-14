@@ -5,7 +5,7 @@ A separate copy of ReLoop that holds only generated data, so the demo, preview d
 | Part      | What it is                                                                                                                  |
 | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Database  | Supabase project `reloop-sim` (ref `fskpgbbsvcwhqogjkezj`), its own free organisation, separate from the production project |
-| Demo site | Vercel project `re-loop-demo`, `https://re-loop-demo.vercel.app`, built from `main`                                         |
+| Demo site | Vercel project `re-loop-demo`, `https://re-loop-demo-beige.vercel.app`, built from `main`                                   |
 | Previews  | Every preview deployment of the main `re-loop` project uses the simulation database (Preview variables), never production   |
 | Marker    | `NEXT_PUBLIC_RELOOP_ENV=simulation`: a banner on every page, `noindex` everywhere, and no WhatsApp or email handoffs        |
 | Guard     | A build fails if the simulation flag and the production database are mixed up (`frontend/src/lib/environment.ts`)           |
@@ -42,7 +42,7 @@ Every migration is applied to the simulation project first, then to production. 
 ## Journey tests
 
 ```sh
-npm run test:sim -w frontend                       # against https://re-loop-demo.vercel.app
+npm run test:sim -w frontend                       # against https://re-loop-demo-beige.vercel.app
 SIM_BASE_URL=http://localhost:3200 npm run test:sim -w frontend
 ```
 

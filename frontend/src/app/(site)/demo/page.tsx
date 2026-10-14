@@ -31,7 +31,7 @@ export default function DemoPage() {
   return (
     <Container className="py-12 sm:py-16">
       <div className="max-w-3xl">
-        <p className="text-sm font-semibold tracking-wide text-brand-600 uppercase">Simulation</p>
+        <p className="text-sm font-semibold text-brand-600">Simulation</p>
         <h1 className="mt-3 text-4xl font-bold">About this demo</h1>
         <p className="mt-4 text-lg leading-relaxed text-muted">
           This site runs the real ReLoop software on a separate database filled with simulated

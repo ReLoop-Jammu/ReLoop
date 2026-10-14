@@ -1,18 +1,26 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Instrument_Sans, JetBrains_Mono, Outfit } from "next/font/google";
 import { SimulationBanner } from "@/components/layout/SimulationBanner";
 import { env } from "@/lib/env";
 import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const bricolage = Bricolage_Grotesque({
+// The business plan's type: Outfit for headings, Instrument Sans for text,
+// JetBrains Mono only for real identifiers (RL-JMU tags, receipt numbers).
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
+const instrument = Instrument_Sans({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  variable: "--font-instrument",
   display: "swap",
+});
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -30,12 +38,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf8f3",
+  themeColor: "#f6ede2",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${bricolage.variable}`}>
+    <html
+      lang="en-IN"
+      className={`${outfit.variable} ${instrument.variable} ${jetbrains.variable}`}
+    >
       <body className="flex min-h-dvh flex-col font-sans">
         <SimulationBanner />
         {children}

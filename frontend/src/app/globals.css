@@ -1,79 +1,83 @@
 @import "tailwindcss";
 
 /*
- * ReLoop design tokens. Components use these semantic names
- * (bg-surface, text-ink-soft, bg-condition-working-bg…), never raw hex.
+ * ReLoop design tokens, from the business plan's palette (docs/ReLoop_Business_Plan.html):
+ * sand and paper neutrals, ink text, navy for actions and the loop, amber as
+ * the warm accent (fills only: it is too light for text). Every text colour
+ * below passes WCAG AA (4.5:1) on canvas, surface and sunken.
+ * Components use these semantic names, never raw hex.
  */
 @theme {
-  /* Brand */
-  --color-brand-50: #eef6fb;
-  --color-brand-100: #d6e9f5;
-  --color-brand-200: #aed2ea;
-  --color-brand-500: #2a8bc9;
-  --color-brand-600: #1e6b9e;
-  --color-brand-700: #175680;
-  --color-brand-900: #0c2e45;
-  --color-brand-950: #081f30;
-  --color-gold-100: #fbf0d0;
-  --color-gold-400: #efc553;
-  --color-gold-500: #e8b83a;
-  --color-gold-700: #75560a;
+  /* Navy: actions, links, the loop */
+  --color-brand-50: #eef2f8;
+  --color-brand-100: #d9e2ef;
+  --color-brand-200: #b3c5de;
+  --color-brand-500: #3a5f92;
+  --color-brand-600: #26436c;
+  --color-brand-700: #1e3657;
+  --color-brand-900: #142640;
+  --color-brand-950: #0e1a27;
+  /* Amber: the warm accent (fills, highlights); gold-700 is its text-safe ink */
+  --color-gold-100: #f8e8d2;
+  --color-gold-400: #e9b26e;
+  --color-gold-500: #dc9c4a;
+  --color-gold-700: #7a4e14;
 
-  /* Neutrals */
-  --color-canvas: #faf8f3;
-  --color-surface: #ffffff;
-  --color-sunken: #f3f0e8;
-  --color-line: #e8e3d8;
-  --color-line-strong: #d6cfbf;
-  --color-ink: #16202a;
-  --color-ink-soft: #3d4852;
-  --color-muted: #5b646e;
+  /* Neutrals: sand page, paper surfaces */
+  --color-sand: #f0e1d1;
+  --color-canvas: #f6ede2;
+  --color-surface: #fffcf7;
+  --color-sunken: #efe2d3;
+  --color-line: #e2d2bf;
+  --color-line-strong: #c9b39a;
+  --color-ink: #0e1a27;
+  --color-ink-soft: #3b4e66;
+  --color-muted: #56667a;
 
-  /* Condition badges */
-  --color-condition-working: #17693f;
-  --color-condition-working-bg: #e3f4ea;
-  --color-condition-tested: #17588a;
-  --color-condition-tested-bg: #e1eef8;
-  --color-condition-repairable: #8a5a00;
-  --color-condition-repairable-bg: #fdf1d3;
-  --color-condition-parts: #4a5561;
-  --color-condition-parts-bg: #edf0f3;
-  --color-condition-eol: #a3261b;
-  --color-condition-eol-bg: #fbe8e6;
+  /* Status */
+  --color-success: #2f6b4f;
+  --color-success-bg: #e3efe7;
+  --color-warning: #7a4e14;
+  --color-warning-bg: #f8e8d2;
+  --color-info: #2e5a88;
+  --color-info-bg: #e1e9f3;
+  --color-danger: #a3412f;
+  --color-danger-bg: #f6e1dc;
 
-  --color-danger: #b3261e;
+  /* Grades A–D */
+  --color-grade-a: #2f6b4f;
+  --color-grade-a-bg: #e3efe7;
+  --color-grade-b: #2e5a88;
+  --color-grade-b-bg: #e1e9f3;
+  --color-grade-c: #7a4e14;
+  --color-grade-c-bg: #f6e7cf;
+  --color-grade-d: #a3412f;
+  --color-grade-d-bg: #f6e1dc;
 
-  /* Grade badges (A–D) */
-  --color-grade-a: #17693f;
-  --color-grade-a-bg: #e3f4ea;
-  --color-grade-b: #17588a;
-  --color-grade-b-bg: #e1eef8;
-  --color-grade-c: #7a4f00;
-  --color-grade-c-bg: #fdf1d3;
-  --color-grade-d: #a3261b;
-  --color-grade-d-bg: #fbe8e6;
+  /* Maps and charts */
+  --color-map-hub: #26436c;
+  --color-map-route: #9a5f17;
+  --color-map-recycler: #a3412f;
+  --color-map-partner: #2f6b4f;
 
-  /* Category tints */
-  --color-cat-devices: #1e6b9e;
-  --color-cat-devices-bg: #e4f0f8;
-  --color-cat-components: #5b3fc4;
-  --color-cat-components-bg: #ece8fb;
-  --color-cat-repairable: #9a6a00;
-  --color-cat-repairable-bg: #fbefd0;
-  --color-cat-bulk: #0f6f67;
-  --color-cat-bulk-bg: #dcf2ef;
-  --color-cat-recycling: #17693f;
-  --color-cat-recycling-bg: #e3f4ea;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Type scale (1.2 minor third, 16px body) */
+  --text-display: 3.75rem;
+  --text-display--line-height: 1.04;
+  --text-title: 2.25rem;
+  --text-title--line-height: 1.12;
 
-  --radius-card: 1.25rem;
-  --radius-panel: 1.75rem;
+  /* Radii: controls are pills, cards are softly rounded, panels a little more */
+  --radius-card: 0.875rem;
+  --radius-panel: 1.25rem;
 
-  --shadow-soft: 0 1px 2px rgb(22 32 42 / 0.04), 0 4px 16px rgb(22 32 42 / 0.05);
-  --shadow-lift: 0 2px 4px rgb(22 32 42 / 0.04), 0 18px 40px -8px rgb(12 46 69 / 0.18);
-  --shadow-float: 0 30px 60px -20px rgb(8 31 48 / 0.45);
+  /* Shadows tinted with ink, used sparingly: cards sit on lines, not shadows */
+  --shadow-soft: 0 1px 2px rgb(14 26 39 / 0.05);
+  --shadow-lift: 0 1px 2px rgb(14 26 39 / 0.05), 0 12px 32px -12px rgb(14 26 39 / 0.22);
+  --shadow-float: 0 24px 56px -20px rgb(14 26 39 / 0.4);
 
   --animate-rise: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-drift: drift 7s ease-in-out infinite;
@@ -118,7 +122,7 @@
     text-wrap: pretty;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-500;
+    @apply outline-2 outline-offset-2 outline-brand-600;
   }
   ::selection {
     @apply bg-gold-400/60;

@@ -46,7 +46,7 @@ export default function LoginPage() {
         <p className="mt-3 text-muted">Use the email and password associated with your account.</p>
         <form
           onSubmit={submit}
-          className="mt-8 space-y-4 rounded-2xl border border-line bg-surface p-5 sm:p-7"
+          className="mt-8 space-y-4 rounded-card border border-line bg-surface p-5 sm:p-7"
         >
           <label className="grid gap-1.5 text-sm font-medium">
             Email address

@@ -3,11 +3,11 @@
 import { Search } from "lucide-react";
 import Form from "next/form";
 import { useRef } from "react";
+import { controlClasses } from "@/components/ui/controls";
 import { CATEGORIES } from "@/features/inventory/model";
 import { SHOP_SORTS, type ShopFilters } from "../model";
 
-const selectClass =
-  "min-h-11 w-full appearance-none rounded-xl border border-line bg-surface bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%235b646e%22 stroke-width=%222%22><path d=%22m6 9 6 6 6-6%22/></svg>')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-9 pl-3.5 text-base text-ink transition hover:border-line-strong focus:border-brand-500 focus:ring-3 focus:ring-brand-500/15 focus:outline-none sm:text-sm";
+const selectClass = controlClasses({ select: true });
 
 /**
  * Search, category and sort live in the URL (?q=&category=&sort=&grade=) so

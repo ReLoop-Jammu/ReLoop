@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
           {SITE.whatsapp && !IS_SIMULATION && (
             <a
               href={wa(SITE.whatsapp)}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 font-semibold hover:border-line-strong"
+              className="flex items-center gap-3 rounded-card border border-line bg-surface p-4 font-semibold hover:border-line-strong"
             >
               <MessageCircle className="size-5 text-brand-600" aria-hidden="true" />
               WhatsApp {pretty(SITE.whatsapp)}
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
           {SITE.supportEmail && !IS_SIMULATION && (
             <a
               href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Forgot my ReLoop password")}`}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 font-semibold hover:border-line-strong"
+              className="flex items-center gap-3 rounded-card border border-line bg-surface p-4 font-semibold hover:border-line-strong"
             >
               <Mail className="size-5 text-brand-600" aria-hidden="true" />
               {SITE.supportEmail}

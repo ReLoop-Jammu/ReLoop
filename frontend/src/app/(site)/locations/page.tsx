@@ -42,7 +42,7 @@ export default async function LocationsPage() {
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <section
           aria-labelledby="hub-heading"
-          className="rounded-2xl border border-line bg-surface p-6"
+          className="rounded-card border border-line bg-surface p-6"
         >
           <MapPin className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="hub-heading" className="mt-3 text-xl font-bold">
@@ -53,7 +53,7 @@ export default async function LocationsPage() {
 
         <section
           aria-labelledby="shops-heading"
-          className="rounded-2xl border border-line bg-surface p-6"
+          className="rounded-card border border-line bg-surface p-6"
         >
           <Store className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="shops-heading" className="mt-3 text-xl font-bold">
@@ -84,7 +84,7 @@ export default async function LocationsPage() {
 
         <section
           aria-labelledby="route-heading"
-          className="rounded-2xl border border-line bg-surface p-6 lg:col-span-2"
+          className="rounded-card border border-line bg-surface p-6 lg:col-span-2"
         >
           <Truck className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="route-heading" className="mt-3 text-xl font-bold">
@@ -110,7 +110,7 @@ export default async function LocationsPage() {
 
         <section
           aria-labelledby="recycler-heading"
-          className="rounded-2xl border border-line bg-surface p-6"
+          className="rounded-card border border-line bg-surface p-6"
         >
           <Recycle className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="recycler-heading" className="mt-3 text-xl font-bold">
@@ -126,7 +126,7 @@ export default async function LocationsPage() {
 
         <section
           aria-labelledby="qr-heading"
-          className="rounded-2xl border border-line bg-surface p-6"
+          className="rounded-card border border-line bg-surface p-6"
         >
           <QrCode className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="qr-heading" className="mt-3 text-xl font-bold">
