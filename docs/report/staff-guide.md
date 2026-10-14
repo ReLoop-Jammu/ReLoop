@@ -93,14 +93,17 @@ A shop that agreed in person at the counter doesn't need to accept in the app: a
 3. Fill in **How we bought it**, **We paid (₹)** (0 for free scrap), **Payment method** and, if you have them, **Expected resale (₹)** and **Weight (kg)**.
 4. Save. The item gets the next **RL-JMU-** tag. Write the tag on the item. Press **Open item**.
 
-**Grading** (within 24 hours of arrival), on the item's page under **Test and grade**:
+**Inspecting and grading** (within 24 hours of arrival), on the item's page under **Inspect and grade (ReLoop Checked)**:
 
-1. Go through the **Test checklist**.
-2. Pick the **Grade** and press **Save grade**:
+1. Give every check a result: **Works**, **Doesn't work** or **Not applicable**. For phones, laptops and UPS units enter **Battery health (%)**, and for laptops, desktops and drives **Storage health (%)**, when you can measure them (leave empty if not).
+2. Pick the **Grade** and press **Save inspection and grade**:
    - **A**: everything passes.
    - **B**: one fixable fault.
    - **C**: not worth fixing; good parts will be removed.
    - **D**: dead or hazardous.
+
+   Nothing can be listed without a saved inspection. Once listed, the checks, health readings and the data wipe appear on the item's shop page as its **ReLoop Checked** report; **Faults found** stays in the hub. Grading **A** at intake records every check as working; any other grade is inspected on the item's page. After a repair, inspect the item again before listing it.
+
 3. **Data wipe** (phones, laptops, drives): pick the **Method** and press **Mark wiped**. Use "Drive drilled (wipe failed)" if a drive won't wipe. Nothing can be listed until the wipe is recorded.
 4. Enter the **Rack** location so others can find it.
 

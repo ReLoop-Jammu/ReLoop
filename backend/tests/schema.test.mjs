@@ -13,6 +13,9 @@ async function intake(tx, fields = {}) {
     buy_mode: "cash",
     brand: "Samsung",
     model: "M31",
+    // Inspected, so the listing rules below fail for their own reasons (20261102000001).
+    inspection: { version: 1, checks: { "Powers on": "pass" } },
+    inspected_at: new Date().toISOString(),
     ...fields,
   };
   const cols = Object.keys(f);

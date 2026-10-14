@@ -314,3 +314,37 @@ test.describe("listing controls", () => {
     await expect(page.getByText(/returned · Dead pixels found at home/)).toBeVisible();
   });
 });
+
+test.describe("ReLoop Checked", () => {
+  test("a grade B item is inspected before it can be listed", async ({ page }) => {
+    await page.goto("/hub/intake");
+    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Category").selectOption("monitor");
+    await page.getByLabel("Brand").fill("Samsung");
+    await page.getByLabel("Grade (if tested now)").selectOption("B");
+    await page.getByLabel("We paid (₹)").fill("300");
+    await page.getByRole("button", { name: "Save and assign tag" }).click();
+    await page.getByRole("link", { name: "Open item" }).click();
+    await page.getByLabel("List price (₹)").fill("2000");
+    await expect(page.getByText(/Save the inspection \(above\) before listing/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "List online" })).toBeDisabled();
+
+    // Every check needs a result.
+    await page.getByRole("button", { name: "Save inspection and grade" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Record a result for" })).toBeVisible();
+    for (const check of ["Powers on", "Display", "Inputs"])
+      await page.getByLabel(check, { exact: true }).selectOption("pass");
+    await page.getByLabel("No dead pixels").selectOption("fail");
+    await page.getByRole("button", { name: "Save inspection and grade" }).click();
+    await expect(page.getByText("Inspection saved: grade B.")).toBeVisible();
+    await page.getByLabel("List price (₹)").fill("2000");
+    await page.getByRole("button", { name: "List online" }).click();
+    await expect(page.getByText(/Listed at ₹2,000/).first()).toBeVisible();
+  });
+
+  test("sample items say they weren't inspected", async ({ page }) => {
+    await page.goto("/shop/RL-JMU-0001");
+    await expect(page.getByRole("heading", { name: "ReLoop Checked" })).toBeVisible();
+    await expect(page.getByText(/Sample, not inspected/)).toBeVisible();
+  });
+});

@@ -129,6 +129,12 @@ select check_name, ok
         and pg_get_functiondef('public.my_warranty_claims()'::regprocedure) like '%c.buyer_id = auth.uid()%'
         and pg_get_functiondef('public.decide_warranty_claim(uuid, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
         and pg_get_functiondef('public.log_warranty_claim(text, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
-        and not has_function_privilege('anon', 'public.open_warranty_claim(text, text)', 'EXECUTE'))
+        and not has_function_privilege('anon', 'public.open_warranty_claim(text, text)', 'EXECUTE')),
+    (16, 'ReLoop Checked: nothing is on sale without an inspection, which visitors may read (never faults or notes)',
+        exists (select 1 from pg_constraint where conname = 'items_inspected_before_sale' and convalidated)
+        and exists (select 1 from pg_constraint where conname = 'items_inspection_shape' and convalidated)
+        and not exists (select 1 from public.items where status::text in ('listed', 'reserved') and inspection is null)
+        and has_column_privilege('anon', 'public.items', 'inspection', 'SELECT')
+        and not has_column_privilege('anon', 'public.items', 'faults', 'SELECT'))
   ) as c(n, check_name, ok)
  order by n;

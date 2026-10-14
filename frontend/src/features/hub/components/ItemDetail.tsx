@@ -29,6 +29,14 @@ import {
 import type { Partner } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
 import { CHECKLISTS } from "../checklists";
+import {
+  checklistOf,
+  INSPECTION_VERSION,
+  inspectionProblem,
+  measuresFor,
+  type CheckResult,
+  type Inspection,
+} from "@/features/inventory/inspection";
 import { ListingControls } from "./ListingControls";
 import {
   Field,
@@ -222,40 +230,118 @@ function GradePanel({
   formId: string;
 }) {
   const tests = CHECKLISTS[item.category];
-  const [checks, setChecks] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(tests.map((t) => [t, item.checklist[t] ?? false])),
+  const measures = measuresFor(item.category, item.partType);
+  const [checks, setChecks] = useState<Record<string, CheckResult | "">>(() =>
+    Object.fromEntries(
+      tests.map((t) => [
+        t,
+        item.inspection?.checks[t] ??
+          (t in item.checklist ? (item.checklist[t] ? "pass" : "fail") : ""),
+      ]),
+    ),
   );
+  const [battery, setBattery] = useState(item.inspection?.batteryHealthPct?.toString() ?? "");
+  const [storage, setStorage] = useState(item.inspection?.storageHealthPct?.toString() ?? "");
   const [grade, setGrade] = useState<Grade | "">(item.grade ?? "");
   const [faults, setFaults] = useState(item.faults);
-  const allPass = tests.every((t) => checks[t]);
+  const [error, setError] = useState("");
+  const everyPass = tests.every((t) => checks[t] === "pass" || checks[t] === "na");
   const locked = ["listed", "reserved", "sold", "handed_over", "stripped"].includes(item.status);
 
+  function save() {
+    if (!grade) return;
+    const inspection: Inspection = {
+      version: INSPECTION_VERSION,
+      checks: Object.fromEntries(
+        Object.entries(checks).filter((e): e is [string, CheckResult] => e[1] !== ""),
+      ),
+      ...(battery !== "" && { batteryHealthPct: Number(battery) }),
+      ...(storage !== "" && { storageHealthPct: Number(storage) }),
+    };
+    const problem = inspectionProblem(item.category, inspection);
+    if (problem) return setError(problem);
+    if (grade === "A" && !everyPass) return setError("Grade A means every check works.");
+    setError("");
+    void onSave(
+      withEvent(
+        {
+          ...item,
+          grade,
+          inspection,
+          inspectedAt: at(),
+          checklist: checklistOf(inspection),
+          faults,
+          gradedAt: item.gradedAt ?? at(),
+          status: item.status === "received" ? "graded" : item.status,
+        },
+        "inspected",
+        `Grade ${grade}${faults ? `: ${faults}` : ""}`,
+      ),
+      `Inspection saved: grade ${grade}.`,
+    );
+  }
+
   return (
-    <Panel title="Test and grade">
+    <Panel title="Inspect and grade (ReLoop Checked)">
       <fieldset disabled={locked}>
-        <legend className="sr-only">Test checklist</legend>
-        <ul className="grid grid-cols-2 gap-2">
-          {tests.map((t) => (
-            <li key={t}>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="size-4"
-                  checked={checks[t] ?? false}
-                  onChange={(e) => setChecks((c) => ({ ...c, [t]: e.target.checked }))}
-                />
-                {t}
-              </label>
+        <legend className="sr-only">Inspection</legend>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {tests.map((t, i) => (
+            <li key={t} className="flex items-center justify-between gap-2 text-sm">
+              <label htmlFor={`${formId}-check-${i}`}>{t}</label>
+              <select
+                id={`${formId}-check-${i}`}
+                className={`${hubInput} w-36`}
+                value={checks[t] ?? ""}
+                onChange={(e) => setChecks((c) => ({ ...c, [t]: e.target.value as CheckResult }))}
+              >
+                <option value="">Result…</option>
+                <option value="pass">Works</option>
+                <option value="fail">Doesn&apos;t work</option>
+                <option value="na">Not applicable</option>
+              </select>
             </li>
           ))}
         </ul>
+        {(measures.battery || measures.storage) && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {measures.battery && (
+              <Field
+                label="Battery health (%)"
+                htmlFor={`${formId}-bat`}
+                hint="From the phone's or laptop's own report; leave empty if not measured."
+              >
+                <Input
+                  id={`${formId}-bat`}
+                  inputMode="numeric"
+                  value={battery}
+                  onChange={(e) => setBattery(e.target.value)}
+                />
+              </Field>
+            )}
+            {measures.storage && (
+              <Field
+                label="Storage health (%)"
+                htmlFor={`${formId}-sto`}
+                hint="From the drive's health check; leave empty if not measured."
+              >
+                <Input
+                  id={`${formId}-sto`}
+                  inputMode="numeric"
+                  value={storage}
+                  onChange={(e) => setStorage(e.target.value)}
+                />
+              </Field>
+            )}
+          </div>
+        )}
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field
             label="Grade"
             htmlFor={`${formId}-g`}
             hint={
-              allPass
-                ? "Everything passes: grade A."
+              everyPass
+                ? "Everything works: grade A."
                 : "One fixable fault: B. Not worth fixing: C. Dead or hazardous: D."
             }
           >
@@ -272,7 +358,7 @@ function GradePanel({
               ))}
             </Select>
           </Field>
-          <Field label="Faults found" htmlFor={`${formId}-f`}>
+          <Field label="Faults found (staff only)" htmlFor={`${formId}-f`}>
             <Input
               id={`${formId}-f`}
               value={faults}
@@ -282,35 +368,28 @@ function GradePanel({
             />
           </Field>
         </div>
-        <Button
-          className="mt-4"
-          size="sm"
-          disabled={!grade}
-          onClick={() =>
-            grade &&
-            onSave(
-              withEvent(
-                {
-                  ...item,
-                  grade,
-                  checklist: checks,
-                  faults,
-                  gradedAt: item.gradedAt ?? at(),
-                  status: item.status === "received" ? "graded" : item.status,
-                },
-                "graded",
-                `Grade ${grade}${faults ? `: ${faults}` : ""}`,
-              ),
-              `Saved as grade ${grade}.`,
-            )
-          }
-        >
-          Save grade
+        <p className="mt-3 text-xs text-muted">
+          Once the item is listed, the checks and health readings are shown on its shop page as the
+          ReLoop Checked report. Faults are not.
+        </p>
+        <Button className="mt-4" size="sm" disabled={!grade} onClick={save}>
+          Save inspection and grade
         </Button>
+        {error && (
+          <p role="alert" className="mt-2 text-sm text-danger">
+            {error}
+          </p>
+        )}
       </fieldset>
+      {item.inspectedAt && (
+        <p className="mt-3 text-xs text-muted">
+          Inspected {new Date(item.inspectedAt).toLocaleString("en-IN")}
+          {item.inspection?.fromChecklist && " (from the earlier checklist)"}.
+        </p>
+      )}
       {locked && (
         <p className="mt-3 text-xs text-muted">
-          Grading is locked once an item is listed or has left the hub.
+          The inspection is locked once an item is listed or has left the hub.
         </p>
       )}
     </Panel>
@@ -363,6 +442,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
     await reload();
   };
 
+  const inspected = Boolean(item.inspection && item.inspectedAt);
   const canList =
     (g === "A" || g === "B" || g === "C") &&
     (status === "graded" || status === "stripping") &&
@@ -387,9 +467,15 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
           {!wipeDone && (
             <p className="text-sm text-grade-c">Record the data wipe before listing.</p>
           )}
+          {!inspected && (
+            <p className="text-sm text-grade-c">
+              Save the inspection (above) before listing: it is the item&apos;s ReLoop Checked
+              report.
+            </p>
+          )}
           <Button
             size="sm"
-            disabled={!wipeDone || !rupeesToPaiseOrNull(price)}
+            disabled={!wipeDone || !inspected || !rupeesToPaiseOrNull(price)}
             onClick={() => {
               const p = rupeesToPaiseOrNull(price);
               if (p)

@@ -2,6 +2,7 @@ import { ArrowLeft, Check, Info, MapPin, ShieldCheck, Truck, Package } from "luc
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReLoopChecked } from "@/features/shop/components/ReLoopChecked";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
@@ -173,26 +174,30 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             </>
           )}
 
-          {(item.checks.length > 0 || item.dataWiped) && (
-            <>
-              <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted">
-                Tested at the hub
-              </h2>
-              <ul className="mt-3 grid grid-cols-2 gap-2">
-                {item.checks.map((c) => (
-                  <li key={c} className="flex items-center gap-2 text-sm text-ink-soft">
-                    <Check className="size-4 text-grade-a" aria-hidden="true" />
-                    {c}
-                  </li>
-                ))}
-                {item.dataWiped && (
-                  <li className="flex items-center gap-2 text-sm font-medium text-ink">
-                    <Check className="size-4 text-grade-a" aria-hidden="true" />
-                    Data wiped
-                  </li>
-                )}
-              </ul>
-            </>
+          {item.report || item.sample ? (
+            <ReLoopChecked item={item} />
+          ) : (
+            (item.checks.length > 0 || item.dataWiped) && (
+              <>
+                <h2 className="mt-8 font-sans text-sm font-semibold tracking-normal text-muted">
+                  Tested at the hub
+                </h2>
+                <ul className="mt-3 grid grid-cols-2 gap-2">
+                  {item.checks.map((c) => (
+                    <li key={c} className="flex items-center gap-2 text-sm text-ink-soft">
+                      <Check className="size-4 text-grade-a" aria-hidden="true" />
+                      {c}
+                    </li>
+                  ))}
+                  {item.dataWiped && (
+                    <li className="flex items-center gap-2 text-sm font-medium text-ink">
+                      <Check className="size-4 text-grade-a" aria-hidden="true" />
+                      Data wiped
+                    </li>
+                  )}
+                </ul>
+              </>
+            )
           )}
 
           {item.grade === "C" && (

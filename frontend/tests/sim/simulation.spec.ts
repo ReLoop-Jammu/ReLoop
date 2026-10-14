@@ -341,3 +341,16 @@ test.describe("warranty claims (real logins)", () => {
     await staff.context().close();
   });
 });
+
+test.describe("ReLoop Checked (simulated stock)", () => {
+  test("a listed item shows its inspection report, wipe and warranty", async ({ page }) => {
+    await page.goto("/shop?category=laptop");
+    await page.locator("main article a").first().click();
+    await expect(page.getByRole("heading", { name: "ReLoop Checked" })).toBeVisible();
+    await expect(page.getByText(/Inspected at the Jammu hub on \d+ \w+ \d{4}/)).toBeVisible();
+    await expect(
+      page.getByText(/Personal data wiped on|doesn't store personal data|wiped before sale/),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Warranty terms" })).toBeVisible();
+  });
+});

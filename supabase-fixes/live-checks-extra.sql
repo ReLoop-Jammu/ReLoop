@@ -27,7 +27,9 @@ select check_name, ok
                        and c.column_name not in ('id', 'category', 'part_type', 'grade', 'brand', 'model',
                                                  'description', 'checklist', 'wipe_required', 'wiped_at',
                                                  'list_paise', 'current_paise', 'price_cut_at', 'status',
-                                                 'listed_at'))),
+                                                 'listed_at',
+                                                 -- the ReLoop Checked report (20261102000001)
+                                                 'inspection', 'inspected_at', 'wipe_method'))),
     (7, 'Hub: visitors cannot read item history, repairs, handovers, partners, institutions, staff or counters',
         not exists (select 1 from unnest(array['item_events', 'repair_jobs', 'handovers', 'partners', 'institutions',
                                                'staff', 'consignments', 'item_counters']) as t

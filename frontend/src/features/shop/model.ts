@@ -28,8 +28,21 @@ export type ShopItem = {
   warrantyDays: number | null;
   shipsIndia: boolean;
   listedAt: string;
+  /** The ReLoop Checked report: what the hub inspection found (absent for samples). */
+  report?: ShopReport;
   /** True for illustrative items shown before real stock exists. */
   sample?: boolean;
+};
+
+export type ShopReport = {
+  inspectedAt: string;
+  checks: { name: string; result: "pass" | "fail" | "na" }[];
+  batteryHealthPct?: number;
+  storageHealthPct?: number;
+  /** Whether the item can hold personal data, and when and how it was wiped. */
+  wipeRequired: boolean;
+  wipedAt?: string;
+  wipeMethod?: "reset_overwrite" | "drive_wipe" | "drilled";
 };
 
 export type ShopSnapshot = { publishedAt: string; items: ShopItem[] };
@@ -61,6 +74,19 @@ export const shopSnapshotSchema = z.object({
         warrantyDays: z.number().int().positive().nullable(),
         shipsIndia: z.boolean(),
         listedAt: z.iso.datetime(),
+        report: z
+          .object({
+            inspectedAt: z.iso.datetime(),
+            checks: z.array(
+              z.object({ name: z.string().max(60), result: z.enum(["pass", "fail", "na"]) }),
+            ),
+            batteryHealthPct: z.number().min(0).max(100).optional(),
+            storageHealthPct: z.number().min(0).max(100).optional(),
+            wipeRequired: z.boolean(),
+            wipedAt: z.iso.datetime().optional(),
+            wipeMethod: z.enum(["reset_overwrite", "drive_wipe", "drilled"]).optional(),
+          })
+          .optional(),
         sample: z.boolean().optional(),
       }),
     )
@@ -86,10 +112,33 @@ export function toShopItem(item: Item): ShopItem | null {
     ...(item.priceCutAt && item.listPaise && { wasPaise: item.listPaise }),
     description: item.description,
     ...(item.photos[0] && { photo: item.photos[0] }),
-    checks: Object.entries(item.checklist)
-      .filter(([, ok]) => ok)
-      .map(([name]) => name),
+    checks: item.inspection
+      ? Object.entries(item.inspection.checks)
+          .filter(([, r]) => r === "pass")
+          .map(([name]) => name)
+      : Object.entries(item.checklist)
+          .filter(([, ok]) => ok)
+          .map(([name]) => name),
     dataWiped: Boolean(item.dataWipe.doneAt),
+    ...(item.inspection &&
+      item.inspectedAt && {
+        report: {
+          inspectedAt: item.inspectedAt,
+          checks: Object.entries(item.inspection.checks).map(([name, result]) => ({
+            name,
+            result,
+          })),
+          ...(item.inspection.batteryHealthPct !== undefined && {
+            batteryHealthPct: item.inspection.batteryHealthPct,
+          }),
+          ...(item.inspection.storageHealthPct !== undefined && {
+            storageHealthPct: item.inspection.storageHealthPct,
+          }),
+          wipeRequired: item.dataWipe.required,
+          ...(item.dataWipe.doneAt && { wipedAt: item.dataWipe.doneAt }),
+          ...(item.dataWipe.method && { wipeMethod: item.dataWipe.method }),
+        },
+      }),
     warrantyDays: warranty ? BUSINESS_RULES.warrantyDays : null,
     shipsIndia: shipsAcrossIndia(item),
     listedAt: item.listedAt,
