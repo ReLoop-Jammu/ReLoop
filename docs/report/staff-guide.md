@@ -124,6 +124,12 @@ The **passport** (`/passport/RL-JMU-…`, button **Passport** on the item's page
 2. Enter the **List price (₹)** and press **List online**. It appears in the public shop straight away.
 3. Unsold items are handled automatically: after 45 days the price drops 20%, and after 75 days the item is downgraded to C.
 
+**Prices visitors see** besides ours (all optional, and each shown only when it's recent):
+
+- **Price references** (`/hub/pricing/references`, menu **Price references**): what working units sell for used (low, typical, high), **where** you found the prices (shown to visitors) and the date you **checked**. Use a brand and model for a specific reference, or leave them empty for the whole category. An item page shows the fair-price band of the most specific reference less than 180 days old; grade B uses 75% of it. **Template (CSV)** and **Import a filled-in template** add many at once.
+- **Price new** (on the item's page, under **Listing controls**): the price of the same item new, where and when. The shop page then says "about ₹X less than new".
+- The item's own price history (its listing price and each change, such as the day-45 cut) shows automatically.
+
 **Listing controls** (on the item's page, any time after intake):
 
 - **Hide from the shop** takes the item off the public shop and every public page, whatever its status (for example while you retake a photo); the 45- and 75-day clocks keep running while it's hidden. **Show in the shop** puts it back. The item list marks hidden items.

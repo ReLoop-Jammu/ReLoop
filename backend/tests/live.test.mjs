@@ -3087,3 +3087,150 @@ describe("item passport (20261103000001)", () => {
     assert.equal(gone.rows.length, 0);
   });
 });
+
+describe("public pricing (20261104000001)", () => {
+  let db;
+  let staff;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+  });
+  const listed = async (
+    grade,
+    { brand = "Dell", model = "Latitude 5490", price = 1500000 } = {},
+  ) => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, buy_mode, buy_paise, grade, current_paise, list_paise, status,
+                                 listed_at, wiped_at, inspection, inspected_at, brand, model)
+       values ('repair_shop', 'laptop', 'cash', 400000, $1, $2, $2, 'listed', now() - interval '3 days', now(),
+               '{"version": 1, "checks": {}}', now(), $3, $4)
+       returning id`,
+      [grade, price, brand, model],
+    );
+    return rows[0].id;
+  };
+  const ref = (fields) =>
+    as(db, staff, (tx) =>
+      tx.query(
+        `insert into public.reference_prices (category, brand, model, low_paise, typical_paise, high_paise, source, checked_on)
+         values ('laptop', $1, $2, $3, $4, $5, $6, $7)`,
+        [
+          fields.brand ?? "",
+          fields.model ?? "",
+          fields.low,
+          fields.typical,
+          fields.high,
+          fields.source ?? "OLX listings",
+          fields.on ?? "today",
+        ],
+      ),
+    );
+  const band = (id) =>
+    as(db, null, (tx) =>
+      tx.query("select * from public.public_price_bands where item_id = $1", [id]),
+    ).then((r) => r.rows[0]);
+
+  test("only staff manage reference prices; visitors and buyers can't read them", async () => {
+    await ref({ low: 1200000, typical: 1500000, high: 1800000 });
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query(
+          "insert into public.reference_prices (category, low_paise, typical_paise, high_paise, source, checked_on) values ('phone', 1, 1, 1, 'x x', now())",
+        ),
+      ),
+      /row-level security/,
+    );
+    assert.equal(
+      (await as(db, buyer, (tx) => tx.query("select * from public.reference_prices"))).rows.length,
+      0,
+    );
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.reference_prices")),
+      /permission denied/,
+    );
+    await assert.rejects(ref({ low: 5, typical: 4, high: 6 }), /reference_prices_order/);
+  });
+
+  test("grade A shows the band, grade B the band times 0.75; a model reference beats the category", async () => {
+    const a = await listed("A");
+    const b = await listed("B", { price: 1000000 });
+    assert.deepEqual(
+      {
+        low: (await band(a)).band_low_paise,
+        high: (await band(a)).band_high_paise,
+        scope: (await band(a)).band_scope,
+      },
+      { low: 1200000, high: 1800000, scope: "category" },
+    );
+    const forB = await band(b);
+    assert.deepEqual([forB.band_low_paise, forB.band_high_paise], [900000, 1350000]);
+    await ref({
+      brand: "Dell",
+      model: "Latitude 5490",
+      low: 1400000,
+      typical: 1600000,
+      high: 1900000,
+      source: "Cashify, 3 listings",
+    });
+    const specific = await band(a);
+    assert.deepEqual(
+      [specific.band_low_paise, specific.band_scope, specific.band_source],
+      [1400000, "model", "Cashify, 3 listings"],
+    );
+    const keys = Object.keys(specific).join(",");
+    assert.ok(!/buy|cost|margin|supplier/.test(keys), keys);
+  });
+
+  test("an old reference or new price isn't shown; a fresh new price is", async () => {
+    const id = await listed("A", { brand: "HP", model: "250 G7" });
+    await as(db, staff, (tx) => tx.query("delete from public.reference_prices"));
+    await ref({
+      low: 1,
+      typical: 2,
+      high: 3,
+      on: new Date(Date.now() - 200 * 86400000).toISOString().slice(0, 10),
+    });
+    assert.equal((await band(id)).band_low_paise, null, "older than 180 days");
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.items set new_price_paise = 3500000, new_price_source = 'HP India store', new_price_checked_on = current_date - 400 where id = $1",
+        [id],
+      ),
+    );
+    assert.equal((await band(id)).new_price_paise, null);
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set new_price_checked_on = current_date where id = $1", [id]),
+    );
+    const fresh = await band(id);
+    assert.deepEqual([fresh.new_price_paise, fresh.new_price_source], [3500000, "HP India store"]);
+  });
+
+  test("visitors see a listed item's price history since it was listed", async () => {
+    const id = await listed("A", { brand: "Asus", model: "VivoBook", price: 2000000 });
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set current_paise = 1800000 where id = $1", [id]),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set current_paise = 1600000 where id = $1", [id]),
+    );
+    const { rows } = await as(db, null, (tx) =>
+      tx.query(
+        "select price_paise from public.public_price_history where item_id = $1 order by at",
+        [id],
+      ),
+    );
+    assert.deepEqual(
+      rows.map((r) => Number(r.price_paise)),
+      [2000000, 1800000, 1600000],
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = true where id = $1", [id]),
+    );
+    const none = await as(db, null, (tx) =>
+      tx.query("select 1 from public.public_price_history where item_id = $1", [id]),
+    );
+    assert.equal(none.rows.length, 0);
+  });
+});

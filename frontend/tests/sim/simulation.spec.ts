@@ -380,3 +380,29 @@ test.describe("item passport (simulated stock)", () => {
     await (await popup).close();
   });
 });
+
+test.describe("public pricing (simulated references)", () => {
+  test("a listed item shows its estimated fair-price band with source and date", async ({
+    page,
+  }) => {
+    await page.goto("/shop?category=laptop");
+    await page.locator("main article a").first().click();
+    await expect(
+      page.getByText(/Estimated fair price for this kind of item and\s+grade/),
+    ).toBeVisible();
+    await expect(page.getByText(/Estimate from Simulated reference/)).toBeVisible();
+    await expect(page.getByText(/Our price is (below|within|above) the usual range/)).toBeVisible();
+  });
+
+  test("hub staff see the simulated references and which are too old", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-staff@reloop.demo", "/hub/pricing/references");
+    await expect(page.getByRole("table", { name: "Reference prices" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/Simulated reference/).first()).toBeVisible();
+  });
+});

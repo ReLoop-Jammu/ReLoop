@@ -147,6 +147,20 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     assert.equal(Number(next.rows[0].n), pay.rows[0].paid);
   });
 
+  test("listed items have fair-price bands from simulated references, and price history", async () => {
+    const { rows } = await db.query(
+      `select count(*) filter (where band_low_paise is not null)::int as banded, count(*)::int as listed,
+              count(*) filter (where new_price_paise is not null)::int as with_new
+         from public.public_price_bands`,
+    );
+    assert.ok(rows[0].listed > 0 && rows[0].banded / rows[0].listed > 0.8, JSON.stringify(rows[0]));
+    assert.ok(rows[0].with_new > 0);
+    const cut = await db.query(
+      "select count(*)::int as n from public.public_price_history h join public.items i on i.id = h.item_id where i.price_cut_at is not null",
+    );
+    assert.ok(cut.rows[0].n > 0, "price cuts show in the history");
+  });
+
   test("the demo buyer has a device under warranty with an open claim", async () => {
     const { rows } = await db.query(
       // Measured from the seed's own "today", not the clock, so the test doesn't age.

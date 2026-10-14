@@ -32,7 +32,7 @@ const PATHS: {
     icon: Store,
     title: "Repair shops & retailers",
     who: "Raghunath Bazaar, Residency Road, Gandhi Nagar",
-    body: "Unclaimed devices, dead units, old spares, trade-ins. Cash on pickup on our Tuesday and Friday route.",
+    body: "Unclaimed devices, dead units, old spares, trade-ins. Paid in cash or UPI when we collect on our Tuesday and Friday route.",
     cta: "Become a partner shop",
   },
   {

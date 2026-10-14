@@ -231,6 +231,8 @@ export function ListingControls({
           </div>
         )}
 
+        <NewPrice item={item} onSaved={onChanged} />
+
         {error && (
           <p role="alert" className="text-danger">
             {error}
@@ -238,5 +240,79 @@ export function ListingControls({
         )}
       </div>
     </Panel>
+  );
+}
+
+/** The price of the item new, for "about ₹X less than new" on its shop page (with where and when). */
+function NewPrice({ item, onSaved }: { item: Item; onSaved: (msg: string) => Promise<void> }) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+  const [price, setPrice] = useState(item.newPricePaise ? String(item.newPricePaise / 100) : "");
+  const [source, setSource] = useState(item.newPriceSource ?? "");
+  const [checked, setChecked] = useState(item.newPriceCheckedOn ?? today);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  function save(e: FormEvent) {
+    e.preventDefault();
+    const paise = price.trim() === "" ? undefined : Math.round(Number(price) * 100);
+    if (paise !== undefined && (!Number.isFinite(paise) || paise <= 0))
+      return setError("Enter the price new in rupees.");
+    if (paise !== undefined && source.trim().length < 3)
+      return setError("Say where you found the price new.");
+    setBusy(true);
+    setError("");
+    saveItem({
+      ...item,
+      newPricePaise: paise,
+      newPriceSource: paise === undefined ? undefined : source.trim(),
+      newPriceCheckedOn: paise === undefined ? undefined : checked,
+    })
+      .then(() => onSaved(paise === undefined ? "Price new removed." : "Price new saved."))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "That wasn't saved."))
+      .finally(() => setBusy(false));
+  }
+  return (
+    <form
+      className="grid gap-2 border-t border-line pt-4 sm:grid-cols-[8rem_1fr_9rem_auto] sm:items-end"
+      onSubmit={save}
+      noValidate
+    >
+      <label className="grid gap-1 text-xs font-medium">
+        Price new (₹)
+        <input
+          className={hubInput}
+          inputMode="decimal"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Where (shown on the shop page)
+        <input
+          className={hubInput}
+          value={source}
+          maxLength={200}
+          placeholder="For example: brand's India store"
+          onChange={(e) => setSource(e.target.value)}
+        />
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Checked on
+        <input
+          className={hubInput}
+          type="date"
+          max={today}
+          value={checked}
+          onChange={(e) => setChecked(e.target.value)}
+        />
+      </label>
+      <Button size="sm" type="submit" disabled={busy}>
+        Save price new
+      </Button>
+      {error && (
+        <p role="alert" className="text-sm text-danger sm:col-span-4">
+          {error}
+        </p>
+      )}
+    </form>
   );
 }

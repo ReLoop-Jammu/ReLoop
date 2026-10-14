@@ -55,7 +55,7 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
     href: "/sell/shops",
     icon: Store,
     title: "Repair shops & retailers",
-    body: "Cash on pickup, every Tuesday and Friday.",
+    body: "Paid in cash or UPI when we collect, every Tuesday and Friday.",
   },
   {
     href: "/sell/institutions",

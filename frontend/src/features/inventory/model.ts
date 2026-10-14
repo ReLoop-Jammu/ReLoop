@@ -141,6 +141,10 @@ export type Item = {
   fulfilment?: Fulfilment;
   parentId?: string;
   handoverId?: string;
+  /** The price of this item new, where staff found one (shown as "about ₹X less than new"). */
+  newPricePaise?: number;
+  newPriceSource?: string;
+  newPriceCheckedOn?: string;
   /** The ReLoop Checked record; required before the item goes on sale. */
   inspection?: Inspection;
   inspectedAt?: string;

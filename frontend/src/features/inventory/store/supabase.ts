@@ -101,6 +101,9 @@ type ItemRow = {
   returned_at: string | null;
   inspection: unknown;
   inspected_at: string | null;
+  new_price_paise: number | null;
+  new_price_source: string;
+  new_price_checked_on: string | null;
   item_events?: { at: string; type: string; note: string }[];
 };
 
@@ -168,6 +171,12 @@ export function rowToItem(r: ItemRow): Item {
     returnedAt: opt(r.returned_at),
     inspection: inspectionFromRow(r.inspection),
     inspectedAt: opt(r.inspected_at),
+    newPricePaise:
+      r.new_price_paise === null || r.new_price_paise === undefined
+        ? undefined
+        : Number(r.new_price_paise),
+    newPriceSource: r.new_price_source || undefined,
+    newPriceCheckedOn: opt(r.new_price_checked_on),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) Object.assign(item, { [k]: v });
   return item;
@@ -217,6 +226,9 @@ export function itemToRow(i: Omit<Item, "id" | "events" | "photos">) {
     hidden: i.hidden ?? false,
     inspection: inspectionToRow(i.inspection),
     inspected_at: i.inspectedAt ?? null,
+    new_price_paise: i.newPricePaise ?? null,
+    new_price_source: i.newPriceSource ?? "",
+    new_price_checked_on: i.newPriceCheckedOn ?? null,
   };
 }
 

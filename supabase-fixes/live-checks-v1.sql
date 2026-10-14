@@ -145,6 +145,21 @@ select check_name, ok
         and pg_get_viewdef('public.item_passport'::regclass) like '%NOT i.hidden%'
         and pg_get_viewdef('public.item_passport'::regclass) not like '%note%'
         and pg_get_viewdef('public.item_passport'::regclass) not like '%paise%'
-        and pg_get_viewdef('public.item_passport'::regclass) not like '%source%')
+        and pg_get_viewdef('public.item_passport'::regclass) not like '%source%'),
+    (18, 'Pricing: reference prices are staff-only; visitors see only fresh bands, the new price and price history',
+        not has_table_privilege('anon', 'public.reference_prices', 'SELECT')
+        and (select relrowsecurity from pg_class where oid = 'public.reference_prices'::regclass)
+        and exists (select 1 from pg_policies where tablename = 'reference_prices' and qual like '%is_staff()%')
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'public_price_bands')
+            = array['item_id', 'band_low_paise', 'band_high_paise', 'band_source', 'band_checked_on', 'band_scope',
+                    'new_price_paise', 'new_price_source', 'new_price_checked_on']
+        and (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+              where table_schema = 'public' and table_name = 'public_price_history')
+            = array['item_id', 'at', 'price_paise']
+        and pg_get_viewdef('public.public_price_bands'::regclass) not like '%buy_%'
+        and pg_get_viewdef('public.public_price_bands'::regclass) like '%NOT i.hidden%'
+        and pg_get_viewdef('public.public_price_history'::regclass) not like '%buy_%'
+        and not has_column_privilege('anon', 'public.items', 'new_price_paise', 'SELECT'))
   ) as c(n, check_name, ok)
  order by n;

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReLoopChecked } from "@/features/shop/components/ReLoopChecked";
+import { PriceFacts } from "@/features/pricing/PriceFacts";
+import { getPriceBand, getPriceHistory } from "@/features/pricing/server";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
@@ -32,7 +34,11 @@ export async function generateMetadata({ params }: PageProps<"/shop/[itemId]">):
 export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]">) {
   const item = await getShopItem((await params).itemId);
   if (!item) notFound();
-  const related = await getRelatedShopItems(item);
+  const [related, band, history] = await Promise.all([
+    getRelatedShopItems(item),
+    item.sample ? null : getPriceBand(item.id),
+    item.sample ? [] : getPriceHistory(item.id),
+  ]);
   const grade = GRADE_INFO[item.grade];
 
   const jsonLd = {
@@ -120,6 +126,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
               </p>
             )}
           </div>
+          <PriceFacts price={item.pricePaise} band={band} history={history} />
 
           <ul className="mt-6 space-y-2.5 text-sm text-ink-soft">
             {item.warrantyDays && (
