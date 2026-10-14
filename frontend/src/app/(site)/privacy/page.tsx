@@ -37,7 +37,17 @@ export default async function PrivacyPage() {
           </li>
           <li>
             <strong>Requests you send us</strong> through the forms on this site, by WhatsApp or by
-            email.
+            email. If you are logged in when you send one, it is linked to your account so you can
+            follow it under My requests.
+          </li>
+          <li>
+            <strong>Your account,</strong> if you create one: your name, phone number and email
+            address, and for shops the shop name, GSTIN (if any) and address. You can change these
+            on your account&apos;s Profile and settings page.
+          </li>
+          <li>
+            <strong>Notifications</strong> we show you on the site about your requests, offers and
+            account. ReLoop sends no marketing messages and no email.
           </li>
           <li>
             <strong>Technical data:</strong> anonymous, aggregated usage statistics (pages viewed,
@@ -72,15 +82,25 @@ export default async function PrivacyPage() {
       <section>
         <h2>How long we keep it</h2>
         <p>
-          We keep your details while we have an active relationship with you. When you ask us to
-          delete them, we do so within a reasonable period, except where we must keep records by law
-          (for example, tax or e-waste compliance records).
+          We keep your details while we have an active relationship with you. You can ask us to
+          delete your account and data from your account&apos;s Profile and settings page, or by
+          contacting us. An admin carries out the request within 30 days: your account, profile,
+          shop details and notifications are deleted. Records we must keep by law (items we bought
+          from you and what we paid, for tax and e-waste records) are kept with your name replaced
+          by &ldquo;Deleted account&rdquo;, and your requests keep only their stage. Handled
+          deletion requests are themselves deleted after 12 months.
         </p>
+        <p>Notifications on the site are deleted after 90 days.</p>
         <p>
           Requests you send through the site (reservations, questions about an item and institution
           pickup bookings) are seen only by ReLoop&apos;s hub staff. Open requests are kept until we
           close them. A closed request (sold, cancelled or done) is deleted automatically 12 months
           after it was closed, together with the name, phone number and other details in it.
+        </p>
+        <p>
+          Each request has a private status link. Anyone who has the link sees only the
+          request&apos;s stage (for example &ldquo;Pickup booked&rdquo;), never your name, phone
+          number or message. The page is not shown to search engines.
         </p>
       </section>
 

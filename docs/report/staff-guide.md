@@ -22,7 +22,8 @@ For hub workers and admins. No technical knowledge needed. Each task says which 
 10. [Today's overview and the KPIs](#10-todays-overview-and-the-kpis)
 11. [Putting a shop on the map](#11-putting-a-shop-on-the-map-admin)
 12. [Managing staff](#12-managing-staff-admin)
-13. [If something goes wrong](#13-if-something-goes-wrong)
+13. [Deleting an account on request](#13-deleting-an-account-on-request-admin)
+14. [If something goes wrong](#14-if-something-goes-wrong)
 
 ---
 
@@ -117,13 +118,14 @@ Do this once the shop has accepted on WhatsApp.
 
 **Page:** `/hub/requests` (menu: **Requests**)
 
-Requests from the public site arrive here: **Reservations**, **Questions** (about an item) and **Institution pickups**. The list shows open requests (new or contacted); use the **Kind** and **Status** filters to see others.
+Requests from the public site arrive here: **Reservations**, **Questions** (about an item) and **Institution pickups**. The list shows open requests (new, contacted, scheduled or collected); use the **Kind** and **Status** filters to see others. A request marked **Sent from a ReLoop account** came from someone logged in: they follow it under **My requests** and get a notification on the site at each step. Everyone who sends a request also gets a private status link that shows only its stage.
 
 1. Tap **WhatsApp** next to the phone number to reply to the person.
 2. Press **Mark contacted** once you've been in touch.
 3. For a reservation: press **Mark item reserved** so nobody else buys it. The item leaves the public shop. If the buyer drops out, cancel the reservation on the item's page (**Cancel reservation**).
-4. For an institution pickup: agree a date with them on WhatsApp. After the pickup, press **Pickup done**, and log the items at **Intake** with the institution as the source.
-5. Press **Cancel** for requests that go nowhere.
+4. For an institution pickup: agree a date with them on WhatsApp, choose the **Pickup date** and press **Schedule pickup** (route days are Tuesday and Friday). After collecting, press **Mark collected**; once the items are logged at **Intake** with the institution as the source, press **Pickup done**.
+5. For a question: press **Done** once it's answered.
+6. To cancel a request, press **Cancel…**, write the reason and press **Cancel the request**. The person sees the reason on their status page and account, so write it for them (for example "Sold in the hub shop before we could hold it"). A request the person cancelled themselves shows **Cancelled by the person who sent it**.
 
 Closed requests (sold, cancelled or done) are deleted automatically 12 months after they were closed, with the person's details. Close requests when they're finished.
 
@@ -197,7 +199,19 @@ Only shops that agreed can appear on the public `/locations` map. The map shows 
 3. When someone leaves, press **Remove admin** and **Remove from hub staff**.
 4. ReLoop always keeps at least one admin: the last admin can't be removed. Every change is recorded.
 
-## 13. If something goes wrong
+## 13. Deleting an account on request (admin)
+
+**Page:** `/hub/deletions` (menu: **Account deletions**)
+
+People ask for their account and data to be deleted from their account's **Profile and settings** page. The privacy page promises an answer within 30 days; each request shows the days left.
+
+1. Phone the person on the number in their account to confirm it's really them.
+2. Press **Delete the account…**, then **Yes, delete the account**. The account, profile, shop details and notifications are deleted. Items ReLoop bought from them keep the purchase record with "Deleted account" in place of the name and phone; their requests keep only their stage. This can't be undone.
+3. Or press **Decline…** and say why (for example an open reservation to finish first). They see the reason on their account.
+
+Team members are removed from the team (**Team**) before their account can be deleted, and an admin's own account is deleted by another admin. On the demo site, the shared demo logins can't be deleted.
+
+## 14. If something goes wrong
 
 | Problem                                                         | What to do                                                                                                                                                                        |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

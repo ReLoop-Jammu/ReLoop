@@ -1135,8 +1135,11 @@ describe("closing the loop (20261020000001)", () => {
         "update public.submissions set status = 'sold', handled_at = now() where kind = 'reservation'",
       ),
     );
+    // Cancelling goes through cancel_request(), with a reason (20261029000001).
     await as(db, staff, (tx) =>
-      tx.query("update public.submissions set status = 'cancelled' where kind = 'enquiry'"),
+      tx.query(
+        "select public.cancel_request(id, 'Answered by phone') from public.submissions where kind = 'enquiry'",
+      ),
     );
   });
 });
@@ -1328,13 +1331,17 @@ describe("request retention (20261023000001)", () => {
     );
     const first = await at();
     assert.ok(first, "closing starts the clock");
-    await as(db, staff, (tx) =>
-      tx.query(
-        "update public.submissions set status = 'cancelled', closed_at = '2000-01-01' where id = $1",
-        [id],
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.submissions set closed_at = '2000-01-01' where id = $1", [id]),
       ),
+      /permission denied/,
+      "staff can't backdate it",
     );
-    assert.deepEqual(await at(), first, "staff can't backdate it, and a second close keeps it");
+    await as(db, staff, (tx) =>
+      tx.query("update public.submissions set status = 'sold' where id = $1", [id]),
+    );
+    assert.deepEqual(await at(), first, "a second close keeps it");
     await as(db, staff, (tx) =>
       tx.query("update public.submissions set status = 'contacted' where id = $1", [id]),
     );
@@ -1810,6 +1817,7 @@ describe("hub home: badges and link series (20261028000001)", () => {
       new_submissions: 1,
       offers_waiting: 1,
       pending_shops: null,
+      deletion_requests: null,
     });
     assert.equal((await badges(admin)).pending_shops, 1);
     await assert.rejects(badges(buyer), /Only hub staff/);
@@ -1876,5 +1884,456 @@ describe("hub home: badges and link series (20261028000001)", () => {
     assert.equal((await entries(admin, "role_change")).length, 1);
     await assert.rejects(entries(staff), /Only admins/);
     await assert.rejects(entries(null), /permission denied/);
+  });
+});
+
+describe("accounts and requests (20261029000001)", () => {
+  let db;
+  let admin;
+  let staff;
+  let buyer;
+  let other;
+  let owner;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+    other = await createUser(db, "Other");
+    owner = await shopOwner(db, "Owner", { gstin: "01ABCDE1234F1Z5" });
+  });
+  // As the server route does: the service key inserts, with the buyer if signed in.
+  const request = async (kind, buyerId, fields = { name: "Asha", phone: "9000000001" }) => {
+    const { rows } = await asService(db, (tx) =>
+      tx.query(
+        "insert into public.submissions (kind, fields, buyer_id) values ($1, $2, $3) returning id, status_token",
+        [kind, fields, buyerId],
+      ),
+    );
+    return rows[0];
+  };
+  const notes = (who) =>
+    as(db, who, (tx) =>
+      tx.query("select kind, title, body, href from public.notifications order by id"),
+    ).then((r) => r.rows);
+
+  test("each request gets a private link that shows its stage and nothing personal", async () => {
+    const r = await request("institution_pickup", null);
+    assert.match(r.status_token, /^[0-9a-f]{64}$/);
+    const { rows } = await as(db, null, (tx) =>
+      tx.query("select * from public.request_status($1)", [r.status_token]),
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].status, "new");
+    assert.ok(
+      !JSON.stringify(rows[0]).includes("Asha") && !JSON.stringify(rows[0]).includes("9000000001"),
+    );
+    for (const bad of ["", "x", r.status_token.slice(0, 63), r.status_token.toUpperCase()]) {
+      const none = await as(db, null, (tx) =>
+        tx.query("select * from public.request_status($1)", [bad]),
+      );
+      assert.equal(none.rows.length, 0, bad);
+    }
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.submissions")),
+      /permission denied/,
+    );
+  });
+
+  test("buyers see and cancel only their own requests; staff can't rewrite one", async () => {
+    const mine = await request("institution_pickup", buyer);
+    await request("institution_pickup", other);
+    const list = (who) =>
+      as(db, who, (tx) => tx.query("select id, status from public.my_requests()")).then(
+        (r) => r.rows,
+      );
+    assert.deepEqual(
+      (await list(buyer)).map((r) => r.id),
+      [mine.id],
+    );
+    assert.equal((await list(staff)).length, 0, "my_requests is personal, even for staff");
+    await assert.rejects(
+      as(db, other, (tx) => tx.query("select public.cancel_my_request($1)", [mine.id])),
+      /Request not found/,
+    );
+    await as(db, buyer, (tx) => tx.query("select public.cancel_my_request($1)", [mine.id]));
+    assert.equal((await list(buyer))[0].status, "cancelled");
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select public.cancel_my_request($1)", [mine.id])),
+      /already closed/,
+    );
+    for (const sql of [
+      "update public.submissions set fields = '{}' where id = $1",
+      "update public.submissions set buyer_id = null where id = $1",
+      "update public.submissions set cancel_reason = 'because' where id = $1",
+      "delete from public.submissions where id = $1",
+    ])
+      await assert.rejects(
+        as(db, staff, (tx) => tx.query(sql, [mine.id])),
+        /permission denied/,
+        sql,
+      );
+    assert.equal((await notes(buyer)).length, 0, "no notification for your own cancellation");
+  });
+
+  test("staff move bookings through their stages and cancel with a reason the buyer sees", async () => {
+    const booking = await request("institution_pickup", buyer);
+    const setStatus = (status, extra = "") =>
+      as(db, staff, (tx) =>
+        tx.query(`update public.submissions set status = $1${extra} where id = $2`, [
+          status,
+          booking.id,
+        ]),
+      );
+    await assert.rejects(setStatus("scheduled"), /Choose the pickup date/);
+    await setStatus("scheduled", ", scheduled_for = '2026-11-03'");
+    await setStatus("collected");
+    const reservation = await request("reservation", buyer);
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query(
+          "update public.submissions set status = 'scheduled', scheduled_for = '2026-11-03' where id = $1",
+          [reservation.id],
+        ),
+      ),
+      /Only institution pickups/,
+    );
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.submissions set status = 'cancelled' where id = $1", [
+          reservation.id,
+        ]),
+      ),
+      /Cancel with a reason/,
+    );
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("select public.cancel_request($1, 'no')", [reservation.id])),
+      /3 to 300/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query("select public.cancel_request($1, 'Sold in the shop')", [reservation.id]),
+      ),
+      /Only hub staff/,
+    );
+    await as(db, staff, (tx) =>
+      tx.query("select public.cancel_request($1, 'Sold in the shop')", [reservation.id]),
+    );
+    const status = await as(db, null, (tx) =>
+      tx.query("select status, cancelled_by, cancel_reason from public.request_status($1)", [
+        reservation.status_token,
+      ]),
+    );
+    assert.deepEqual(status.rows[0], {
+      status: "cancelled",
+      cancelled_by: "staff",
+      cancel_reason: "Sold in the shop",
+    });
+    const n = await notes(buyer);
+    assert.deepEqual(
+      n.map((x) => x.kind),
+      ["request_scheduled", "request_collected", "request_cancelled"],
+    );
+    assert.equal(n[0].title, "Pickup booked for 3 Nov 2026");
+    assert.equal(n[2].body, "Sold in the shop");
+    assert.equal((await notes(other)).length, 0, "nobody reads another person's notifications");
+  });
+
+  test("a new date for a booked pickup tells the buyer too", async () => {
+    const college = await createUser(db, "College");
+    const booking = await request("institution_pickup", college);
+    const set = (date) =>
+      as(db, staff, (tx) =>
+        tx.query(
+          "update public.submissions set status = 'scheduled', scheduled_for = $1 where id = $2",
+          [date, booking.id],
+        ),
+      );
+    await set("2026-11-03");
+    await set("2026-11-06");
+    await set("2026-11-06");
+    const titles = (await notes(college)).map((n) => n.title);
+    assert.deepEqual(titles, ["Pickup booked for 3 Nov 2026", "Pickup booked for 6 Nov 2026"]);
+  });
+
+  test("shop owners hear about verification and each offer, rejection and purchase", async () => {
+    const seller = await shopOwner(db, "Notified", { gstin: "" });
+    await db.exec("alter table public.shop_submissions disable trigger user");
+    const lots = await db.query(
+      `insert into public.shop_submissions (shop_owner_id, item_name, status) values
+         ($1, 'Monitor', 'Pending'), ($1, 'Printer', 'Pending') returning id`,
+      [seller],
+    );
+    await db.exec("alter table public.shop_submissions enable trigger user");
+    await db.query("update public.shop_owners set verification_status = 'verified' where id = $1", [
+      seller,
+    ]);
+    await db.query(
+      "update public.shop_submissions set status = 'Offered', offer_price = 800 where id = $1",
+      [lots.rows[0].id],
+    );
+    await db.query(
+      "update public.shop_submissions set status = 'Rejected', rejection_reason = 'Too damaged' where id = $1",
+      [lots.rows[1].id],
+    );
+    await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'monitor', null, 80000)", [lots.rows[0].id]),
+    );
+    await db.query("update public.shop_owners set verification_status = 'rejected' where id = $1", [
+      seller,
+    ]);
+    const n = await notes(seller);
+    assert.deepEqual(
+      n.map((x) => x.kind),
+      ["shop_verified", "offer_made", "submission_rejected", "submission_bought", "shop_rejected"],
+    );
+    assert.equal(n[1].body, "₹800.00 each");
+    assert.equal(n[2].body, "Too damaged");
+  });
+
+  test("notifications are read and marked read only by their owner", async () => {
+    const before = await notes(buyer);
+    assert.ok(before.length > 0);
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.notifications")),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query(
+          "insert into public.notifications (user_id, kind, title) values ($1, 'fake', 'x')",
+          [buyer],
+        ),
+      ),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select public.notify($1, 'fake', 'x', '', null)", [other])),
+      /permission denied/,
+    );
+    const marked = await as(db, other, (tx) =>
+      tx.query("select public.mark_notifications_read() as n"),
+    );
+    assert.equal(marked.rows[0].n, 0, "marking someone else's isn't possible");
+    const mine = await as(db, buyer, (tx) =>
+      tx.query("select public.mark_notifications_read() as n"),
+    );
+    assert.equal(mine.rows[0].n, before.length);
+  });
+
+  test("people edit their own profile; shop owners their shop, which a new GSTIN sends back for checking", async () => {
+    await as(db, buyer, (tx) =>
+      tx.query("select public.update_my_profile('  Asha   Devi ', '+91 90000 00002')"),
+    );
+    const p = await db.query("select full_name, phone from public.profiles where user_id = $1", [
+      buyer,
+    ]);
+    assert.deepEqual(p.rows[0], { full_name: "Asha Devi", phone: "+91 90000 00002" });
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select public.update_my_profile('A', '9000000000')")),
+      /2 to 80/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select public.update_my_profile('Asha', '12345')")),
+      /10 digits/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query("update public.profiles set full_name = 'X' where user_id = $1", [buyer]),
+      ),
+      /permission denied/,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query("select public.update_my_shop('Shop', '', 'Raghunath Bazaar')"),
+      ),
+      /Only shop owner accounts/,
+    );
+
+    await db.query(
+      `update public.shop_owners set verification_status = 'verified', verified_at = now(), show_on_map = true,
+              map_consent_at = now(), map_lat = 32.73, map_lng = 74.86 where id = $1`,
+      [owner],
+    );
+    const shop = (name, gstin, address = "Raghunath Bazaar, Jammu") =>
+      as(db, owner, (tx) =>
+        tx.query("select public.update_my_shop($1, $2, $3) as s", [name, gstin, address]),
+      ).then((r) => r.rows[0].s);
+    assert.equal(
+      await shop("Owner Mobiles", "01ABCDE1234F1Z5", "Shop 4, Raghunath Bazaar"),
+      "verified",
+    );
+    // A name stored with extra spaces (sign-up only trims) isn't a change when only the address is.
+    await db.query("update public.shop_owners set shop_name = 'Owner  Mobiles' where id = $1", [
+      owner,
+    ]);
+    assert.equal(
+      await shop("Owner  Mobiles", "01abcde1234f1z5", "Shop 5, Raghunath Bazaar"),
+      "verified",
+    );
+    await assert.rejects(shop("Owner Mobiles", "BAD"), /15 letters/);
+    assert.equal(await shop("Owner Mobiles", ""), "pending", "removing the GSTIN is a change too");
+    const row = await db.query(
+      "select verification_status, verified_at, show_on_map, gstin from public.shop_owners where id = $1",
+      [owner],
+    );
+    assert.deepEqual(row.rows[0], {
+      verification_status: "pending",
+      verified_at: null,
+      show_on_map: false,
+      gstin: null,
+    });
+    assert.ok((await notes(owner)).some((n) => n.kind === "shop_pending"));
+  });
+
+  test("a deletion request is the user's own; an admin carries it out and purchase records stay anonymised", async () => {
+    const seller = await shopOwner(db, "Seller", { gstin: "" });
+    await db.exec("alter table public.shop_submissions disable trigger user");
+    const subs = await db.query(
+      `insert into public.shop_submissions (shop_owner_id, item_name, status) values
+         ($1, 'TV', 'Offered'), ($1, 'Laptop', 'Pending') returning id`,
+      [seller],
+    );
+    await db.exec("alter table public.shop_submissions enable trigger user");
+    const tags = await as(db, admin, (tx) =>
+      tx.query("select public.convert_submission($1, 'tv', null, 50000) as t", [subs.rows[0].id]),
+    );
+    const tag = tags.rows[0].t[0];
+    const req = await request("reservation", seller, { name: "Seller", phone: "9000000003" });
+
+    const rid = (
+      await as(db, seller, (tx) =>
+        tx.query("select public.request_account_deletion('Closing the shop') as id"),
+      )
+    ).rows[0].id;
+    const again = await as(db, seller, (tx) =>
+      tx.query("select public.request_account_deletion('') as id"),
+    );
+    assert.equal(again.rows[0].id, rid, "one open request at a time");
+    const seen = (who) =>
+      as(db, who, (tx) => tx.query("select id from public.deletion_requests")).then(
+        (r) => r.rows.length,
+      );
+    assert.equal(await seen(seller), 1);
+    assert.equal(await seen(buyer), 0);
+    assert.equal(await seen(staff), 0);
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("select * from public.deletion_queue()")),
+      /Only admins/,
+    );
+    const queue = await as(db, admin, (tx) => tx.query("select * from public.deletion_queue()"));
+    assert.equal(queue.rows[0].full_name, "Seller");
+    assert.equal(Number(queue.rows[0].purchased_lots), 1);
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("select public.approve_account_deletion($1)", [rid])),
+      /Only admins/,
+    );
+
+    await as(db, admin, (tx) => tx.query("select public.approve_account_deletion($1)", [rid]));
+    assert.equal(
+      (await db.query("select 1 from auth.users where id = $1", [seller])).rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select 1 from public.profiles where user_id = $1", [seller])).rows.length,
+      0,
+    );
+    const item = await db.query(
+      "select source_name, source_contact_name, source_phone, buy_paise from public.items where id = $1",
+      [tag],
+    );
+    assert.deepEqual(item.rows[0], {
+      source_name: "Deleted account",
+      source_contact_name: "",
+      source_phone: "",
+      buy_paise: 50000,
+    });
+    const lots = await db.query(
+      "select item_name, status, shop_owner_id from public.shop_submissions where id = any($1)",
+      [subs.rows.map((r) => r.id)],
+    );
+    assert.deepEqual(lots.rows, [{ item_name: "TV", status: "Purchased", shop_owner_id: null }]);
+    const kept = await db.query("select fields, buyer_id from public.submissions where id = $1", [
+      req.id,
+    ]);
+    assert.deepEqual(kept.rows[0], { fields: { name: "Deleted account" }, buyer_id: null });
+    const done = await db.query(
+      "select status, user_id, reason from public.deletion_requests where id = $1",
+      [rid],
+    );
+    assert.deepEqual(done.rows[0], { status: "done", user_id: null, reason: "" });
+    const log = await db.query("select action from public.admin_audit_log where detail = $1", [
+      `request ${rid}`,
+    ]);
+    assert.deepEqual(log.rows, [{ action: "account_deletion" }]);
+  });
+
+  test("team members and admins themselves can't be deleted this way; a refusal says why", async () => {
+    const forStaff = (
+      await as(db, staff, (tx) => tx.query("select public.request_account_deletion('') as id"))
+    ).rows[0].id;
+    await assert.rejects(
+      as(db, admin, (tx) => tx.query("select public.approve_account_deletion($1)", [forStaff])),
+      /Remove this person from the team first/,
+    );
+    const own = (
+      await as(db, admin, (tx) => tx.query("select public.request_account_deletion('') as id"))
+    ).rows[0].id;
+    await assert.rejects(
+      as(db, admin, (tx) => tx.query("select public.approve_account_deletion($1)", [own])),
+      /Another admin/,
+    );
+    const forOther = (
+      await as(db, other, (tx) => tx.query("select public.request_account_deletion('') as id"))
+    ).rows[0].id;
+    await assert.rejects(
+      as(db, admin, (tx) => tx.query("select public.refuse_account_deletion($1, '')", [forOther])),
+      /3 to 300/,
+    );
+    await as(db, admin, (tx) =>
+      tx.query("select public.refuse_account_deletion($1, 'You have an open reservation')", [
+        forOther,
+      ]),
+    );
+    assert.ok(
+      (await notes(other)).some(
+        (n) => n.kind === "deletion_refused" && n.body === "You have an open reservation",
+      ),
+    );
+    await as(db, other, (tx) => tx.query("select public.withdraw_account_deletion()"));
+    const still = await db.query("select status from public.deletion_requests where id = $1", [
+      forOther,
+    ]);
+    assert.equal(still.rows[0].status, "refused", "withdrawing touches only an open request");
+  });
+
+  test("old notifications and handled deletion requests are purged; open ones stay", async () => {
+    await db.query(
+      "update public.notifications set created_at = now() - interval '91 days' where user_id = $1",
+      [buyer],
+    );
+    await db.query(
+      "update public.deletion_requests set handled_at = now() - interval '13 months' where status <> 'open'",
+    );
+    const { rows } = await db.query("select public.purge_expired_personal_data() as r");
+    assert.ok(rows[0].r.notifications > 0);
+    assert.ok(rows[0].r.deletion_requests >= 2);
+    assert.equal((await notes(buyer)).length, 0);
+    const open = await db.query(
+      "select count(*)::int as n from public.deletion_requests where status = 'open'",
+    );
+    assert.equal(open.rows[0].n, 2);
+    await assert.rejects(
+      as(db, admin, (tx) => tx.query("select public.purge_expired_personal_data()")),
+      /permission denied/,
+    );
+  });
+
+  test("admins see open deletion requests in the hub's counts; staff don't", async () => {
+    const b = (who) =>
+      as(db, who, (tx) => tx.query("select public.hub_badges() as b")).then((r) => r.rows[0].b);
+    assert.equal((await b(admin)).deletion_requests, 2);
+    assert.equal((await b(staff)).deletion_requests, null);
   });
 });

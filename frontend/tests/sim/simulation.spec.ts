@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { DEMO_PASSWORD, loginAs } from "./helpers";
 
 test.describe("simulation site", () => {
@@ -151,5 +151,108 @@ test.describe("hub home and landing (real logins)", () => {
     await page.goto("/account");
     await expect(page.getByRole("heading", { name: "Your hub tools" })).toBeVisible();
     await expect(page.getByRole("link", { name: /Audit log/ })).toBeVisible();
+  });
+});
+
+test.describe("accounts and requests (real logins)", () => {
+  test.skip(({ isMobile }) => isMobile, "one viewport is enough for shared demo data");
+
+  /** As the demo buyer, asks a question about the first item in the shop; returns its tag. */
+  async function askAsBuyer(page: Page, question: string) {
+    await loginAs(page, "demo-buyer@reloop.demo", "/account");
+    await page.goto("/shop");
+    await page.locator("main article a").first().click();
+    const tag = (page.url().match(/RL-JMU-\d+/) ?? [""])[0];
+    await page.getByRole("button", { name: "Ask a question" }).click();
+    await page.getByLabel("Your name").fill("Demo Buyer");
+    await page.getByLabel("Phone / WhatsApp").fill("9000000123");
+    await page.getByLabel("Your question").fill(question);
+    await page.getByRole("button", { name: "Prepare my question" }).click();
+    await expect(page.getByText("Your request is saved")).toBeVisible({ timeout: 15_000 });
+    return tag;
+  }
+
+  test("a signed-in buyer's question appears under My requests, with a status page, and they can cancel it", async ({
+    page,
+  }) => {
+    const tag = await askAsBuyer(page, "Does it come with a charger? (journey test)");
+    const statusHref = await page
+      .getByRole("link", { name: "Open the status page" })
+      .getAttribute("href");
+    expect(statusHref).toMatch(/^\/status\/[0-9a-f]{64}$/);
+    await page.goto(statusHref!);
+    await expect(
+      page.getByRole("heading", { level: 1, name: `Question for ${tag}` }),
+    ).toBeVisible();
+    await expect(page.getByText("Sent: ReLoop will look at it soon")).toBeVisible();
+    await expect(page.getByText("9000000123")).toHaveCount(0);
+
+    await page.goto("/account/requests");
+    const card = page
+      .locator("li")
+      .filter({ hasText: `Question for ${tag}` })
+      .first();
+    await card.getByRole("button", { name: "Cancel" }).click();
+    await card.getByRole("button", { name: "Yes, cancel it" }).click();
+    await expect(card.getByText("Cancelled by you")).toBeVisible();
+    await page.goto(statusHref!);
+    await expect(page.getByText("Cancelled by you").first()).toBeVisible();
+  });
+
+  test("hub staff cancel a request with a reason, and the buyer is told why", async ({
+    page,
+    browser,
+  }) => {
+    const tag = await askAsBuyer(page, "Can you hold it until Saturday? (journey test)");
+    const staff = await (await browser.newContext()).newPage();
+    await loginAs(staff, "demo-staff@reloop.demo", "/hub/requests");
+    const row = staff
+      .locator("li")
+      .filter({ hasText: "Can you hold it until Saturday? (journey test)" })
+      .first();
+    await expect(row.getByText(/Sent from a ReLoop account/)).toBeVisible({ timeout: 15_000 });
+    await row.getByRole("button", { name: "Cancel…" }).click();
+    await row
+      .getByLabel("Reason (the person sees it)")
+      .fill("Already sold in the hub shop (journey test)");
+    await row.getByRole("button", { name: "Cancel the request" }).click();
+    await expect(row).toHaveCount(0, { timeout: 15_000 });
+    await staff.context().close();
+
+    await page.goto("/account/notifications");
+    await expect(page.getByText(`Your question for ${tag} was cancelled`).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByText("Already sold in the hub shop (journey test)").first(),
+    ).toBeVisible();
+    await page.goto("/account/requests");
+    await expect(
+      page.getByText("ReLoop's reason: Already sold in the hub shop (journey test)").first(),
+    ).toBeVisible();
+  });
+
+  test("the shared demo logins can't be edited or deleted, and say so", async ({ page }) => {
+    await loginAs(page, "demo-buyer@reloop.demo", "/account/settings");
+    await expect(page.getByText("This is a shared demo login")).toBeVisible();
+    await page.getByLabel("Your name").fill("Someone else");
+    await page.getByRole("button", { name: "Save details" }).click();
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Demo accounts stay as they are" }),
+    ).toBeVisible();
+  });
+
+  test("the demo admin sees the deletion queue and the booked pickup", async ({ page }) => {
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/deletions");
+    await expect(page.getByRole("heading", { level: 1, name: "Account deletions" })).toBeVisible();
+    await expect(page.getByText(/No open deletion requests|days left|overdue/).first()).toBeVisible(
+      {
+        timeout: 15_000,
+      },
+    );
+    await page.goto("/hub/requests");
+    await expect(page.getByText(/scheduled for \d{4}-\d{2}-\d{2}/).first()).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });

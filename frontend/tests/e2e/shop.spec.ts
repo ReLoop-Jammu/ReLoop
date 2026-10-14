@@ -318,6 +318,44 @@ test.describe("institution pickup booking", () => {
     ]);
     await expect(page.getByText(/couldn't keep a copy/)).toHaveCount(0);
   });
+
+  test("gives the visitor the request's private status link once it is saved", async ({ page }) => {
+    const token = "ab".repeat(32);
+    await page.route("**/api/requests", (route) =>
+      route.fulfill({ status: 200, json: { ok: true, statusToken: token, linked: false } }),
+    );
+    await page.goto("/sell/institutions");
+    await page.getByLabel(/^Institution/).fill("IIM Jammu");
+    await page.getByLabel(/^Type/).selectOption("College / university");
+    await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
+    await page.getByLabel(/^Phone/).fill("98765 43210");
+    await page.getByLabel(/^What is in the lot/).fill("20 desktops");
+    await page.getByRole("button", { name: "Prepare my booking" }).click();
+    await expect(page.getByText("Your request is saved")).toBeVisible();
+    await expect(
+      page.getByText(/Anyone with the link sees its stage, never your details/),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open the status page" })).toHaveAttribute(
+      "href",
+      `/status/${token}`,
+    );
+    await expect(page.getByRole("link", { name: "My requests" })).toHaveCount(0);
+  });
+
+  test("shows no status link when the request couldn't be saved", async ({ page }) => {
+    await page.route("**/api/requests", (route) =>
+      route.fulfill({ status: 503, json: { error: "x" } }),
+    );
+    await page.goto("/sell/institutions");
+    await page.getByLabel(/^Institution/).fill("IIM Jammu");
+    await page.getByLabel(/^Type/).selectOption("College / university");
+    await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
+    await page.getByLabel(/^Phone/).fill("98765 43210");
+    await page.getByLabel(/^What is in the lot/).fill("20 desktops");
+    await page.getByRole("button", { name: "Prepare my booking" }).click();
+    await expect(page.getByText(/couldn't keep a copy/)).toBeVisible();
+    await expect(page.getByText("Your request is saved")).toHaveCount(0);
+  });
 });
 
 test.describe("impact counter", () => {

@@ -200,7 +200,7 @@ export type Submission = {
   fields: Record<string, string>;
   /** Reservations and enquiries are about one item. */
   itemId?: string;
-  status: "new" | "contacted" | "done" | "sold" | "cancelled";
+  status: "new" | "contacted" | "scheduled" | "collected" | "done" | "sold" | "cancelled";
 };
 
 export function categoryLabel(value: Category, plural = false): string {

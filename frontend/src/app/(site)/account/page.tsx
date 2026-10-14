@@ -2,6 +2,9 @@
 
 import {
   BadgeCheck,
+  Bell,
+  Inbox,
+  UserCog,
   Clock,
   HelpCircle,
   KeyRound,
@@ -19,6 +22,7 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { MySubmissions } from "@/features/account/MySubmissions";
+import { useNotifications } from "@/features/account/notifications-store";
 import { useHubBadges } from "@/features/hub/badges";
 import { TOOL_GROUPS, toolsFor } from "@/features/hub/tools";
 import { useSiteSettings } from "@/features/settings/context";
@@ -73,6 +77,7 @@ export default function AccountPage() {
             {(access.is_staff || access.is_admin) && <HubTools access={access} />}
             {access.role === "shop_owner" && <ShopOwner access={access} />}
             {!access.is_staff && !access.is_admin && access.role !== "shop_owner" && <Buyer />}
+            <AccountLinks />
           </>
         )}
         <div className="mt-10 flex flex-wrap gap-3 border-t border-line pt-6">
@@ -232,6 +237,53 @@ function ShopOwner({ access }: { access: Access }) {
         <h2 className="text-xl font-bold">My submissions</h2>
         <MySubmissions />
       </div>
+    </section>
+  );
+}
+
+/** Everyone: requests, notifications and their own details. */
+function AccountLinks() {
+  const notes = useNotifications();
+  const unread = notes?.filter((n) => !n.read_at).length ?? 0;
+  const links: { href: string; icon: LucideIcon; title: string; body: string }[] = [
+    {
+      href: "/account/requests",
+      icon: Inbox,
+      title: "My requests",
+      body: "Reservations, questions and pickups you sent while logged in, and where they stand.",
+    },
+    {
+      href: "/account/notifications",
+      icon: Bell,
+      title: unread ? `Notifications (${unread} unread)` : "Notifications",
+      body: "Updates on your requests, offers and account.",
+    },
+    {
+      href: "/account/settings",
+      icon: UserCog,
+      title: "Profile and settings",
+      body: "Your name and phone, your shop's details, or deleting your account.",
+    },
+  ];
+  return (
+    <section aria-labelledby="account-links" className="mt-10">
+      <h2 id="account-links" className="text-xl font-bold">
+        Your account
+      </h2>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+        {links.map(({ href, icon: Icon, title, body }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              className="flex h-full flex-col gap-2 rounded-card border border-line bg-surface p-5 transition hover:border-brand-600/40 hover:shadow-sm"
+            >
+              <Icon className="size-5 text-brand-600" aria-hidden="true" />
+              <span className="font-semibold text-ink">{title}</span>
+              <span className="text-sm text-muted">{body}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

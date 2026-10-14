@@ -122,10 +122,37 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     );
     assert.equal(rows[0].n, 0);
   });
+
+  test("the demo buyer has their own requests and notifications, and a pickup is booked", async () => {
+    const mine = await db.query(
+      `select s.status, s.cancelled_by, s.cancel_reason from public.submissions s
+         join auth.users u on u.id = s.buyer_id where u.email = 'demo-buyer@reloop.demo'`,
+    );
+    assert.equal(mine.rows.length, 4);
+    assert.ok(
+      mine.rows.some(
+        (r) => r.status === "cancelled" && r.cancelled_by === "staff" && r.cancel_reason,
+      ),
+    );
+    const notes = await db.query(
+      `select count(*)::int as n from public.notifications n
+         join auth.users u on u.id = n.user_id where u.email = 'demo-buyer@reloop.demo'`,
+    );
+    assert.ok(notes.rows[0].n >= 1);
+    const booked = await db.query(
+      "select scheduled_for from public.submissions where status = 'scheduled' and kind = 'institution_pickup'",
+    );
+    assert.equal(booked.rows.length, 1);
+    assert.ok([2, 5].includes(new Date(booked.rows[0].scheduled_for).getUTCDay()));
+    const cancelled = await db.query(
+      "select count(*)::int as n from public.submissions where status = 'cancelled' and cancelled_by is null",
+    );
+    assert.equal(cancelled.rows[0].n, 0, "every cancelled request says who cancelled it");
+  });
 });
 
 describe("simulation demo logins", () => {
-  test("can't have their role, admin status or password-reset flag changed", async () => {
+  test("can't have their role, admin status, password-reset flag, name or shop changed, or be deleted", async () => {
     const db = await createTestDb({ seed: false });
     await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);
     const staff = await db.query(
@@ -141,6 +168,40 @@ describe("simulation demo logins", () => {
         /Demo accounts stay as they are/,
         sql,
       );
+    // Nor renamed, their shop changed, or deleted (an admin approving a deletion request).
+    const shop = await db.query("select id from auth.users where email = 'demo-shop@reloop.demo'");
+    for (const [sql, id] of [
+      [
+        "update public.profiles set full_name = 'Someone else' where user_id = $1",
+        staff.rows[0].id,
+      ],
+      ["update public.shop_owners set shop_name = 'Renamed' where id = $1", shop.rows[0].id],
+      ["delete from auth.users where id = $1", shop.rows[0].id],
+    ])
+      await assert.rejects(db.query(sql, [id]), /Demo accounts stay as they are/, sql);
+    const admin = await db.query(
+      "select id from auth.users where email = 'demo-admin@reloop.demo'",
+    );
+    const buyer = await db.query(
+      "select id from auth.users where email = 'demo-buyer@reloop.demo'",
+    );
+    const asUser = (id, sql, args = []) =>
+      db.transaction(async (tx) => {
+        await tx.exec("set local role authenticated");
+        await tx.query("select set_config('request.jwt.claims', $1, true)", [
+          JSON.stringify({ sub: id, role: "authenticated" }),
+        ]);
+        return tx.query(sql, args);
+      });
+    const req = await asUser(buyer.rows[0].id, "select public.request_account_deletion('') as id");
+    await assert.rejects(
+      asUser(admin.rows[0].id, "select public.approve_account_deletion($1)", [req.rows[0].id]),
+      /Demo accounts stay as they are/,
+    );
+    assert.equal(
+      (await db.query("select 1 from auth.users where id = $1", [buyer.rows[0].id])).rows.length,
+      1,
+    );
     // Other accounts (visitors) can still be managed.
     const visitor = await createUser(db, "Visitor", { staff: true });
     await db.query("delete from public.staff where user_id = $1", [visitor]);

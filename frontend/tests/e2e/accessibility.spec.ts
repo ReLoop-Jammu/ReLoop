@@ -40,6 +40,8 @@ const PAGES = [
   "/hub/requests",
   "/hub/submissions",
   "/hub/settings",
+  "/hub/deletions",
+  "/status/0000000000000000000000000000000000000000000000000000000000000000",
   "/hub/kpis",
   "/hub/links",
   "/hub/audit",

@@ -14,6 +14,7 @@ import {
   Store,
   UserCog,
   Users,
+  UserX,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,8 +27,9 @@ export type HubBadges = {
   new_submissions: number;
   offers_waiting: number;
   pending_shops: number | null;
+  deletion_requests: number | null;
 };
-export type BadgeKey = "new_requests" | "new_submissions" | "pending_shops";
+export type BadgeKey = "new_requests" | "new_submissions" | "pending_shops" | "deletion_requests";
 
 export type HubTool = {
   href: string;
@@ -141,6 +143,15 @@ export const HUB_TOOLS: readonly HubTool[] = [
     icon: UserCog,
     role: "admin",
     group: "Admin",
+  },
+  {
+    href: "/hub/deletions",
+    label: "Account deletions",
+    description: "Carry out or decline requests to delete an account and its data.",
+    icon: UserX,
+    role: "admin",
+    group: "Admin",
+    badge: "deletion_requests",
   },
   {
     href: "/hub/links",

@@ -60,6 +60,34 @@ select check_name, ok
                                               'public.admin_audit_entries(text, bigint, integer)'::regprocedure))
         and pg_get_functiondef('public.admin_audit_entries(text, bigint, integer)'::regprocedure) like '%if not public.is_admin()%'
         and pg_get_functiondef('public.hub_badges()'::regprocedure) like '%if not public.is_staff()%'
-        and pg_get_functiondef('public.link_visit_series(integer)'::regprocedure) like '%if not public.is_admin()%')
+        and pg_get_functiondef('public.link_visit_series(integer)'::regprocedure) like '%if not public.is_admin()%'),
+    (10, 'Requests: visitors see one request''s stage by its link only; staff change only the stage and date',
+        has_function_privilege('anon', 'public.request_status(text)', 'EXECUTE')
+        and (select array_agg(attname::text order by attname) from pg_attribute a
+              where a.attrelid = 'public.submissions'::regclass and a.attnum > 0 and not a.attisdropped
+                and has_column_privilege('authenticated', 'public.submissions', a.attname, 'UPDATE'))
+            = array['handled_at', 'scheduled_for', 'status']
+        and not has_table_privilege('authenticated', 'public.submissions', 'DELETE')
+        and not has_table_privilege('anon', 'public.submissions', 'SELECT')
+        and not has_function_privilege('anon', 'public.my_requests()', 'EXECUTE')
+        and pg_get_functiondef('public.my_requests()'::regprocedure) like '%s.buyer_id = auth.uid()%'
+        and pg_get_functiondef('public.cancel_request(uuid, text)'::regprocedure) like '%if not public.is_staff()%'),
+    (11, 'Notifications and deletion requests: each person reads only their own; nobody writes them directly',
+        not has_table_privilege('anon', 'public.notifications', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.notifications', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.notifications', 'UPDATE')
+        and not has_table_privilege('anon', 'public.deletion_requests', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.deletion_requests', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.deletion_requests', 'UPDATE')
+        and not has_function_privilege('authenticated', 'public.notify(uuid, text, text, text, text)', 'EXECUTE')
+        and not has_function_privilege('authenticated', 'public.purge_expired_personal_data(timestamptz)', 'EXECUTE')
+        and (select bool_and(c.relrowsecurity) from pg_class c
+              where c.oid in ('public.notifications'::regclass, 'public.deletion_requests'::regclass))
+        and not has_table_privilege('authenticated', 'public.profiles', 'UPDATE')),
+    (12, 'Account deletion and the deletion queue are for admins only',
+        not has_function_privilege('anon', 'public.approve_account_deletion(uuid)', 'EXECUTE')
+        and pg_get_functiondef('public.approve_account_deletion(uuid)'::regprocedure) like '%if not public.is_admin()%'
+        and pg_get_functiondef('public.refuse_account_deletion(uuid, text)'::regprocedure) like '%if not public.is_admin()%'
+        and pg_get_functiondef('public.deletion_queue()'::regprocedure) like '%if not public.is_admin()%')
   ) as c(n, check_name, ok)
  order by n;

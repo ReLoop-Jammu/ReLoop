@@ -30,7 +30,8 @@ async function rest<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export type ShopSubmission = {
   id: number;
-  shop_owner_id: string;
+  /** Null once the owner's account was deleted (a bought lot keeps its row). */
+  shop_owner_id: string | null;
   item_name: string;
   brand: string | null;
   model: string | null;
@@ -162,22 +163,44 @@ export type HubRequest = {
   item_id: string | null;
   created_at: string;
   handled_at: string | null;
+  /** True when sent from a signed-in account (the person sees it under My requests). */
+  from_account: boolean;
+  scheduled_for: string | null;
+  cancelled_by: "buyer" | "staff" | null;
+  cancel_reason: string | null;
 };
 
+type RequestRow = Omit<HubRequest, "from_account"> & { buyer_id: string | null };
+
 export async function listRequests(): Promise<HubRequest[]> {
-  return rest<HubRequest[]>(
-    "submissions?select=id,kind,fields,status,item_id,created_at,handled_at&order=created_at.desc",
+  const rows = await rest<RequestRow[]>(
+    "submissions?select=id,kind,fields,status,item_id,created_at,handled_at,buyer_id,scheduled_for,cancelled_by,cancel_reason&order=created_at.desc",
   );
+  return rows.map(({ buyer_id, ...r }) => ({ ...r, from_account: buyer_id !== null }));
 }
 
-export async function setRequestStatus(id: string, status: Submission["status"]) {
+/** Moves a request to a stage (scheduling a pickup needs its date). Cancelling goes through cancelRequest. */
+export async function setRequestStatus(
+  id: string,
+  status: Exclude<Submission["status"], "cancelled">,
+  scheduledFor?: string,
+) {
   const rows = await rest<unknown[]>(`submissions?id=eq.${id}&select=id`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({
       status,
       handled_at: status === "new" ? null : new Date().toISOString(),
+      ...(scheduledFor !== undefined && { scheduled_for: scheduledFor }),
     }),
   });
   if (rows.length !== 1) throw new Error("That change wasn't saved.");
+}
+
+/** Cancels a request with a reason the person sees on their status page and account. */
+export async function cancelRequest(id: string, reason: string) {
+  await rest<null>("rpc/cancel_request", {
+    method: "POST",
+    body: JSON.stringify({ p_id: id, p_reason: reason }),
+  });
 }

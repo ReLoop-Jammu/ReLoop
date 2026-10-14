@@ -16,6 +16,7 @@ import type {
   RepairJob,
   Submission,
 } from "../model";
+import { getSession, siteFetch } from "@/lib/auth-client";
 import { nextItemId, randomId } from "../ids";
 import { applyStockRules } from "../rules";
 import { readCollection, writeCollection } from "./local";
@@ -224,23 +225,38 @@ export async function saveRepairJob(
 /**
  * Records a public form request (reservation, enquiry or institution pickup)
  * for hub staff, through the site's /api/requests route; nothing is kept on
- * the visitor's device. Resolves `saved: false` instead of failing, so the
- * WhatsApp/email handoff always goes ahead.
+ * the visitor's device. When signed in, the request is linked to the account.
+ * Resolves `saved: false` instead of failing, so the WhatsApp/email handoff
+ * always goes ahead. `statusToken` opens the request's private status page.
  */
 export async function addSubmission(
   kind: Submission["kind"],
   fields: Record<string, string>,
   itemId?: string,
-): Promise<{ saved: boolean }> {
+): Promise<{ saved: boolean; statusToken: string | null; linked: boolean }> {
+  const failed = { saved: false, statusToken: null, linked: false };
   try {
-    const response = await fetch("/api/requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind, fields, ...(itemId && { itemId }) }),
-    });
-    return { saved: response.ok };
+    const body = JSON.stringify({ kind, fields, ...(itemId && { itemId }) });
+    const anonymous = () =>
+      fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+    // Signed in: linked to the account. If the session can't be used any more,
+    // the request is still saved, just without the link.
+    let response = getSession()?.access_token
+      ? await siteFetch("/api/requests", { method: "POST", body }).catch(() => null)
+      : await anonymous();
+    if (!response || response.status === 401) response = await anonymous();
+    if (!response.ok) return failed;
+    const data = (await response.json().catch(() => ({}))) as {
+      statusToken?: string | null;
+      linked?: boolean;
+    };
+    return { saved: true, statusToken: data.statusToken ?? null, linked: Boolean(data.linked) };
   } catch {
-    return { saved: false };
+    return failed;
   }
 }
 

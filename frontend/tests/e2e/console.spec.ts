@@ -57,6 +57,8 @@ const PAGES = [
   "/reset-password",
   "/resend-confirmation",
   "/hub",
+  "/hub/deletions",
+  "/status/0000000000000000000000000000000000000000000000000000000000000000",
   "/hub/kpis",
   "/hub/links",
   "/hub/audit",

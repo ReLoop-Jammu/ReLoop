@@ -99,7 +99,8 @@ function SubmissionRow({ row, onChanged }: { row: ShopSubmission; onChanged: () 
           #{row.id} · {row.item_name} × {row.quantity}
         </h3>
         <span className="text-xs text-muted">
-          {row.shop?.shop_name ?? "Shop"} · {new Date(row.created_at).toLocaleDateString("en-IN")}
+          {row.shop?.shop_name ?? (row.shop_owner_id ? "Shop" : "Deleted account")} ·{" "}
+          {new Date(row.created_at).toLocaleDateString("en-IN")}
         </span>
       </div>
       <p className="mt-1 text-muted">
