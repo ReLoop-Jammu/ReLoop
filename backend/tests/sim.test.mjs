@@ -123,6 +123,30 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     assert.equal(rows[0].n, 0);
   });
 
+  test("the demo shop has an offer to answer and one booked for the route; bought lots are paid with receipts", async () => {
+    const shop = await db.query(
+      `select x.status, p.route_date from public.shop_submissions x
+         join auth.users u on u.id = x.shop_owner_id
+         left join public.pickups p on p.shop_submission_id = x.id
+        where u.email = 'demo-shop@reloop.demo' and x.status in ('Offered', 'Accepted')`,
+    );
+    assert.deepEqual([...new Set(shop.rows.map((r) => r.status))].sort(), ["Accepted", "Offered"]);
+    assert.ok(shop.rows.find((r) => r.status === "Accepted").route_date);
+    const pay = await db.query(
+      `select count(*)::int as paid,
+              (select count(*)::int from public.shop_submissions x where x.status = 'Purchased' and x.purchase_price > 0
+                 and not exists (select 1 from public.payouts p where p.shop_submission_id = x.id)) as due,
+              bool_and(receipt_no ~ '^RL-PAY-[0-9]{4}-[0-9]{4}$') as numbered
+         from public.payouts`,
+    );
+    assert.ok(pay.rows[0].paid > 0);
+    assert.equal(pay.rows[0].due, 1);
+    assert.equal(pay.rows[0].numbered, true);
+    // New payouts continue the numbering.
+    const next = await db.query("select max(last_number) as n from public.payout_counters");
+    assert.equal(Number(next.rows[0].n), pay.rows[0].paid);
+  });
+
   test("the demo buyer has their own requests and notifications, and a pickup is booked", async () => {
     const mine = await db.query(
       `select s.status, s.cancelled_by, s.cancel_reason from public.submissions s

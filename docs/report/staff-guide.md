@@ -64,18 +64,22 @@ Verified shops send us lists of items. They appear under **Waiting for review**,
 2. To make an offer, enter **Offer per item (₹)** and a **Note the shop will see** (for example "Screens cracked; price for parts"). Press **Make offer**.
 3. To refuse, write the reason in the note and press **Reject**. The shop sees the reason.
 
-The shop sees your offer on its `/account` page and accepts by WhatsApp. Agree the pickup day in the same chat.
+The shop sees your offer on its `/account` page (and gets a notification) and answers there:
 
-## 4. Turning an accepted offer into hub items
+- **Accept the offer** books the pickup on the next route day (Tuesday or Friday). The lot moves to **Accepted: collect on the route**, with the pickup date.
+- **Decline…** moves it to **Declined by the shop**, with the shop's note if it left one. You can make a new offer from there.
 
-**Page:** `/hub/submissions`, group **Offered: waiting for the shop**
+## 4. Collecting, turning the lot into hub items and paying
 
-Do this once the shop has accepted on WhatsApp.
+**Page:** `/hub/submissions`, group **Accepted: collect on the route**
 
-1. Under "Shop accepted? Create … hub items", check the **Category** (and **Part type** for parts). The system suggests one from the shop's wording.
-2. Enter **Paid per item (₹)**: what we actually paid.
-3. Press **Create hub items**. You get one hub item per unit, each with its own **RL-JMU-** tag, linked to the submission.
-4. Click a tag to open the item and grade it (next section).
+1. Collect the lot on the route day. If you couldn't, press **Missed: move to the next route day**; the shop is told the new day.
+2. Under "Collected? Create … hub items", check the **Category** (and **Part type** for parts). The system suggests one from the shop's wording.
+3. Enter **Paid per item (₹)**: what we actually pay. Press **Create hub items**. You get one hub item per unit, each with its own **RL-JMU-** tag, linked to the submission, and the pickup counts as collected.
+4. Pay the shop (cash or UPI). Under **Bought**, fill in **Record the payment**: **Paid by**, **Date paid**, and for UPI the **UPI reference**. The reference and the **Internal note** are for staff only. Press **Record payment**. The shop gets a numbered receipt (**RL-PAY-2026-0001**, and so on) on its account, and can download it as a PDF; so can you, with **Receipt (PDF)**.
+5. Click a tag to open an item and grade it (next section).
+
+A shop that agreed in person at the counter doesn't need to accept in the app: an offered lot can be turned into hub items directly ("Bought at the counter").
 
 ## 5. Intake and grading
 

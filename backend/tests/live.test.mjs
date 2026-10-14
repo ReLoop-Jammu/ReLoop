@@ -1090,7 +1090,7 @@ describe("closing the loop (20261020000001)", () => {
       as(db, staff, (tx) =>
         tx.query("select public.convert_submission($1, 'phone', null, 45000)", [submission]),
       ),
-      /Only an offered submission/,
+      /Only an offered or accepted submission/,
     );
   });
 
@@ -1816,6 +1816,9 @@ describe("hub home: badges and link series (20261028000001)", () => {
       new_questions: 1,
       new_submissions: 1,
       offers_waiting: 1,
+      offers_accepted: 0,
+      payouts_due: 0,
+      pickups_next: 0,
       pending_shops: null,
       deletion_requests: null,
     });
@@ -2335,5 +2338,272 @@ describe("accounts and requests (20261029000001)", () => {
       as(db, who, (tx) => tx.query("select public.hub_badges() as b")).then((r) => r.rows[0].b);
     assert.equal((await b(admin)).deletion_requests, 2);
     assert.equal((await b(staff)).deletion_requests, null);
+  });
+});
+
+describe("offers, pickups and payouts (20261030000001)", () => {
+  let db;
+  let staff;
+  let owner;
+  let rival;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+    owner = await shopOwner(db, "Owner", { gstin: "" });
+    rival = await shopOwner(db, "Rival", { gstin: "" });
+    buyer = await createUser(db, "Buyer");
+  });
+  const lot = async (who, item, status = "Offered", offer = 500) => {
+    await db.exec("alter table public.shop_submissions disable trigger user");
+    const { rows } = await db.query(
+      "insert into public.shop_submissions (shop_owner_id, item_name, quantity, status, offer_price) values ($1, $2, 2, $3, $4) returning id",
+      [who, item, status, offer],
+    );
+    await db.exec("alter table public.shop_submissions enable trigger user");
+    return rows[0].id;
+  };
+  const respond = (who, id, accept, note = "") =>
+    as(db, who, (tx) =>
+      tx.query("select public.respond_to_offer($1, $2, $3) as d", [id, accept, note]),
+    ).then((r) => r.rows[0].d);
+
+  test("route days are Tuesdays and Fridays", async () => {
+    const { rows } = await db.query(
+      "select public.next_route_day('2026-10-12')::text as mon, public.next_route_day('2026-10-13')::text as tue, public.next_route_day('2026-10-16')::text as fri",
+    );
+    assert.deepEqual(rows[0], { mon: "2026-10-13", tue: "2026-10-16", fri: "2026-10-20" });
+  });
+
+  test("only the owner answers their offer; accepting books the next route day", async () => {
+    const id = await lot(owner, "Laptops");
+    await assert.rejects(respond(rival, id, true), /Submission not found/);
+    await assert.rejects(respond(staff, id, true), /Submission not found/);
+    const day = await respond(owner, id, true, "Any time after 11");
+    assert.ok([2, 5].includes(new Date(day).getUTCDay()));
+    const s = await db.query(
+      "select status, owner_note from public.shop_submissions where id = $1",
+      [id],
+    );
+    assert.deepEqual(s.rows[0], { status: "Accepted", owner_note: "Any time after 11" });
+    await assert.rejects(respond(owner, id, false), /no open offer/);
+    const n = await as(db, owner, (tx) => tx.query("select kind from public.notifications"));
+    assert.deepEqual(
+      n.rows.map((r) => r.kind),
+      ["pickup_booked"],
+    );
+    const mine = await as(db, owner, (tx) =>
+      tx.query("select item_name, status from public.my_pickups()"),
+    );
+    assert.deepEqual(mine.rows, [{ item_name: "Laptops", status: "scheduled" }]);
+    assert.equal(
+      (await as(db, rival, (tx) => tx.query("select * from public.my_pickups()"))).rows.length,
+      0,
+    );
+    const seen = await as(db, owner, (tx) => tx.query("select * from public.pickups"));
+    assert.equal(seen.rows.length, 0, "owners don't read the pickup list directly");
+  });
+
+  test("declining keeps no pickup, and staff can't accept for the shop", async () => {
+    const id = await lot(owner, "Monitors");
+    await assert.rejects(
+      as(db, staff, (tx) =>
+        tx.query("update public.shop_submissions set status = 'Accepted' where id = $1", [id]),
+      ),
+      /accepted by the shop/,
+    );
+    assert.equal(await respond(owner, id, false, "Too low"), null);
+    const p = await db.query(
+      "select count(*)::int as n from public.pickups where shop_submission_id = $1",
+      [id],
+    );
+    assert.equal(p.rows[0].n, 0);
+  });
+
+  test("a missed pickup moves to the next route day and tells the shop; converting collects it", async () => {
+    const id = await lot(owner, "Phones");
+    await respond(owner, id, true);
+    const pickup = (
+      await db.query("select id, route_date from public.pickups where shop_submission_id = $1", [
+        id,
+      ])
+    ).rows[0];
+    await assert.rejects(
+      as(db, owner, (tx) => tx.query("select public.set_pickup_status($1, 'missed')", [pickup.id])),
+      /Only hub staff/,
+    );
+    const moved = await as(db, staff, (tx) =>
+      tx.query("select public.set_pickup_status($1, 'missed') as d", [pickup.id]),
+    );
+    assert.ok(new Date(moved.rows[0].d) > new Date(pickup.route_date));
+    const n = await as(db, owner, (tx) =>
+      tx.query("select kind from public.notifications order by id desc limit 1"),
+    );
+    assert.equal(n.rows[0].kind, "pickup_moved");
+    await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'phone', null, 25000)", [id]),
+    );
+    const after = await db.query("select status, times_missed from public.pickups where id = $1", [
+      pickup.id,
+    ]);
+    assert.deepEqual(after.rows[0], { status: "collected", times_missed: 1 });
+  });
+
+  test("a booked institution pickup joins the pickups, and collecting it updates the booking", async () => {
+    const { rows } = await asService(db, (tx) =>
+      tx.query(
+        "insert into public.submissions (kind, fields, buyer_id) values ('institution_pickup', '{\"institution\":\"GGM College\"}', $1) returning id",
+        [buyer],
+      ),
+    );
+    const req = rows[0].id;
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.submissions set status = 'scheduled', scheduled_for = '2026-11-03' where id = $1",
+        [req],
+      ),
+    );
+    const p = (
+      await db.query(
+        "select id, route_date::text, market from public.pickups where request_id = $1",
+        [req],
+      )
+    ).rows[0];
+    assert.deepEqual(
+      { route_date: p.route_date, market: p.market },
+      { route_date: "2026-11-03", market: "GGM College" },
+    );
+    await as(db, staff, (tx) =>
+      tx.query("select public.set_pickup_status($1, 'collected')", [p.id]),
+    );
+    const s = await db.query("select status::text from public.submissions where id = $1", [req]);
+    assert.equal(s.rows[0].status, "collected");
+    const told = await as(db, buyer, (tx) =>
+      tx.query("select kind from public.notifications order by id"),
+    );
+    assert.deepEqual(
+      told.rows.map((r) => r.kind),
+      ["request_scheduled", "request_collected"],
+    );
+  });
+
+  test("payouts: numbered receipts, staff-only reference, and the shop sees only its own", async () => {
+    const id = await lot(owner, "Tablets");
+    await respond(owner, id, true);
+    const pay = (who, sid, method = "upi", date = null, ref = "UPI-REF-123") =>
+      as(db, who, (tx) =>
+        tx.query(
+          "select public.record_payout($1, $2, coalesce($3::date, (now() at time zone 'Asia/Kolkata')::date), $4, 'paid at the counter') as r",
+          [sid, method, date, ref],
+        ),
+      ).then((r) => r.rows[0].r);
+    await assert.rejects(pay(staff, id), /Only a bought lot/);
+    await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'phone', null, 30000)", [id]),
+    );
+    await assert.rejects(pay(owner, id), /Only hub staff/);
+    await assert.rejects(pay(staff, id, "cheque"), /cash or UPI/);
+    await assert.rejects(pay(staff, id, "upi", "2020-01-01"), /last 60 days/);
+    const receipt = await pay(staff, id);
+    assert.match(receipt, /^RL-PAY-\d{4}-0001$/);
+    await assert.rejects(pay(staff, id), /already paid/);
+    const second = await lot(rival, "Speakers", "Accepted");
+    await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'accessory', null, 10000)", [second]),
+    );
+    assert.match(await pay(staff, second, "cash", null, ""), /^RL-PAY-\d{4}-0002$/);
+
+    const mine = await as(db, owner, (tx) => tx.query("select * from public.my_payouts()"));
+    assert.equal(mine.rows.length, 1);
+    assert.deepEqual(Object.keys(mine.rows[0]).sort(), [
+      "amount_paise",
+      "item_name",
+      "method",
+      "paid_at",
+      "quantity",
+      "receipt_no",
+      "shop_submission_id",
+    ]);
+    assert.equal(Number(mine.rows[0].amount_paise), 60000, "2 × ₹300");
+    assert.ok(!JSON.stringify(mine.rows).includes("UPI-REF-123"));
+    const direct = await as(db, owner, (tx) => tx.query("select reference from public.payouts"));
+    assert.equal(direct.rows.length, 0, "owners never read the payouts table");
+    await assert.rejects(
+      as(db, null, (tx) => tx.query("select * from public.payouts")),
+      /permission denied/,
+    );
+    const items = await db.query(
+      "select distinct purchase_payment_method, purchase_reference from public.items where shop_submission_id = $1",
+      [id],
+    );
+    assert.deepEqual(items.rows, [
+      { purchase_payment_method: "upi", purchase_reference: "UPI-REF-123" },
+    ]);
+    const rec = (who, no) =>
+      as(db, who, (tx) => tx.query("select * from public.payout_receipt($1)", [no])).then(
+        (r) => r.rows,
+      );
+    assert.equal((await rec(owner, receipt)).length, 1);
+    assert.equal((await rec(rival, receipt)).length, 0, "another shop can't open the receipt");
+    assert.equal((await rec(staff, receipt)).length, 1);
+    assert.equal((await rec(buyer, receipt)).length, 0);
+    await assert.rejects(rec(null, receipt), /permission denied/);
+    assert.ok(!("reference" in (await rec(owner, receipt))[0]));
+    const told = await as(db, owner, (tx) =>
+      tx.query("select title, body from public.notifications where kind = 'payout_made'"),
+    );
+    assert.equal(told.rows[0].title, "ReLoop paid you ₹600.00");
+    assert.match(told.rows[0].body, new RegExp(`Receipt ${receipt}`));
+  });
+
+  test("pickups show the shop's market, never its address, and lose it when the account is deleted", async () => {
+    await db.query("update public.shop_owners set map_market = 'Raghunath Bazaar' where id = $1", [
+      rival,
+    ]);
+    const id = await lot(rival, "Keyboards");
+    await respond(rival, id, true);
+    const p = await db.query("select market from public.pickups where shop_submission_id = $1", [
+      id,
+    ]);
+    assert.equal(p.rows[0].market, "Raghunath Bazaar");
+    const plain = await shopOwner(db, "NoMap", { gstin: "" });
+    const other = await lot(plain, "Mice");
+    await respond(plain, other, true);
+    const q = await db.query("select market from public.pickups where shop_submission_id = $1", [
+      other,
+    ]);
+    assert.equal(q.rows[0].market, "", "no street address in pickups");
+    await as(db, staff, (tx) =>
+      tx.query("select public.convert_submission($1, 'accessory', null, 5000)", [id]),
+    );
+    const admin = await createUser(db, "Admin");
+    await db.query("insert into public.admin_users (id, name) values ($1, 'Admin')", [admin]);
+    const rid = (
+      await as(db, rival, (tx) => tx.query("select public.request_account_deletion('') as id"))
+    ).rows[0].id;
+    await as(db, admin, (tx) => tx.query("select public.approve_account_deletion($1)", [rid]));
+    const after = await db.query(
+      "select market, shop_owner_id from public.pickups where shop_submission_id = $1",
+      [id],
+    );
+    assert.deepEqual(after.rows[0], { market: "", shop_owner_id: null });
+  });
+
+  test("the hub counts accepted offers, payouts due and the next route day's pickups", async () => {
+    const id = await lot(owner, "Routers");
+    await respond(owner, id, true);
+    const b = (await as(db, staff, (tx) => tx.query("select public.hub_badges() as b"))).rows[0].b;
+    assert.ok(b.offers_accepted >= 1);
+    const review = await db.query(
+      "select count(*)::int as n from public.shop_submissions where status in ('Pending', 'Under Review')",
+    );
+    assert.equal(b.new_submissions, review.rows[0].n, "accepted lots aren't counted as new");
+    assert.ok(b.pickups_next >= 1);
+    const unpaid = await db.query(
+      `select count(*)::int as n from public.shop_submissions x where x.status = 'Purchased' and x.purchase_price > 0
+         and not exists (select 1 from public.payouts p where p.shop_submission_id = x.id)`,
+    );
+    assert.ok(unpaid.rows[0].n >= 1, "the phones bought earlier are not paid yet");
+    assert.equal(b.payouts_due, unpaid.rows[0].n);
   });
 });

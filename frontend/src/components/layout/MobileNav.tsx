@@ -125,8 +125,8 @@ export function MobileNav() {
                   Notifications
                   {unread > 0 && (
                     <span className="ml-2 rounded-full bg-danger px-1.5 text-xs font-semibold text-white tabular-nums">
-                      {unread}
-                      <span className="sr-only"> unread</span>
+                      <span aria-hidden="true">{unread}</span>
+                      <span className="sr-only">, {unread} unread</span>
                     </span>
                   )}
                 </Link>

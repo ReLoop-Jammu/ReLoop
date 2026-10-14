@@ -24,7 +24,7 @@ import { Notice } from "@/components/ui/Notice";
 import { MySubmissions } from "@/features/account/MySubmissions";
 import { useNotifications } from "@/features/account/notifications-store";
 import { useHubBadges } from "@/features/hub/badges";
-import { TOOL_GROUPS, toolsFor } from "@/features/hub/tools";
+import { badgeCount, TOOL_GROUPS, toolsFor } from "@/features/hub/tools";
 import { useSiteSettings } from "@/features/settings/context";
 import { whatsappChatUrl } from "@/features/sell/components/WhatsAppButton";
 import {
@@ -115,7 +115,7 @@ function HubTools({ access }: { access: Access }) {
             <h3 className="text-sm font-semibold text-ink-soft">{group}</h3>
             <ul className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {inGroup.map(({ href, label, description, icon: Icon, badge }) => {
-                const count = badge ? badges?.[badge] : null;
+                const count = badgeCount({ badge }, badges);
                 return (
                   <li key={href}>
                     <Link
@@ -128,8 +128,8 @@ function HubTools({ access }: { access: Access }) {
                           {label}
                           {count ? (
                             <span className="rounded-full bg-gold-400 px-1.5 text-xs text-brand-950 tabular-nums">
-                              {count}
-                              <span className="sr-only"> waiting</span>
+                              <span aria-hidden="true">{count}</span>
+                              <span className="sr-only">, {count} waiting</span>
                             </span>
                           ) : null}
                         </span>

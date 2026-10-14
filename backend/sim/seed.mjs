@@ -788,6 +788,76 @@ export function buildSeed({ today = new Date(), auth = "supabase" } = {}) {
     }
   }
 
+  // The demo shop always has an offer to answer and an accepted one waiting
+  // for the route; every other bought lot is paid for with a receipt, except
+  // the latest, so the hub shows a payment to record.
+  const demoShopLots = submissions
+    .filter((x) => x.shop_owner_id === byKey.shop.id && x.status !== "Pending")
+    .sort((a, b) => b.created_at - a.created_at);
+  const nextRouteDay = (from) => {
+    const d = new Date(from);
+    do d.setUTCDate(d.getUTCDate() + 1);
+    while (![2, 5].includes(d.getUTCDay()));
+    return d.toISOString().slice(0, 10);
+  };
+  const pickups = [];
+  for (const [i, lot] of demoShopLots.slice(0, 2).entries()) {
+    lot.offer_price ??= int(3, 30) * 50;
+    lot.offer_note = "Simulated offer";
+    lot.rejection_reason = null;
+    lot.purchase_price = null;
+    lot.purchased_at = null;
+    lot.reviewed_at ??= lot.created_at;
+    lot.reviewed_by ??= byKey.staff.id;
+    lot.status = i === 0 ? "Offered" : "Accepted";
+    if (lot.status === "Accepted") {
+      lot.owner_response_at = at(new Date(end.getTime() - 20 * HOUR));
+      pickups.push({
+        source: "shop",
+        shop_submission_id: lot.id,
+        shop_owner_id: lot.shop_owner_id,
+        route_date: nextRouteDay(end),
+        market: "Raghunath Bazaar",
+        status: "scheduled",
+      });
+    }
+  }
+  // The booked institution pickup is on the route too (the seed writes with
+  // triggers off, so it adds the pickup itself).
+  if (booking)
+    pickups.push({
+      source: "institution",
+      request_id: booking.id,
+      shop_submission_id: null,
+      shop_owner_id: null,
+      route_date: booking.scheduled_for,
+      market: booking.fields.institution ?? "",
+      status: "scheduled",
+    });
+  const bought = submissions
+    .filter((x) => x.status === "Purchased" && x.purchase_price > 0)
+    .sort((a, b) => a.purchased_at - b.purchased_at);
+  const payouts = [];
+  const receiptNo = {};
+  for (const lot of bought.slice(0, -1)) {
+    const paid = at(lot.purchased_at);
+    const year = paid.getUTCFullYear();
+    receiptNo[year] = (receiptNo[year] ?? 0) + 1;
+    const method = chance(0.6) ? "upi" : "cash";
+    payouts.push({
+      receipt_no: `RL-PAY-${year}-${String(receiptNo[year]).padStart(4, "0")}`,
+      shop_submission_id: lot.id,
+      shop_owner_id: lot.shop_owner_id,
+      amount_paise: Math.round(lot.purchase_price * 100),
+      method,
+      paid_at: paid.toISOString().slice(0, 10),
+      reference: method === "upi" ? `SIM-UPI-${int(100000, 999999)}` : "",
+      internal_note: "Simulated payment",
+      created_by: byKey.staff.id,
+      created_at: paid,
+    });
+  }
+
   // Short-link clicks per day, ramping with the pilot.
   const visits = [];
   for (let d = 0; d < 180; d++) {
@@ -845,6 +915,9 @@ delete from public.consignments;
 delete from public.submissions;
 delete from public.notifications;
 delete from public.deletion_requests;
+delete from public.payouts;
+delete from public.payout_counters;
+delete from public.pickups;
 update public.items set parent_id = null, handover_id = null;
 delete from public.items;
 delete from public.handovers;
@@ -1053,8 +1126,49 @@ alter table public.submissions enable trigger user;`);
         "purchase_price",
         "purchased_at",
         "created_at",
+        "owner_response_at",
       ],
-      submissions,
+      submissions.map((x) => ({ owner_response_at: null, ...x })),
+    ),
+  );
+  sql.push(
+    ...inserts(
+      "public.pickups",
+      [
+        "source",
+        "shop_submission_id",
+        "request_id",
+        "shop_owner_id",
+        "route_date",
+        "market",
+        "status",
+      ],
+      pickups.map((p) => ({ request_id: null, ...p })),
+    ),
+  );
+  sql.push(
+    ...inserts(
+      "public.payouts",
+      [
+        "receipt_no",
+        "shop_submission_id",
+        "shop_owner_id",
+        "amount_paise",
+        "method",
+        "paid_at",
+        "reference",
+        "internal_note",
+        "created_by",
+        "created_at",
+      ],
+      payouts,
+    ),
+  );
+  sql.push(
+    ...inserts(
+      "public.payout_counters",
+      ["year", "last_number"],
+      Object.entries(receiptNo).map(([year, last_number]) => ({ year: Number(year), last_number })),
     ),
   );
   sql.push(

@@ -31,7 +31,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
   - Fix: cookie-based sessions via server routes. The earlier, reverted commit `39f28da` shows the shape.
 - **One shared admin account.** The team still shares one admin login, so the audit log can't tell people apart. Fix: give each person their own account on `/hub/team` (ReLoop always keeps at least one admin).
 - **GSTIN is checked for format only** (15 letters or numbers), not against the government's GST database. A person still reviews every shop on `/hub/shops`.
-- **Shop owners accept offers by WhatsApp** for now (accepting in the app comes with offers and pickups). They get an on-site notification when they're verified, rejected or sent an offer.
+- **Shop owners get on-site notifications only** when they're verified, rejected, sent an offer, booked for a pickup or paid; nothing reaches their phone.
 - **Requests sent while logged out can't be linked to an account later.** Only their private status link shows their stage; deleting an account can't reach them (they're deleted 12 months after closing).
 
 ## 3. Security and abuse
@@ -48,7 +48,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
 
 ## 4. The loop (submissions, requests, map, team)
 
-- **Offers:** a shop accepts an offer by WhatsApp, not in the app. Staff then press "Create hub items" (one item per unit, linked to the submission).
+- **Offers:** a shop accepts or declines in the app; accepting books the next route day. Payouts are recorded by hand after paying (cash or UPI): nothing pays a shop automatically, and the receipt PDF is not a tax invoice.
 - **Reservations** don't hold an item by themselves, and nothing expires. Staff mark the item reserved or sold from `/hub/requests`.
 - **Deleting requests** is automatic: the daily `reloop-request-retention` job (22:00 UTC, 03:30 IST) deletes a request 12 months after it was closed (sold, cancelled or done), with its contact details. Open requests are kept until staff close them, so an inbox nobody tidies keeps its data. Shop submissions, hub items and the audit log are business records and are not deleted.
 - **Map consent** is recorded as a date ticked by an admin, not a signed form. Positions default to the shop's market, marked approximate.

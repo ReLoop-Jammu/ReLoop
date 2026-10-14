@@ -256,3 +256,43 @@ test.describe("accounts and requests (real logins)", () => {
     });
   });
 });
+
+test.describe("offers, pickups and payouts (real logins)", () => {
+  test.skip(({ isMobile }) => isMobile, "one viewport is enough for shared demo data");
+
+  test("the demo shop answers offers in the app, sees its pickup day and downloads a receipt", async ({
+    page,
+  }) => {
+    await loginAs(page, "demo-shop@reloop.demo", "/account");
+    await expect(page.getByRole("button", { name: "Accept the offer" }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/Pickup on (Tuesday|Friday)/).first()).toBeVisible();
+    await expect(page.getByText(/Payments from ReLoop/)).toBeVisible();
+    const download = page.waitForEvent("download");
+    await page
+      .getByRole("button", { name: /Receipt \(PDF\) for RL-PAY-/ })
+      .first()
+      .click();
+    const file = await download;
+    expect(file.suggestedFilename()).toMatch(/^RL-PAY-\d{4}-\d{4}\.pdf$/);
+    const bytes = await (await file.createReadStream()).toArray().then((c) => Buffer.concat(c));
+    expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  });
+
+  test("hub staff see the accepted lot's pickup and the payment to record", async ({ page }) => {
+    await loginAs(page, "demo-staff@reloop.demo", "/hub/submissions");
+    const accepted = page.locator("section").filter({ hasText: "Accepted: collect on the route" });
+    await expect(
+      accepted.getByRole("button", { name: "Missed: move to the next route day" }),
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("button", { name: "Record payment" }).first()).toBeVisible();
+    await expect(page.getByText(/receipt RL-PAY-\d{4}-\d{4}/).first()).toBeVisible();
+    await page.goto("/hub");
+    await expect(page.getByText(/pickups? on the next route day/).first()).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+});

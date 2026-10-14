@@ -48,11 +48,13 @@ export type ShopSubmission = {
   purchase_price: number | null;
   purchased_at: string | null;
   created_at: string;
+  owner_response_at?: string | null;
+  owner_note?: string;
   shop?: { shop_name: string; owner_name: string; phone: string | null };
 };
 
 const SUBMISSION_COLUMNS =
-  "id,shop_owner_id,item_name,brand,model,description,quantity,condition,asking_price,image_url,status,offer_price,offer_note,rejection_reason,reviewed_at,purchase_price,purchased_at,created_at";
+  "id,shop_owner_id,item_name,brand,model,description,quantity,condition,asking_price,image_url,status,offer_price,offer_note,rejection_reason,reviewed_at,purchase_price,purchased_at,created_at,owner_response_at,owner_note";
 
 /** Every shop submission, newest first, with the shop's name and phone. */
 export async function listShopSubmissions(): Promise<ShopSubmission[]> {
@@ -76,7 +78,7 @@ export async function myShopSubmissions(): Promise<ShopSubmission[]> {
   const me = getSession()?.user.id;
   if (!me) return [];
   return rest<ShopSubmission[]>(
-    `shop_submissions?select=id,item_name,quantity,condition,status,offer_price,offer_note,rejection_reason,reviewed_at,created_at&shop_owner_id=eq.${me}&order=created_at.desc`,
+    `shop_submissions?select=id,item_name,quantity,condition,status,offer_price,offer_note,rejection_reason,reviewed_at,created_at,owner_response_at,owner_note&shop_owner_id=eq.${me}&order=created_at.desc`,
   );
 }
 
@@ -204,3 +206,55 @@ export async function cancelRequest(id: string, reason: string) {
     body: JSON.stringify({ p_id: id, p_reason: reason }),
   });
 }
+
+// ---------------------------------------------------------------- pickups and payouts
+
+export type HubPickup = {
+  id: string;
+  source: "shop" | "institution";
+  shop_submission_id: number | null;
+  request_id: string | null;
+  route_date: string;
+  market: string;
+  status: "scheduled" | "collected" | "cancelled";
+  times_missed: number;
+};
+export const listPickups = () =>
+  rest<HubPickup[]>(
+    "pickups?select=id,source,shop_submission_id,request_id,route_date,market,status,times_missed&order=route_date",
+  );
+/** Marks a pickup collected, or missed (it moves to the next route day, which is returned). */
+export const setPickupStatus = (id: string, status: "collected" | "missed") =>
+  rest<string>("rpc/set_pickup_status", {
+    method: "POST",
+    body: JSON.stringify({ p_id: id, p_status: status }),
+  });
+
+export type HubPayout = {
+  receipt_no: string;
+  shop_submission_id: number;
+  amount_paise: number;
+  method: "cash" | "upi";
+  paid_at: string;
+  reference: string;
+  internal_note: string;
+};
+export const listPayouts = () =>
+  rest<HubPayout[]>(
+    "payouts?select=receipt_no,shop_submission_id,amount_paise,method,paid_at,reference,internal_note&order=created_at.desc",
+  ).then((r) => r.map((p) => ({ ...p, amount_paise: Number(p.amount_paise) })));
+/** Records the payment for a bought lot; returns its receipt number. */
+export const recordPayout = (
+  submission: number,
+  p: { method: "cash" | "upi"; paidAt: string; reference: string; note: string },
+) =>
+  rest<string>("rpc/record_payout", {
+    method: "POST",
+    body: JSON.stringify({
+      p_submission: submission,
+      p_method: p.method,
+      p_paid_at: p.paidAt,
+      p_reference: p.reference,
+      p_note: p.note,
+    }),
+  });
