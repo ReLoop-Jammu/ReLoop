@@ -40,6 +40,8 @@ const PAGES = [
   "/hub/requests",
   "/hub/submissions",
   "/hub/settings",
+  "/shop/compare?ids=RL-JMU-0001,RL-JMU-0002",
+  "/shop?sort=saving&max=20000",
   "/hub/pricing/references",
   "/how-we-price",
   "/hub/warranty",

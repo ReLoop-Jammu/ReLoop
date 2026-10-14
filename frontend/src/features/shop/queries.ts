@@ -2,9 +2,18 @@ import "server-only";
 
 import { inspectionFromRow } from "@/features/inventory/inspection";
 
+import { cache } from "react";
 import snapshot from "@/data/shop-snapshot.json";
+import { allPages } from "@/lib/pages";
 import { shipsAcrossIndia, type Item } from "@/features/inventory/model";
-import { shopSnapshotSchema, toShopItem, type ShopFilters, type ShopItem } from "./model";
+import {
+  itemSaving,
+  SHOP_PAGE_SIZE,
+  shopSnapshotSchema,
+  toShopItem,
+  type ShopFilters,
+  type ShopItem,
+} from "./model";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY =
@@ -47,7 +56,7 @@ type ShopData = {
   categories: SupabaseCategory[];
 };
 
-async function supabaseFetch<T>(path: string): Promise<T> {
+async function supabaseFetch<T>(path: string, headers: Record<string, string> = {}): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error(
       "Supabase environment variables are missing. " +
@@ -60,6 +69,7 @@ async function supabaseFetch<T>(path: string): Promise<T> {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
       "Content-Type": "application/json",
+      ...headers,
     },
     cache: "no-store",
   });
@@ -231,20 +241,37 @@ export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopIt
 }
 
 async function getHubItems(): Promise<ShopItem[]> {
-  const rows = await supabaseFetch<PublicHubItem[]>(
-    `items?select=${HUB_ITEM_SELECT}&status=eq.listed&order=listed_at.desc`,
-  );
+  // Every page: one request returns at most 1,000 rows.
+  const [rows, prices] = await Promise.all([
+    allPages((headers) =>
+      supabaseFetch<PublicHubItem[]>(
+        `items?select=${HUB_ITEM_SELECT}&status=eq.listed&order=listed_at.desc,id`,
+        headers,
+      ),
+    ),
+    allPages((headers) =>
+      supabaseFetch<{ item_id: string; new_price_paise: number | null }[]>(
+        "public_price_bands?select=item_id,new_price_paise&new_price_paise=not.is.null&order=item_id",
+        headers,
+      ),
+    ).catch(() => []),
+  ]);
+  const newPrice = new Map(prices.map((p) => [p.item_id, Number(p.new_price_paise)]));
   const photoBase = `${SUPABASE_URL}/storage/v1/object/public/item-photos`;
   return rows
     .map((row) => hubItemToShopItem(row, photoBase))
-    .filter((item): item is ShopItem => item !== null);
+    .filter((item): item is ShopItem => item !== null)
+    .map((item) =>
+      newPrice.has(item.id) ? { ...item, newPricePaise: newPrice.get(item.id) } : item,
+    );
 }
 
 /**
  * Listed hub items and live listings. Sample listings show only while there
  * is no real stock, so they disappear by themselves once the hub lists items.
  */
-async function getAllPublicShopItems(): Promise<ShopItem[]> {
+// One load per request, shared by the page, its metadata and related items.
+const getAllPublicShopItems = cache(async (): Promise<ShopItem[]> => {
   if (USE_SAMPLE_STOCK) return shopSnapshotSchema.parse(snapshot).items;
 
   const [{ listings, categories }, hubItems] = await Promise.all([getShopData(), getHubItems()]);
@@ -252,7 +279,7 @@ async function getAllPublicShopItems(): Promise<ShopItem[]> {
     .map((listing) => listingToShopItem(listing, categories))
     .filter((item): item is ShopItem => item !== null);
   return combineStock(hubItems, fromListings);
-}
+});
 
 /**
  * Real stock if there is any; otherwise the sample listings (exported for
@@ -268,16 +295,21 @@ export function combineStock(hubItems: ShopItem[], fromListings: ShopItem[]): Sh
 
 export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): ShopItem[] {
   const terms = f.q?.toLowerCase().split(/\s+/).filter(Boolean) ?? [];
+  const brand = f.brand?.toLowerCase();
 
   const list = items.filter((item) => {
-    const hay = `${item.id} ${item.title} ${item.description} ${item.category} ${
-      item.partType ?? ""
-    }`.toLowerCase();
+    const hay =
+      `${item.id} ${item.title} ${item.brand ?? ""} ${item.description} ${item.category} ${
+        item.partType ?? ""
+      }`.toLowerCase();
 
     return (
       terms.every((term) => hay.includes(term)) &&
       (!f.grade || item.grade === f.grade) &&
-      (!f.category || item.category === f.category)
+      (!f.category || item.category === f.category) &&
+      (!brand || (item.brand ?? "").toLowerCase() === brand) &&
+      (f.min === undefined || item.pricePaise >= f.min * 100) &&
+      (f.max === undefined || item.pricePaise <= f.max * 100)
     );
   });
 
@@ -288,21 +320,54 @@ export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): Sho
     case "price_desc":
       return list.sort((a, b) => b.pricePaise - a.pricePaise);
 
+    case "saving":
+      return list.sort(
+        (a, b) => itemSaving(b) - itemSaving(a) || b.listedAt.localeCompare(a.listedAt),
+      );
+
     default:
       return list.sort((a, b) => b.listedAt.localeCompare(a.listedAt));
   }
 }
 
-export async function getShopItems(
-  f: ShopFilters = {},
-): Promise<{ items: ShopItem[]; total: number }> {
+/** Brands to filter by, from the stock (in the chosen category, if any). */
+export function brandsIn(items: readonly ShopItem[], category?: ShopFilters["category"]): string[] {
+  const seen = new Map<string, string>();
+  for (const i of items)
+    if (i.brand && (!category || i.category === category) && !seen.has(i.brand.toLowerCase()))
+      seen.set(i.brand.toLowerCase(), i.brand);
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
+}
+
+export type ShopPage = {
+  items: ShopItem[];
+  /** Every item on sale, and those matching the filters. */
+  total: number;
+  matching: number;
+  page: number;
+  pages: number;
+  brands: string[];
+};
+
+export async function getShopItems(f: ShopFilters = {}): Promise<ShopPage> {
   const items = await getAllPublicShopItems();
   const filtered = filterShopItems(items, f);
-
+  const pages = Math.max(1, Math.ceil(filtered.length / SHOP_PAGE_SIZE));
+  const page = Math.min(f.page ?? 1, pages);
   return {
-    items: filtered,
+    items: filtered.slice((page - 1) * SHOP_PAGE_SIZE, page * SHOP_PAGE_SIZE),
     total: items.length,
+    matching: filtered.length,
+    page,
+    pages,
+    brands: brandsIn(items, f.category),
   };
+}
+
+/** Items by their IDs, in that order, skipping any that aren't on sale (for the compare page). */
+export async function getShopItemsByIds(ids: readonly string[]): Promise<ShopItem[]> {
+  const items = await getAllPublicShopItems();
+  return ids.map((id) => items.find((i) => i.id === id)).filter((i): i is ShopItem => Boolean(i));
 }
 
 export async function getShopItem(id: string): Promise<ShopItem | null> {

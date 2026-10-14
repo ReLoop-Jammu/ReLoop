@@ -423,3 +423,31 @@ test.describe("the real site is not the simulation", () => {
     expect(await (await request.get("/robots.txt")).text()).not.toMatch(/Disallow: \/\s*$/m);
   });
 });
+
+test.describe("finding items", () => {
+  test("a price range narrows the results and stays in the address", async ({ page }) => {
+    await page.goto("/shop");
+    await page.getByLabel("Highest price (₹)").fill("1000");
+    await page.getByRole("button", { name: "Apply" }).click();
+    await expect(page).toHaveURL(/max=1000/);
+    await expect(page.getByText(/for up to ₹1,000/)).toBeVisible();
+    const prices = await page.locator("main article .font-display").allTextContents();
+    expect(prices.length).toBeGreaterThan(0);
+    for (const p of prices) expect(Number(p.replace(/\D/g, ""))).toBeLessThanOrEqual(1000);
+  });
+
+  test("results can be sorted by the biggest saving", async ({ page }) => {
+    await page.goto("/shop?sort=saving");
+    await expect(page.getByLabel("Sort by")).toHaveValue("saving");
+    await expect(page.locator("main article").first()).toBeVisible();
+  });
+
+  test("the compare page shows items side by side from a shareable link", async ({ page }) => {
+    await page.goto("/shop/compare?ids=RL-JMU-0001,RL-JMU-0002,nope");
+    await expect(page.getByRole("heading", { level: 1, name: "Compare items" })).toBeVisible();
+    await expect(page.getByRole("rowheader", { name: "Warranty" })).toBeVisible();
+    await expect(page.locator("thead th a")).toHaveCount(2);
+    await page.goto("/shop/compare");
+    await expect(page.getByText("Nothing to compare yet")).toBeVisible();
+  });
+});

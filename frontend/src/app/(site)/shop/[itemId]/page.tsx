@@ -4,11 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReLoopChecked } from "@/features/shop/components/ReLoopChecked";
 import { PriceFacts } from "@/features/pricing/PriceFacts";
+import { CompareButton } from "@/features/shop/components/CompareButton";
+import { Gallery } from "@/features/shop/components/Gallery";
+import { TrackView } from "@/features/shop/components/RecentlyViewed";
 import { getPriceBand, getPriceHistory } from "@/features/pricing/server";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
-import { ItemVisual } from "@/features/inventory/components/ItemVisual";
 import { GRADE_INFO, categoryLabel } from "@/features/inventory/model";
 import { ReserveItem } from "@/features/sell/components/ReserveItem";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
@@ -34,6 +36,7 @@ export async function generateMetadata({ params }: PageProps<"/shop/[itemId]">):
 export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]">) {
   const item = await getShopItem((await params).itemId);
   if (!item) notFound();
+  const saved = { id: item.id, title: item.title, pricePaise: item.pricePaise, grade: item.grade };
   const [related, band, history] = await Promise.all([
     getRelatedShopItems(item),
     item.sample ? null : getPriceBand(item.id),
@@ -92,15 +95,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
-        <ItemVisual
-          category={item.category}
-          partType={item.partType}
-          grade={item.grade}
-          photo={item.photo}
-          alt={item.title}
-          size="hero"
-          className="aspect-[16/11] rounded-panel border border-line lg:sticky lg:top-28 lg:aspect-[4/3.4]"
-        />
+        <Gallery item={item} />
 
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -127,6 +122,12 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             )}
           </div>
           <PriceFacts price={item.pricePaise} band={band} history={history} />
+          {!item.sample && (
+            <div className="mt-4">
+              <CompareButton item={saved} />
+            </div>
+          )}
+          {!item.sample && <TrackView item={saved} />}
 
           <ul className="mt-6 space-y-2.5 text-sm text-ink-soft">
             {item.warrantyDays && (
