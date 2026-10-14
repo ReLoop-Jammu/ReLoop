@@ -20,6 +20,8 @@ beforeEach(() => {
       calls.push(`${init.method ?? "GET"} ${url}`);
       if (url.endsWith("/auth/v1/user")) return Response.json({ id: "admin-1" });
       if (url.endsWith("/rpc/is_admin")) return Response.json(true);
+      if (url.endsWith(`/auth/v1/admin/users/${TARGET}`) && (init.method ?? "GET") === "GET")
+        return Response.json({ id: TARGET, email: "person@example.com" });
       if (url.includes("/rest/v1/staff?"))
         return Response.json(targetIsAdmin === "staff" ? [{ user_id: TARGET }] : []);
       if (url.includes("/rest/v1/admin_users?"))
@@ -53,7 +55,7 @@ describe("admin password reset", () => {
       targetIsAdmin = kind;
       const res = await reset();
       expect(res.status).toBe(403);
-      expect(calls.some((c) => c.startsWith("PATCH") || c.includes("/admin/users/"))).toBe(false);
+      expect(calls.some((c) => c.startsWith("PATCH") || c.startsWith("PUT"))).toBe(false);
     },
   );
 

@@ -38,7 +38,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are de
 - **No rate limiting** on shop submissions, public requests (`/api/requests`: honeypot field and length limits only) or the QR scan counter (`/go/drive`). Supabase limits sign-ups itself, but the site adds nothing on top.
   - QR counts can be inflated by anyone who visits the link repeatedly. Crawlers and link previews are filtered by user agent only.
   - Fix: a per-IP limit at the edge (Vercel Firewall), or in the route.
-- **Preview deployments use the production database and keys.** Any branch preview reads and writes live data. Fix: a separate Supabase project for Preview.
+- **Preview deployments use the simulation database** (since v1.0.0), never production: see `docs/runbooks/simulation.md`. GitHub Actions can't hold the simulation's secret key (adding repository secrets needs admin rights), so CI's browser tests still run with no database, and the journey tests run against the demo site.
 - **Photo links on shop submissions** are typed-in URLs (HTTPS only), not uploads, so they can point anywhere.
 - **The 2026-10-14 security fix is applied** and re-checked. `supabase-fixes/2026-10-14-checks.sql` and `supabase-fixes/live-checks-extra.sql` show 43 of 43 true (end of round 4, 2026-10-14). The extra checks prove that visitors and buyers can't read other people's contact details, requests or shop data.
 

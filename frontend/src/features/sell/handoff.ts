@@ -1,3 +1,4 @@
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 
 /**
@@ -13,6 +14,8 @@ export function buildRequestText(title: string, fields: [label: string, value: s
 
 export function handoffChannels(subject: string, text: string): HandoffChannel[] {
   const channels: HandoffChannel[] = [];
+  // The simulation never sends messages to ReLoop's real WhatsApp or email.
+  if (IS_SIMULATION) return channels;
   if (SITE.whatsapp) {
     channels.push({
       kind: "whatsapp",

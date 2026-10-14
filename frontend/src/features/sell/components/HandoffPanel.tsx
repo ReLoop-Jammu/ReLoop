@@ -3,12 +3,13 @@
 import { Check, Copy, Mail, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { buttonClasses } from "@/components/ui/Button";
+import { IS_SIMULATION } from "@/lib/environment";
 import { handoffChannels } from "../handoff";
 
-type Props = { subject: string; text: string; onReset?: () => void };
+type Props = { subject: string; text: string; saved?: boolean; onReset?: () => void };
 
 /** Shown after a form is filled: sends the request by WhatsApp or email, or copies it. */
-export function HandoffPanel({ subject, text, onReset }: Props) {
+export function HandoffPanel({ subject, text, saved = true, onReset }: Props) {
   const [copied, setCopied] = useState(false);
   const channels = handoffChannels(subject, text);
 
@@ -59,8 +60,11 @@ export function HandoffPanel({ subject, text, onReset }: Props) {
       </div>
       {channels.length === 0 && (
         <p className="mt-4 text-sm text-ink-soft">
-          Our WhatsApp number and email will be added here shortly. Meanwhile, copy your request and
-          keep it handy.
+          {IS_SIMULATION
+            ? saved
+              ? "This is the simulation: your request is saved for the demo hub, but no WhatsApp message or email is sent."
+              : "This is the simulation: no WhatsApp message or email is sent."
+            : "Our WhatsApp number and email will be added here shortly. Meanwhile, copy your request and keep it handy."}
         </p>
       )}
     </div>

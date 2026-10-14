@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ContactDetail } from "@/components/legal/LegalPage";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -42,6 +43,12 @@ export default function ContactPage() {
           Questions about an item, selling to us, or becoming a partner shop? Reach the ReLoop team
           in Jammu.
         </p>
+        {IS_SIMULATION && (
+          <p role="note" className="mt-4 rounded-xl bg-sunken p-4 text-sm">
+            This is the simulation. These are the real ReLoop team&apos;s details: please contact
+            them only about the real ReLoop, not about anything you did on this demo.
+          </p>
+        )}
       </div>
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card icon={Mail} title="Email">

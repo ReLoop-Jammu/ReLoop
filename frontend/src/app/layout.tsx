@@ -2,7 +2,9 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { SimulationBanner } from "@/components/layout/SimulationBanner";
 import { env } from "@/lib/env";
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -23,6 +25,8 @@ export const metadata: Metadata = {
   applicationName: "ReLoop",
   openGraph: { type: "website", siteName: SITE.name, locale: "en_IN" },
   twitter: { card: "summary_large_image" },
+  // The simulation site is never indexed: its data is not real.
+  ...(IS_SIMULATION && { robots: { index: false, follow: false } }),
 };
 
 export const viewport: Viewport = {
@@ -33,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-IN" className={`${inter.variable} ${bricolage.variable}`}>
       <body className="flex min-h-dvh flex-col font-sans">
+        <SimulationBanner />
         {children}
         {/* Cookie-free, anonymous. Switched on with VERCEL_ANALYTICS=on (see docs/team-setup.md). */}
         {env.VERCEL_ANALYTICS === "on" && (

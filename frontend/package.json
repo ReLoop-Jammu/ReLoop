@@ -15,7 +15,8 @@
     "qr": "node scripts/make-qr.mjs",
     "print": "node scripts/make-print.mjs",
     "help-guide": "UPDATE_GUIDE=1 vitest run src/features/help/guide.test.ts",
-    "audit:site": "node scripts/site-audit.mjs"
+    "audit:site": "node scripts/site-audit.mjs",
+    "test:sim": "playwright test -c playwright.sim.config.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

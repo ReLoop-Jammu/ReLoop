@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { inputClass } from "./RequestForm";
 import Link from "next/link";
 import { getSession, siteFetch } from "@/lib/auth-client";
+import { SimulationFormNote } from "@/components/layout/SimulationFormNote";
 import { SUBMISSION_CONDITIONS } from "../conditions";
 
 type ItemDraft = {
@@ -154,6 +155,7 @@ export function ShopSubmissionForm() {
 
   return (
     <form onSubmit={submit} className="space-y-8">
+      <SimulationFormNote />
       <section className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-ink">Shop and contact details</h3>
         <p className="mt-1 text-sm text-muted">

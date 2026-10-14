@@ -25,7 +25,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - **Region:** the database is in AWS `ap-south-1` (Mumbai). `frontend/vercel.json` pins server functions to `bom1` (Mumbai) as well; they ran in `iad1` (US East) until that is deployed.
   - Every Vercel variable is marked Sensitive, so the CLI can't read values back.
   - The code reads `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, the last server-only.
-- **Preview deployments share the production database.** Preview has the same Supabase and Postgres credentials as Production.
+- **Simulation environment (v1.0.0):** previews and the demo site `re-loop-demo` use a separate Supabase project (`reloop-sim`) filled by `backend/sim/seed.mjs`; see `docs/runbooks/simulation.md`. Production data never reaches a preview.
   - Never run e2e tests, seeds or migrations against a preview or production.
   - **e2e tests need a separate test database.** Until one exists, they run only in CI (`CI=true`, not on Vercel), where the shop falls back to the sample stock file `frontend/src/data/shop-snapshot.json`. Anywhere else, missing Supabase variables fail the build on purpose.
 - **Public site:**

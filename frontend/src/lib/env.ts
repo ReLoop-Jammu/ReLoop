@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { assertEnvironment } from "./environment";
 
 /**
  * Validated environment. Import `env` instead of reading `process.env`
@@ -24,3 +25,6 @@ export const env = schema.parse({
     (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000"),
   VERCEL_ANALYTICS: process.env.VERCEL_ANALYTICS || undefined,
 });
+
+// Fails the build if the simulation and the live database are mixed up.
+assertEnvironment();
