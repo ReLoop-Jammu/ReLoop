@@ -1,3 +1,4 @@
+import { allPages } from "@/lib/pages";
 import { authAdmin, reply, requireAdmin, serviceRest } from "@/lib/server/supabase-admin";
 
 export const runtime = "nodejs";
@@ -50,7 +51,13 @@ export async function GET(request: Request) {
     const q = new URL(request.url).searchParams.get("q")?.trim().toLowerCase() ?? "";
     const [users, profiles, staff, admins] = await Promise.all([
       allAuthUsers(),
-      serviceRest<Profile[]>("profiles?select=user_id,full_name,phone,role,must_change_password"),
+      // Every profile, page by page (one request returns at most 1,000 rows).
+      allPages((headers) =>
+        serviceRest<Profile[]>(
+          "profiles?select=user_id,full_name,phone,role,must_change_password&order=user_id",
+          { headers },
+        ),
+      ),
       serviceRest<{ user_id: string }[]>("staff?select=user_id"),
       serviceRest<{ id: string }[]>("admin_users?select=id&is_active=eq.true"),
     ]);

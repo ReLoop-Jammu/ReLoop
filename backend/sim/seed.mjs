@@ -1048,8 +1048,36 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
     "parent_id",
     "handover_id",
     "updated_at",
+    "hidden",
+    "returned_at",
   ];
-  const ordered = [...items].sort((a, b) => (a.parent_id ? 1 : 0) - (b.parent_id ? 1 : 0));
+  // One listing staff hid (a photo to retake) and one sale that came back.
+  const hiddenOne = items.find((i) => i.status === "listed" && i.category !== "part");
+  if (hiddenOne) hiddenOne.hidden = true;
+  const returnedOne = [...items]
+    .filter(
+      (i) => i.status === "sold" && i.sold_at && end.getTime() - i.sold_at.getTime() < 20 * DAY,
+    )
+    .sort((a, b) => b.sold_at - a.sold_at)[0];
+  if (returnedOne) {
+    // A return reverses the sale (as mark_item_returned does); the history keeps it.
+    const soldOn = returnedOne.sold_at.toISOString().slice(0, 10);
+    const soldFor = returnedOne.sold_paise ? ` for ₹${returnedOne.sold_paise / 100}` : "";
+    returnedOne.status = "returned";
+    returnedOne.returned_at = at(new Date(returnedOne.sold_at.getTime() + 3 * DAY));
+    returnedOne.sold_at = null;
+    returnedOne.sold_paise = null;
+    returnedOne.fulfilment = null;
+    events.push({
+      item_id: returnedOne.id,
+      at: returnedOne.returned_at,
+      type: "returned",
+      note: `Battery doesn't hold charge (simulated warranty claim) (sold ${soldOn}${soldFor})`,
+    });
+  }
+  const ordered = [...items]
+    .map((i) => ({ hidden: false, returned_at: null, ...i }))
+    .sort((a, b) => (a.parent_id ? 1 : 0) - (b.parent_id ? 1 : 0));
   sql.push(`alter table public.items disable trigger user;
 alter table public.submissions disable trigger user;`);
   sql.push(

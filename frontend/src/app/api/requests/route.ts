@@ -26,10 +26,12 @@ export async function POST(request: Request) {
     if (checked === "invalid") return reply({ error: "Please log in again." }, 401);
     const buyer = checked && checked !== "unavailable" ? checked : null;
     if (clean.itemId) {
-      const item = await serviceRest<{ status: string }[]>(
-        `items?select=status&id=eq.${encodeURIComponent(clean.itemId)}`,
+      // The service key sees every item, so check here what visitors may see:
+      // on sale and not hidden.
+      const item = await serviceRest<{ status: string; hidden: boolean }[]>(
+        `items?select=status,hidden&id=eq.${encodeURIComponent(clean.itemId)}`,
       );
-      if (item[0]?.status !== "listed" && item[0]?.status !== "reserved") {
+      if ((item[0]?.status !== "listed" && item[0]?.status !== "reserved") || item[0]?.hidden) {
         return reply({ error: "That item is no longer available." }, 409);
       }
     }

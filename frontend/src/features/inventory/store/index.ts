@@ -137,6 +137,70 @@ export async function setItemStatus(id: string, status: ItemStatus, note?: strin
   return upsert(C.items, next);
 }
 
+/** Corrects brand, model and description; the reason goes into the history. */
+export async function editItemDetails(
+  id: string,
+  d: { brand: string; model: string; description: string },
+  reason: string,
+): Promise<Item> {
+  if (SHARED_DATABASE) return live.editItemDetails(id, d, reason);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  const why = reason.trim();
+  if (why.length < 3) throw new Error("Say why you are changing it (3 to 300 characters)");
+  const changed = (["brand", "model", "description"] as const).filter(
+    (k) => d[k].trim() !== item[k],
+  );
+  if (!changed.length) throw new Error("Nothing changed");
+  return upsert(C.items, {
+    ...item,
+    brand: d.brand.trim(),
+    model: d.model.trim(),
+    description: d.description.trim(),
+    events: [
+      ...item.events,
+      { at: nowIso(), type: "edited", note: `${changed.join(", ")}: ${why}` },
+    ],
+  });
+}
+
+/** Records that a sold item came back, with the reason. */
+export async function markReturned(id: string, reason: string): Promise<Item> {
+  if (SHARED_DATABASE) return live.markReturned(id, reason);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  if (item.status !== "sold")
+    throw new Error(`Only a sold item can come back (this one is ${item.status})`);
+  const why = reason.trim();
+  if (why.length < 3) throw new Error("Give the reason for the return (3 to 300 characters)");
+  const at = nowIso();
+  // The sale is reversed (it stays in the history), so a later sale records its own.
+  const sale = item.soldAt
+    ? ` (sold ${new Date(item.soldAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}${item.soldPaise ? ` for ₹${item.soldPaise / 100}` : ""})`
+    : "";
+  return upsert(C.items, {
+    ...item,
+    status: "returned" as const,
+    returnedAt: at,
+    soldAt: undefined,
+    soldPaise: undefined,
+    fulfilment: undefined,
+    events: [...item.events, { at, type: "returned", note: `${why}${sale}` }],
+  });
+}
+
+/** Hides an item from every public page, or shows it again. */
+export async function setHidden(id: string, hidden: boolean): Promise<Item> {
+  if (SHARED_DATABASE) return live.setHidden(id, hidden);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  return upsert(C.items, {
+    ...item,
+    hidden,
+    events: [...item.events, { at: nowIso(), type: hidden ? "hidden" : "unhidden" }],
+  });
+}
+
 /** Runs the plan's day-45 / day-75 rules. Called whenever the hub opens. */
 export async function applyAutomaticRules(now = new Date()): Promise<Item[]> {
   if (SHARED_DATABASE) return live.applyAutomaticRules();

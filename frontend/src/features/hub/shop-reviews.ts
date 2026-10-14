@@ -1,5 +1,6 @@
 "use client";
 
+import { allPages } from "@/lib/pages";
 import { authenticatedFetch, getSession } from "@/lib/auth-client";
 
 export type VerificationStatus = "pending" | "verified" | "rejected";
@@ -59,11 +60,14 @@ export function buildReview(
 
 /** Every shop owner, newest first. Row Level Security shows all of them to admins only. */
 export async function listShopOwners(): Promise<ShopOwner[]> {
-  const response = await authenticatedFetch(
-    `/rest/v1/shop_owners?select=${COLUMNS}&order=created_at.desc`,
-  );
-  if (!response.ok) throw new Error("Could not load shop owners.");
-  return (await response.json()) as ShopOwner[];
+  return allPages(async (headers) => {
+    const response = await authenticatedFetch(
+      `/rest/v1/shop_owners?select=${COLUMNS}&order=created_at.desc,id.asc`,
+      { headers },
+    );
+    if (!response.ok) throw new Error("Could not load shop owners.");
+    return (await response.json()) as ShopOwner[];
+  });
 }
 
 /** Saves an admin's decision, and fails unless exactly that one shop was changed. */

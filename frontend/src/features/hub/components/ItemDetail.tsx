@@ -29,6 +29,7 @@ import {
 import type { Partner } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
 import { CHECKLISTS } from "../checklists";
+import { ListingControls } from "./ListingControls";
 import {
   Field,
   Input,
@@ -182,6 +183,14 @@ export function ItemDetail({ id }: { id: string }) {
             </div>
           </Panel>
         )}
+
+        <ListingControls
+          item={item}
+          onChanged={async (m) => {
+            setMsg(m);
+            await reload();
+          }}
+        />
 
         <Panel title="History">
           <ol className="space-y-2 text-sm">

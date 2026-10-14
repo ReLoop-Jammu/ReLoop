@@ -2,6 +2,7 @@
 
 import type { Category, PartType, Submission } from "@/features/inventory/model";
 import { authenticatedFetch, getSession } from "@/lib/auth-client";
+import { allPages } from "@/lib/pages";
 
 /*
  * The hub's side of the loop: reviewing shop submissions (offer, reject,
@@ -25,6 +26,9 @@ async function rest<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   return data as T;
 }
+
+/** Every row of a list (Supabase sends at most 1,000 per request). */
+const restAll = <T>(path: string) => allPages<T>((headers) => rest<T[]>(path, { headers }));
 
 // ---------------------------------------------------------------- shop submissions
 
@@ -59,9 +63,11 @@ const SUBMISSION_COLUMNS =
 /** Every shop submission, newest first, with the shop's name and phone. */
 export async function listShopSubmissions(): Promise<ShopSubmission[]> {
   const [rows, shops] = await Promise.all([
-    rest<ShopSubmission[]>(`shop_submissions?select=${SUBMISSION_COLUMNS}&order=created_at.desc`),
-    rest<{ id: string; shop_name: string; owner_name: string; phone: string | null }[]>(
-      "shop_owners?select=id,shop_name,owner_name,phone",
+    restAll<ShopSubmission>(
+      `shop_submissions?select=${SUBMISSION_COLUMNS}&order=created_at.desc,id.desc`,
+    ),
+    restAll<{ id: string; shop_name: string; owner_name: string; phone: string | null }>(
+      "shop_owners?select=id,shop_name,owner_name,phone&order=id",
     ),
   ]);
   return rows.map((r) => {
@@ -175,8 +181,8 @@ export type HubRequest = {
 type RequestRow = Omit<HubRequest, "from_account"> & { buyer_id: string | null };
 
 export async function listRequests(): Promise<HubRequest[]> {
-  const rows = await rest<RequestRow[]>(
-    "submissions?select=id,kind,fields,status,item_id,created_at,handled_at,buyer_id,scheduled_for,cancelled_by,cancel_reason&order=created_at.desc",
+  const rows = await restAll<RequestRow>(
+    "submissions?select=id,kind,fields,status,item_id,created_at,handled_at,buyer_id,scheduled_for,cancelled_by,cancel_reason&order=created_at.desc,id.asc",
   );
   return rows.map(({ buyer_id, ...r }) => ({ ...r, from_account: buyer_id !== null }));
 }
@@ -220,8 +226,8 @@ export type HubPickup = {
   times_missed: number;
 };
 export const listPickups = () =>
-  rest<HubPickup[]>(
-    "pickups?select=id,source,shop_submission_id,request_id,route_date,market,status,times_missed&order=route_date",
+  restAll<HubPickup>(
+    "pickups?select=id,source,shop_submission_id,request_id,route_date,market,status,times_missed&order=route_date,id",
   );
 /** Marks a pickup collected, or missed (it moves to the next route day, which is returned). */
 export const setPickupStatus = (id: string, status: "collected" | "missed") =>
@@ -240,8 +246,8 @@ export type HubPayout = {
   internal_note: string;
 };
 export const listPayouts = () =>
-  rest<HubPayout[]>(
-    "payouts?select=receipt_no,shop_submission_id,amount_paise,method,paid_at,reference,internal_note&order=created_at.desc",
+  restAll<HubPayout>(
+    "payouts?select=receipt_no,shop_submission_id,amount_paise,method,paid_at,reference,internal_note&order=created_at.desc,receipt_no",
   ).then((r) => r.map((p) => ({ ...p, amount_paise: Number(p.amount_paise) })));
 /** Records the payment for a bought lot; returns its receipt number. */
 export const recordPayout = (

@@ -2607,3 +2607,161 @@ describe("offers, pickups and payouts (20261030000001)", () => {
     assert.equal(b.payouts_due, unpaid.rows[0].n);
   });
 });
+
+describe("listing controls (20261031000001)", () => {
+  let db;
+  let staff;
+  let buyer;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+  });
+  const listed = async () => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, buy_mode, grade, current_paise, list_paise, status, listed_at, wiped_at, brand, model)
+       values ('repair_shop', 'laptop', 'cash', 'A', 900000, 900000, 'listed', now(), now(), 'Dell', 'Latitude 5490')
+       returning id`,
+    );
+    return rows[0].id;
+  };
+  const history = async (id) =>
+    (
+      await db.query("select type, note from public.item_events where item_id = $1 order by id", [
+        id,
+      ])
+    ).rows;
+  const publicIds = async () =>
+    (await as(db, null, (tx) => tx.query("select id from public.items"))).rows.map((r) => r.id);
+
+  test("a hidden item drops out of the public shop and its photos with it, and the history says so", async () => {
+    const id = await listed();
+    await db.query(
+      "insert into public.item_photos (item_id, position, storage_path) values ($1, 0, $2)",
+      [id, `${id}/a.jpg`],
+    );
+    assert.ok((await publicIds()).includes(id));
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = true where id = $1", [id]),
+    );
+    assert.ok(!(await publicIds()).includes(id));
+    const photos = await as(db, null, (tx) =>
+      tx.query("select * from public.item_photos where item_id = $1", [id]),
+    );
+    assert.equal(photos.rows.length, 0);
+    // A buyer's update touches nothing (Row Level Security), so the item stays hidden.
+    await as(db, buyer, (tx) =>
+      tx.query("update public.items set hidden = false where id = $1", [id]),
+    ).catch(() => {});
+    const still = await db.query("select hidden from public.items where id = $1", [id]);
+    assert.equal(still.rows[0].hidden, true, "only staff unhide");
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = false where id = $1", [id]),
+    );
+    assert.ok((await publicIds()).includes(id));
+    assert.deepEqual(
+      (await history(id))
+        .filter((e) => e.type === "hidden" || e.type === "unhidden")
+        .map((e) => e.type),
+      ["hidden", "unhidden"],
+    );
+  });
+
+  test("a sold item can come back as returned, with a reason, and only staff record it", async () => {
+    const id = await listed();
+    const ret = (who, reason) =>
+      as(db, who, (tx) => tx.query("select public.mark_item_returned($1, $2)", [id, reason]));
+    await assert.rejects(ret(staff, "Battery fault"), /Only a sold item/);
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.items set status = 'sold', sold_at = now(), sold_paise = 900000 where id = $1",
+        [id],
+      ),
+    );
+    await assert.rejects(ret(buyer, "Battery fault"), /Only hub staff/);
+    await assert.rejects(ret(staff, "no"), /3 to 300/);
+    await ret(staff, "Battery doesn't hold charge (warranty)");
+    const row = await db.query(
+      "select status::text, returned_at is not null as dated, sold_paise from public.items where id = $1",
+      [id],
+    );
+    assert.deepEqual(row.rows[0], { status: "returned", dated: true, sold_paise: null });
+    const back = (await history(id)).find((e) => e.type === "returned");
+    assert.match(
+      back.note,
+      /warranty\) \(sold \d+ \w+ \d{4} for ₹9000\)$/,
+      "the reversed sale stays in the history",
+    );
+    assert.ok(!(await publicIds()).includes(id), "a returned item isn't on sale");
+    // From there, on sale again: a second sale records its own date and price.
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.items set status = 'listed', listed_at = now(), current_paise = 700000 where id = $1",
+        [id],
+      ),
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'sold' where id = $1", [id]),
+    );
+    const again = await db.query(
+      "select sold_paise, sold_at > now() - interval '1 minute' as fresh from public.items where id = $1",
+      [id],
+    );
+    assert.deepEqual(again.rows[0], { sold_paise: 700000, fresh: true });
+  });
+
+  test("visitors can list photo files only of stock on sale that isn't hidden; staff list them all", async () => {
+    const id = await listed();
+    await db.query(
+      "insert into storage.objects (bucket_id, name) values ('item-photos', $1), ('item-photos', 'RL-JMU-9999/1.jpg')",
+      [`${id}/1.jpg`],
+    );
+    const files = (who) =>
+      as(db, who, (tx) =>
+        tx.query("select name from storage.objects where bucket_id = 'item-photos' order by name"),
+      ).then((r) => r.rows.map((x) => x.name));
+    assert.deepEqual(await files(null), [`${id}/1.jpg`]);
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = true where id = $1", [id]),
+    );
+    assert.deepEqual(await files(null), []);
+    assert.equal((await files(buyer)).length, 0);
+    assert.equal((await files(staff)).length, 2);
+  });
+
+  test("details are edited with a reason, recorded as which fields changed", async () => {
+    const id = await listed();
+    const edit = (who, brand, model, reason) =>
+      as(db, who, (tx) =>
+        tx.query("select public.edit_item_details($1, $2, $3, '', $4)", [id, brand, model, reason]),
+      );
+    await assert.rejects(edit(staff, "Dell", "Latitude 5490", "typo"), /Nothing changed/);
+    await assert.rejects(edit(staff, "Dell", "Latitude 5480", ""), /Say why/);
+    await assert.rejects(edit(buyer, "Dell", "Latitude 5480", "typo in model"), /Only hub staff/);
+    await edit(staff, "Dell", "Latitude 5480", "Model number misread at intake");
+    const e = (await history(id)).find((x) => x.type === "edited");
+    assert.equal(e.note, "model: Model number misread at intake");
+    await assert.rejects(
+      as(db, staff, (tx) => tx.query("update public.items set model = 'X' where id = $1", [id])),
+      /permission denied/,
+      "no edit without a reason",
+    );
+  });
+
+  test("a recorded data wipe is in the history", async () => {
+    const { rows } = await db.query(
+      "insert into public.items (source_type, category, buy_mode, grade, status) values ('household', 'phone', 'cash', 'A', 'graded') returning id",
+    );
+    const id = rows[0].id;
+    await as(db, staff, (tx) =>
+      tx.query(
+        "update public.items set wipe_method = 'reset_overwrite', wiped_at = now() where id = $1",
+        [id],
+      ),
+    );
+    assert.deepEqual(
+      (await history(id)).filter((x) => x.type === "data_wiped"),
+      [{ type: "data_wiped", note: "reset + overwrite" }],
+    );
+  });
+});

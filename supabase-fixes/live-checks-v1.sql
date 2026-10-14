@@ -104,6 +104,20 @@ select check_name, ok
         and pg_get_functiondef('public.my_payouts()'::regprocedure) not like '%internal_note%'
         and pg_get_functiondef('public.payout_receipt(text)'::regprocedure) not like '%p.reference%'
         and pg_get_functiondef('public.record_payout(bigint, text, date, text, text)'::regprocedure) like '%if not public.is_staff()%'
-        and not has_function_privilege('anon', 'public.respond_to_offer(bigint, boolean, text)', 'EXECUTE'))
+        and not has_function_privilege('anon', 'public.respond_to_offer(bigint, boolean, text)', 'EXECUTE')),
+    (14, 'Hidden items: visitors never see them or their photos; brand, model and description change only with a reason',
+        exists (select 1 from pg_policies where tablename = 'items' and policyname = 'Anyone reads stock on sale'
+                  and qual like '%hidden%')
+        and exists (select 1 from pg_policies where tablename = 'item_photos'
+                      and policyname = 'Anyone sees photos of stock on sale' and qual like '%items%')
+        and exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects'
+                      and policyname = 'Item photos are publicly readable' and qual like '%items%')
+        and not has_column_privilege('anon', 'public.items', 'hidden', 'SELECT')
+        and not has_column_privilege('authenticated', 'public.items', 'brand', 'UPDATE')
+        and not has_column_privilege('authenticated', 'public.items', 'model', 'UPDATE')
+        and not has_column_privilege('authenticated', 'public.items', 'description', 'UPDATE')
+        and has_column_privilege('authenticated', 'public.items', 'hidden', 'UPDATE')
+        and pg_get_functiondef('public.edit_item_details(text, text, text, text, text)'::regprocedure) like '%if not public.is_staff()%'
+        and pg_get_functiondef('public.mark_item_returned(text, text)'::regprocedure) like '%if not public.is_staff()%')
   ) as c(n, check_name, ok)
  order by n;
