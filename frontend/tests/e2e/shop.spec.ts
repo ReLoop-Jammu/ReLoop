@@ -380,3 +380,15 @@ test.describe("help for partner shops", () => {
     ).toHaveAttribute("href", "/help");
   });
 });
+
+test.describe("the real site is not the simulation", () => {
+  test("has no demo page, no simulation banner, and lets search engines in", async ({
+    page,
+    request,
+  }) => {
+    expect((await request.get("/demo")).status()).toBe(404);
+    await page.goto("/");
+    await expect(page.getByText("Simulation based on business plan assumptions")).toHaveCount(0);
+    expect(await (await request.get("/robots.txt")).text()).not.toMatch(/Disallow: \/\s*$/m);
+  });
+});

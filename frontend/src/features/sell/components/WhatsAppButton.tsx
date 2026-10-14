@@ -1,9 +1,11 @@
 import { MessageCircle } from "lucide-react";
 import { buttonClasses } from "@/components/ui/Button";
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 
 /** A wa.me click-to-chat link to ReLoop's public WhatsApp number, with the message filled in. */
 export function whatsappChatUrl(message: string) {
+  if (IS_SIMULATION) return null; // The simulation never messages the real number.
   return SITE.whatsapp
     ? `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(message)}`
     : null;

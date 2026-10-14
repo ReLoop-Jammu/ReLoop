@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { myShopSubmissions, type ShopSubmission } from "@/features/hub/loop";
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 import { formatPrice } from "@/lib/utils/money";
 
@@ -51,14 +52,16 @@ export function MySubmissions() {
             {r.status === "Rejected" && r.rejection_reason && (
               <p className="mt-1 text-muted">{r.rejection_reason}</p>
             )}
-            {(r.status === "Offered" || r.status === "Contacted") && SITE.whatsapp && (
-              <a
-                className="mt-1 inline-block font-semibold text-brand-600 underline"
-                href={`https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Hi ReLoop, I accept your offer for submission #${r.id} (${r.item_name}).`)}`}
-              >
-                Message us to accept
-              </a>
-            )}
+            {(r.status === "Offered" || r.status === "Contacted") &&
+              SITE.whatsapp &&
+              !IS_SIMULATION && (
+                <a
+                  className="mt-1 inline-block font-semibold text-brand-600 underline"
+                  href={`https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Hi ReLoop, I accept your offer for submission #${r.id} (${r.item_name}).`)}`}
+                >
+                  Message us to accept
+                </a>
+              )}
           </li>
         ))}
       </ul>

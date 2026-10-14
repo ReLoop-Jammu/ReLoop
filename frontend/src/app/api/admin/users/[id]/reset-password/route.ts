@@ -1,3 +1,4 @@
+import { isDemoAccount } from "@/lib/environment";
 import {
   authAdmin,
   reply,
@@ -30,6 +31,11 @@ export async function POST(
   }
 
   try {
+    // On the simulation site the demo logins stay usable for everyone.
+    const target = await authAdmin<{ email?: string }>(`users/${id}`);
+    if (isDemoAccount(target.email)) {
+      return reply({ error: "Demo accounts keep their shared password." }, 403);
+    }
     // Admins can't reset each other: an admin's password is changed only by that admin.
     const [staffAdmin, activeAdmin] = await Promise.all([
       serviceRest<unknown[]>(`staff?select=user_id&user_id=eq.${id}&role=eq.admin`),

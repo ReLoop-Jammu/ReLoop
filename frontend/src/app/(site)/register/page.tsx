@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { IS_SIMULATION } from "@/lib/environment";
 import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
@@ -68,6 +69,16 @@ export default function RegisterPage() {
         <p className="mt-3 text-muted">
           Buyers can shop. Shop owners can shop too, and request approval to submit stock to ReLoop.
         </p>
+        {IS_SIMULATION && (
+          <p role="note" className="mt-4 rounded-xl bg-sunken p-4 text-sm">
+            This is the simulation: don&apos;t use real personal details. Accounts made here are
+            deleted when the demo is reset. The ready-made demo logins are on{" "}
+            <Link className="font-semibold text-brand-600 underline" href="/demo">
+              the demo page
+            </Link>
+            .
+          </p>
+        )}
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
           <button
             type="button"

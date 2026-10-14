@@ -2,6 +2,7 @@ import { Mail, MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -35,8 +36,17 @@ export default function ForgotPasswordPage() {
             We give you a temporary password. Log in with it and choose your own straight away.
           </li>
         </ol>
+        {IS_SIMULATION && (
+          <p className="mt-6 rounded-xl bg-sunken p-4 text-sm">
+            This is the simulation: use the demo logins on{" "}
+            <Link className="font-semibold text-brand-600 underline" href="/demo">
+              the demo page
+            </Link>{" "}
+            instead.
+          </p>
+        )}
         <div className="mt-8 grid gap-3">
-          {SITE.whatsapp && (
+          {SITE.whatsapp && !IS_SIMULATION && (
             <a
               href={wa(SITE.whatsapp)}
               className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 font-semibold hover:border-line-strong"
@@ -45,7 +55,7 @@ export default function ForgotPasswordPage() {
               WhatsApp {pretty(SITE.whatsapp)}
             </a>
           )}
-          {SITE.supportEmail && (
+          {SITE.supportEmail && !IS_SIMULATION && (
             <a
               href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Forgot my ReLoop password")}`}
               className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 font-semibold hover:border-line-strong"

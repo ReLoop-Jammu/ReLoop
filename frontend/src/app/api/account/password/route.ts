@@ -1,3 +1,4 @@
+import { isDemoAccount } from "@/lib/environment";
 import {
   authAdmin,
   bearer,
@@ -21,6 +22,12 @@ export async function POST(request: Request) {
   const token = bearer(request);
   const user = token ? await userFromToken(token) : null;
   if (!user) return reply({ error: "Please log in again." }, 401);
+  if (isDemoAccount(user.email)) {
+    return reply(
+      { error: "Demo accounts keep their shared password, so everyone can log in." },
+      403,
+    );
+  }
   const body = (await request.json().catch(() => ({}))) as {
     password?: unknown;
     currentPassword?: unknown;

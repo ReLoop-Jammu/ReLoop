@@ -6,6 +6,8 @@ import { addSubmission } from "@/features/inventory/store";
 import type { Submission } from "@/features/inventory/model";
 import { cn } from "@/lib/utils/cn";
 import { buildRequestText, isValidPhone } from "../handoff";
+import { IS_SIMULATION } from "@/lib/environment";
+import { SimulationFormNote } from "@/components/layout/SimulationFormNote";
 import { HandoffPanel } from "./HandoffPanel";
 
 export type Field = {
@@ -80,15 +82,23 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
       <>
         {!saved && (
           <p role="status" className="mb-3 text-sm text-muted">
-            We couldn&apos;t keep a copy of this request, so please send it to us below.
+            {IS_SIMULATION
+              ? "This demo couldn't save your request. Nothing was sent."
+              : "We couldn't keep a copy of this request, so please send it to us below."}
           </p>
         )}
-        <HandoffPanel subject={`ReLoop: ${title}`} text={sent} onReset={() => setSent(null)} />
+        <HandoffPanel
+          subject={`ReLoop: ${title}`}
+          text={sent}
+          saved={saved}
+          onReset={() => setSent(null)}
+        />
       </>
     );
 
   return (
     <form noValidate onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+      <SimulationFormNote className="sm:col-span-2" />
       {fields.map((f) => {
         const id = `${formId}-${f.name}`;
         const err = errors[f.name];

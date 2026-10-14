@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Submission } from "@/features/inventory/model";
 import { SHARED_DATABASE, setItemStatus } from "@/features/inventory/store";
+import { IS_SIMULATION } from "@/lib/environment";
 import { listRequests, setRequestStatus, type HubRequest } from "../loop";
 import { reportHubError } from "../useHubData";
 import { hubInput, PageTitle, Panel } from "./ui";
@@ -147,9 +148,13 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
       {phone && (
         <p className="mt-1">
           {phone} ·{" "}
-          <a className="font-semibold text-brand-600 underline" href={waLink(phone)}>
-            WhatsApp
-          </a>
+          {IS_SIMULATION ? (
+            <span className="text-muted">WhatsApp (not sent in the simulation)</span>
+          ) : (
+            <a className="font-semibold text-brand-600 underline" href={waLink(phone)}>
+              WhatsApp
+            </a>
+          )}
         </p>
       )}
       {details.length > 0 && (
