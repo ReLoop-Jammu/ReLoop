@@ -22,6 +22,8 @@ export default function DriveQrPage() {
         <img
           src="/qr/awareness-drive.svg"
           alt={`QR code linking to ${DRIVE_LINK.publicUrl}`}
+          // Lazy, so prefetching this page from the footer doesn't preload the image on every page.
+          loading="lazy"
           width={320}
           height={320}
           className="mx-auto mt-6 rounded-xl border border-line bg-white p-2"

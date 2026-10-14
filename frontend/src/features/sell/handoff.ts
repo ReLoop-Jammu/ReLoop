@@ -1,5 +1,5 @@
 import { IS_SIMULATION } from "@/lib/environment";
-import { SITE } from "@/lib/site";
+import type { SiteSettings } from "@/features/settings/defaults";
 
 /**
  * Until a shared database exists, public requests reach ReLoop as a
@@ -12,22 +12,26 @@ export function buildRequestText(title: string, fields: [label: string, value: s
   return [`ReLoop: ${title}`, "", ...lines].join("\n");
 }
 
-export function handoffChannels(subject: string, text: string): HandoffChannel[] {
+export function handoffChannels(
+  subject: string,
+  text: string,
+  site: Pick<SiteSettings, "whatsapp" | "supportEmail">,
+): HandoffChannel[] {
   const channels: HandoffChannel[] = [];
   // The simulation never sends messages to ReLoop's real WhatsApp or email.
   if (IS_SIMULATION) return channels;
-  if (SITE.whatsapp) {
+  if (site.whatsapp) {
     channels.push({
       kind: "whatsapp",
       label: "Send on WhatsApp",
-      href: `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(text)}`,
+      href: `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(text)}`,
     });
   }
-  if (SITE.supportEmail) {
+  if (site.supportEmail) {
     channels.push({
       kind: "email",
       label: "Send by email",
-      href: `mailto:${SITE.supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`,
+      href: `mailto:${site.supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`,
     });
   }
   return channels;

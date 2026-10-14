@@ -4,6 +4,7 @@ import { Check, Copy, Mail, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { IS_SIMULATION } from "@/lib/environment";
+import { useSiteSettings } from "@/features/settings/context";
 import { handoffChannels } from "../handoff";
 
 type Props = { subject: string; text: string; saved?: boolean; onReset?: () => void };
@@ -11,7 +12,7 @@ type Props = { subject: string; text: string; saved?: boolean; onReset?: () => v
 /** Shown after a form is filled: sends the request by WhatsApp or email, or copies it. */
 export function HandoffPanel({ subject, text, saved = true, onReset }: Props) {
   const [copied, setCopied] = useState(false);
-  const channels = handoffChannels(subject, text);
+  const channels = handoffChannels(subject, text, useSiteSettings());
 
   const copy = async () => {
     try {

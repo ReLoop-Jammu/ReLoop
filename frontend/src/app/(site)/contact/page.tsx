@@ -6,6 +6,7 @@ import { ContactDetail } from "@/components/legal/LegalPage";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { IS_SIMULATION } from "@/lib/environment";
+import { getSiteSettings } from "@/features/settings/server";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -33,7 +34,8 @@ function Card({
   );
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const site = await getSiteSettings();
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-2xl">
@@ -52,19 +54,19 @@ export default function ContactPage() {
       </div>
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card icon={Mail} title="Email">
-          <ContactDetail value={SITE.supportEmail} href={(v) => `mailto:${v}`} />
+          <ContactDetail value={site.supportEmail} href={(v) => `mailto:${v}`} />
         </Card>
         <Card icon={Phone} title="Phone">
-          <ContactDetail value={SITE.supportPhone} href={(v) => `tel:${v.replace(/\s/g, "")}`} />
+          <ContactDetail value={site.supportPhone} href={(v) => `tel:${v.replace(/\s/g, "")}`} />
         </Card>
         <Card icon={MapPin} title="Collection hub">
-          {SITE.hubAddress ?? `Old-city market area, Jammu (opening ${SITE.hubOpens})`}
+          {site.hubAddress ?? `Old-city market area, Jammu (opening ${site.hubOpens})`}
           <Link href="/locations" className="mt-1 block font-semibold text-brand-600 underline">
             See the map
           </Link>
         </Card>
         <Card icon={Clock} title="Hours">
-          <ContactDetail value={SITE.hours} />
+          <ContactDetail value={site.hours} />
         </Card>
       </div>
       <div className="mt-4 flex gap-3 rounded-card border border-line bg-sunken p-5 text-sm leading-relaxed text-ink-soft">

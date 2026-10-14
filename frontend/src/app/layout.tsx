@@ -3,6 +3,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, JetBrains_Mono, Outfit } from "next/font/google";
 import { SimulationBanner } from "@/components/layout/SimulationBanner";
+import { SiteSettingsProvider } from "@/features/settings/context";
+import { getSiteSettings } from "@/features/settings/server";
 import { env } from "@/lib/env";
 import { IS_SIMULATION } from "@/lib/environment";
 import { SITE } from "@/lib/site";
@@ -41,7 +43,8 @@ export const viewport: Viewport = {
   themeColor: "#f6ede2",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getSiteSettings();
   return (
     <html
       lang="en-IN"
@@ -49,7 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-dvh flex-col font-sans">
         <SimulationBanner />
-        {children}
+        <SiteSettingsProvider value={settings}>{children}</SiteSettingsProvider>
         {/* Cookie-free, anonymous. Switched on with VERCEL_ANALYTICS=on (see docs/team-setup.md). */}
         {env.VERCEL_ANALYTICS === "on" && (
           <>

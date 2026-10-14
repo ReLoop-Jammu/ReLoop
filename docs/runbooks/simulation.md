@@ -39,6 +39,10 @@ node backend/sim/seed.mjs --apply
 
 Every migration is applied to the simulation project first, then to production. Apply one through the Supabase dashboard's SQL editor, or with the Management API `database/query` endpoint.
 
+## Keys
+
+The site needs the simulation's publishable key and its secret key (`SUPABASE_SERVICE_ROLE_KEY`). `supabase projects api-keys` masks secret keys unless you add `--reveal`; a masked key looks right but every admin route then answers "Please log in again". Check a key before storing it: `GET /auth/v1/admin/users?per_page=1` with the key as `apikey` and bearer must return 200.
+
 ## Journey tests
 
 ```sh

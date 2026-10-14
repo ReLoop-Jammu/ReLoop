@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { Logo } from "@/components/brand/Logo";
 import { DRIVE_LINK, LOCATIONS } from "@/config/locations";
 import { DriveQr, Sheet } from "@/features/print/Sheet";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 
 export const metadata: Metadata = { title: "Awareness-drive flyer (A4)" };
 
-const STEPS = [
+const steps = (hubOpens: string) => [
   {
     title: "Sell or drop off",
-    body: `Repair shops and retailers: our ${LOCATIONS.route.days.join(" and ")} pickup route. Colleges and offices: book a pickup. Households: drop off at the hub or a partner shop from ${SITE.hubOpens}.`,
+    body: `Repair shops and retailers: our ${LOCATIONS.route.days.join(" and ")} pickup route. Colleges and offices: book a pickup. Households: drop off at the hub or a partner shop from ${hubOpens}.`,
   },
   {
     title: "We grade it at our Jammu hub",
@@ -21,7 +21,8 @@ const STEPS = [
   },
 ];
 
-export default function AwarenessFlyerPage() {
+export default async function AwarenessFlyerPage() {
+  const site = await getSiteSettings();
   return (
     <Sheet>
       <header className="bg-brand-950 px-[16mm] pt-[10mm] pb-[9mm] text-white">
@@ -67,7 +68,7 @@ export default function AwarenessFlyerPage() {
             How ReLoop works
           </h2>
           <ol className="mt-[4mm] grid gap-[3.5mm]">
-            {STEPS.map((s, i) => (
+            {steps(site.hubOpens).map((s, i) => (
               <li key={s.title} className="flex gap-[5mm]">
                 <span className="grid size-[11mm] shrink-0 place-items-center rounded-full bg-brand-600 font-display text-[16pt] font-bold text-white">
                   {i + 1}
@@ -88,9 +89,9 @@ export default function AwarenessFlyerPage() {
             <p className="mt-[1mm] text-[11pt] text-ink-soft">
               The hub, our pickup route and what we accept
             </p>
-            {SITE.supportPhone && (
+            {site.supportPhone && (
               <p className="mt-[3mm] text-[12pt]">
-                WhatsApp <strong className="text-[15pt]">{SITE.supportPhone}</strong>
+                WhatsApp <strong className="text-[15pt]">{site.supportPhone}</strong>
               </p>
             )}
             <p className="mt-[1mm] font-mono text-[9pt] text-muted">

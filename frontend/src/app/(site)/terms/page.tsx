@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactDetail, LegalPage } from "@/components/legal/LegalPage";
+import { getSiteSettings } from "@/features/settings/server";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   description: "The rules for buying from and selling to ReLoop.",
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const site = await getSiteSettings();
   return (
     <LegalPage title="Terms of use" updated={SITE.legalUpdated}>
       <section>
@@ -106,7 +108,7 @@ export default function TermsPage() {
         <h2>Contact</h2>
         <p>
           Questions about these terms:{" "}
-          <ContactDetail value={SITE.supportEmail} href={(v) => `mailto:${v}`} />
+          <ContactDetail value={site.supportEmail} href={(v) => `mailto:${v}`} />
         </p>
       </section>
     </LegalPage>

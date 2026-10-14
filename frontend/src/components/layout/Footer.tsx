@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
 import { FOOTER_EXTRA, NAV_GROUPS, type NavGroup } from "@/config/navigation";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 import { ReportProblem } from "./ReportProblem";
 
 function LinkColumn({ group }: { group: NavGroup }) {
@@ -26,7 +26,8 @@ function LinkColumn({ group }: { group: NavGroup }) {
 }
 
 /** The full sitemap of public pages, plus contact and "report a problem". */
-export function Footer() {
+export async function Footer() {
+  const site = await getSiteSettings();
   return (
     <footer className="mt-auto bg-brand-950 text-white/75">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.3fr_repeat(3,1fr)]">
@@ -38,8 +39,8 @@ export function Footer() {
             ReLoop buys used and broken electronics in Jammu, grades every item at one hub, resells
             what still works and sends only what is truly dead to an authorised recycler.
           </p>
-          {SITE.supportPhone && (
-            <p className="mt-4 text-sm text-white">WhatsApp {SITE.supportPhone}</p>
+          {site.supportPhone && (
+            <p className="mt-4 text-sm text-white">WhatsApp {site.supportPhone}</p>
           )}
           <p className="mt-2 text-sm">
             <ReportProblem className="underline underline-offset-2 hover:text-white" />

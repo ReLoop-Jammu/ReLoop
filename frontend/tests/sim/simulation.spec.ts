@@ -69,3 +69,33 @@ test.describe("menus by role (real logins)", () => {
     ).toHaveCount(0);
   });
 });
+
+test.describe("settings", () => {
+  test("the demo admin changes the opening hours, the contact page shows them, and they are restored", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough for a shared setting");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/settings");
+    const TEST_HOURS = "Mon–Sat, 9:30–18:30 IST (simulation test)";
+    const section = page.locator("section").filter({ hasText: "Contact details and hours" });
+    const save = async (value: string) => {
+      await page.getByLabel("Opening hours").fill(value);
+      await section.getByRole("button", { name: "Save" }).click();
+      await expect(section.getByText("Saved.")).toBeVisible({ timeout: 15_000 });
+    };
+    const before = await page.getByLabel("Opening hours").inputValue();
+    try {
+      await save(TEST_HOURS);
+      // Saving drops the cached settings, so the next visit shows the change.
+      await expect(async () => {
+        await page.goto("/contact");
+        await expect(page.getByText(TEST_HOURS)).toBeVisible({ timeout: 2000 });
+      }).toPass({ timeout: 30_000 });
+    } finally {
+      await page.goto("/hub/settings");
+      // An earlier failed run may have left the test value; empty means the built-in hours.
+      await save(before === TEST_HOURS ? "" : before);
+    }
+  });
+});

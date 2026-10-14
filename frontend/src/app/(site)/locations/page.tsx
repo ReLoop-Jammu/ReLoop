@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { LOCATIONS, visiblePartnerShops } from "@/config/locations";
+import { LOCATIONS, visiblePartnerShops, type PartnerShop } from "@/config/locations";
+import { getSiteSettings } from "@/features/settings/server";
 import { LocationsMap } from "@/features/locations/LocationsMap";
 import { mapPartnerShops } from "@/features/locations/partners";
 
@@ -20,7 +21,26 @@ export const metadata: Metadata = {
 
 export default async function LocationsPage() {
   const { hub, route, recycler } = LOCATIONS;
-  const shops = [...visiblePartnerShops(), ...(await mapPartnerShops())];
+  const site = await getSiteSettings();
+  // On the map: drop-off shops the admins list in the settings (those with a
+  // position), plus verified partner shops that agreed to be on the map.
+  const dropoff: PartnerShop[] = site.dropoffShops
+    .filter((d) => typeof d.lat === "number" && typeof d.lng === "number")
+    .map((d) => ({
+      name: d.name,
+      market: d.market,
+      lat: d.lat as number,
+      lng: d.lng as number,
+      description: d.description ?? "",
+      approximate: true,
+      agreedToBeShown: true,
+    }));
+  const shops = [...visiblePartnerShops(), ...dropoff, ...(await mapPartnerShops())];
+  // The list under the map also names drop-off shops saved without a position.
+  const listed: { name: string; market: string; description?: string }[] = [
+    ...shops,
+    ...site.dropoffShops.filter((d) => typeof d.lat !== "number" || typeof d.lng !== "number"),
+  ];
   const stops = route.stops;
 
   return (
@@ -59,11 +79,11 @@ export default async function LocationsPage() {
           <h2 id="shops-heading" className="mt-3 text-xl font-bold">
             Partner drop-off shops
           </h2>
-          {shops.length === 0 ? (
+          {listed.length === 0 ? (
             <p className="mt-2 leading-relaxed text-ink-soft">{LOCATIONS.partnerShopsEmptyText}</p>
           ) : (
             <ul className="mt-2 space-y-2">
-              {shops.map((s) => (
+              {listed.map((s) => (
                 <li key={`${s.name}-${s.market}`}>
                   <strong>{s.name}</strong>, {s.market}
                   {s.description && <>. {s.description}</>}

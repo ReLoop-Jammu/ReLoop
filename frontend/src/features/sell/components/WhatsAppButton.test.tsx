@@ -15,6 +15,8 @@ describe("WhatsAppButton", () => {
   });
 
   it("encodes the message", () => {
-    expect(whatsappChatUrl("a & b")).toBe(`https://wa.me/${SITE.whatsapp}?text=a%20%26%20b`);
+    expect(whatsappChatUrl("a & b", SITE.whatsapp)).toBe(
+      `https://wa.me/${SITE.whatsapp}?text=a%20%26%20b`,
+    );
   });
 });

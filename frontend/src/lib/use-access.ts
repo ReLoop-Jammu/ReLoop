@@ -1,43 +1,64 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { getSession, myAccess, type Access } from "@/lib/auth-client";
+import { AUTH_EVENT, authVersion, getSession, myAccess, type Access } from "@/lib/auth-client";
 
+// One access lookup per signed-in user and auth change, shared by every
+// component that asks. A failed lookup isn't kept, so the next render retries.
+let pending: { key: string; result: Promise<Access | null> } | null = null;
+const lookup = (key: string) => {
+  if (pending?.key !== key) {
+    const result = myAccess().catch(() => null);
+    pending = { key, result };
+    void result.then((a) => {
+      if (a === null && pending?.key === key) pending = null;
+    });
+  }
+  return pending.result;
+};
+
+// Re-render on sign-in, sign-out and password changes, in this tab (AUTH_EVENT) and in others ("storage").
 const subscribe = (onChange: () => void) => {
   window.addEventListener("storage", onChange);
-  return () => window.removeEventListener("storage", onChange);
+  window.addEventListener(AUTH_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(AUTH_EVENT, onChange);
+  };
 };
-const signedIn = () => Boolean(getSession()?.access_token);
-
-// One access lookup per page load, shared by every component that asks.
-let pending: Promise<Access | null> | null = null;
-const lookup = () => (pending ??= myAccess().catch(() => null));
+/** "<user id>:<auth version>" while signed in, null when signed out. */
+const currentKey = () => {
+  const session = getSession();
+  return session?.access_token ? `${session.user.id}:${authVersion()}` : null;
+};
 
 export type AccessState =
   { state: "signed-out" } | { state: "loading" } | { state: "ready"; access: Access | null };
 
 /** Who is signed in and what they may see (menus only: the database enforces every permission). */
 export function useAccess(): AccessState {
-  const isIn = useSyncExternalStore(subscribe, signedIn, () => false);
-  const [access, setAccess] = useState<Access | null | undefined>(undefined);
+  const key = useSyncExternalStore(subscribe, currentKey, () => null);
+  const [loaded, setLoaded] = useState<{ key: string; access: Access | null } | null>(null);
   useEffect(() => {
-    if (!isIn) return;
+    if (key === null) return;
     let alive = true;
-    lookup().then((a) => alive && setAccess(a));
+    lookup(key).then((access) => alive && setLoaded({ key, access }));
     return () => {
       alive = false;
     };
-  }, [isIn]);
-  if (!isIn) return { state: "signed-out" };
-  if (access === undefined) return { state: "loading" };
-  return { state: "ready", access };
+  }, [key]);
+  if (key === null) return { state: "signed-out" };
+  if (loaded?.key !== key) return { state: "loading" };
+  return { state: "ready", access: loaded.access };
 }
 
 export const roleLabel = (a: Access | null) =>
-  a?.is_admin
-    ? "Admin"
-    : a?.is_staff
-      ? "Hub staff"
-      : a?.role === "shop_owner"
-        ? "Partner shop"
-        : "Buyer";
+  a?.must_change_password
+    ? "Password change needed"
+    : a?.is_admin
+      ? "Admin"
+      : a?.is_staff
+        ? "Hub staff"
+        : a?.role === "shop_owner"
+          ? "Partner shop"
+          : "Buyer";

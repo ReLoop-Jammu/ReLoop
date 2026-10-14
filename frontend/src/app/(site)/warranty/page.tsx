@@ -4,7 +4,7 @@ import { ContactDetail } from "@/components/legal/LegalPage";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { BUSINESS_RULES } from "@/config/business-rules";
-import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/features/settings/server";
 import { formatPrice } from "@/lib/utils/money";
 
 export const metadata: Metadata = {
@@ -33,7 +33,8 @@ const OPTIONS: { icon: LucideIcon; title: string; price: string; body: string }[
   },
 ];
 
-export default function WarrantyPage() {
+export default async function WarrantyPage() {
+  const site = await getSiteSettings();
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
@@ -73,7 +74,7 @@ export default function WarrantyPage() {
             Contact us with your item ID and what went wrong.
           </p>
           <p className="mt-4 font-medium text-ink">
-            <ContactDetail value={SITE.supportPhone ?? SITE.supportEmail} />
+            <ContactDetail value={site.supportPhone ?? site.supportEmail} />
           </p>
         </div>
       </section>
