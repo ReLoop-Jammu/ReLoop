@@ -24,7 +24,7 @@ v1.0.0 is feature-complete on `release/v1` (see `CHANGELOG.md`). Until it is mer
 - No database change outside a new migration file; the 13 migrations `20261106000001` to `20261107000007` are applied together by the local session, simulation first.
 - After the release, new work follows the roadmap again: one phase per branch, reviewed before merging.
 
-## Current state (2026-10-15, release/v1 in progress; the sections below describe `main` plus Business Plan v2)
+## Current state (2026-10-16: v1.0.0 migrations applied to production, 81/81 checks true; see `docs/runbooks/apply-v1-2026-10-16.md`)
 
 Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
