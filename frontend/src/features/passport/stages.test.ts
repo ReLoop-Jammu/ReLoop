@@ -27,7 +27,7 @@ describe("item passport", () => {
   });
 
   it("says where the item ended up", () => {
-    expect(whereNow([row("recycled", "2026-10-09T10:00:00Z")])).toBe("Recycled");
+    expect(whereNow([row("recycled", "2026-10-09T10:00:00Z")])).toBe("Handed to VRRG Group");
     expect(whereNow([row("sold", "2026-10-09T10:00:00Z")])).toBe("With its new owner");
     expect(whereNow([])).toBe("At the hub");
   });

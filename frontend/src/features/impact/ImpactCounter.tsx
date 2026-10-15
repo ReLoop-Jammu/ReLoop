@@ -21,18 +21,18 @@ export function ImpactCounter({
               {[
                 [
                   totals.itemsReused.toLocaleString("en-IN"),
-                  "items reused",
-                  "Graded A, B or C: resold, repaired or used for parts",
+                  "devices and parts resold",
+                  "Grade A and B devices, and tested parts, sold in Jammu",
                 ],
                 [
                   `${formatKg(totals.kgRecycled)} kg`,
-                  "handed to the recycler",
-                  "Dead items and batteries, weighed, with a receipt",
+                  "handed to VRRG Group",
+                  "Scrap and batteries, by weight, on a weight receipt",
                 ],
                 [
                   totals.activePartnerShops.toLocaleString("en-IN"),
-                  "active partner shops",
-                  "Repair shops and retailers on our pickup route",
+                  "partner shops",
+                  "Repair shops, retailers and exchange stores on our weekly route",
                 ],
               ].map(([value, label, note]) => (
                 <div key={label} className="flex flex-col">

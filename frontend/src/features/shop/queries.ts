@@ -256,13 +256,33 @@ async function getHubItems(): Promise<ShopItem[]> {
     ).catch(() => []),
   ]);
   const newPrice = new Map(prices.map((p) => [p.item_id, Number(p.new_price_paise)]));
+  // The shops that agreed to be named on the parts they listed (never items.source_name).
+  const named = new Map(
+    (
+      await allPages((headers) =>
+        supabaseFetch<
+          { item_id: string; listed_by_name: string | null; listed_by_market: string | null }[]
+        >(
+          "parts_exchange_listings?select=item_id,listed_by_name,listed_by_market&listed_by_name=not.is.null&order=item_id",
+          headers,
+        ),
+      ).catch(() => [])
+    ).map((r) => [
+      r.item_id,
+      { name: r.listed_by_name ?? "", market: r.listed_by_market ?? undefined },
+    ]),
+  );
   const photoBase = `${SUPABASE_URL}/storage/v1/object/public/item-photos`;
   return rows
     .map((row) => hubItemToShopItem(row, photoBase))
     .filter((item): item is ShopItem => item !== null)
     .map((item) =>
       newPrice.has(item.id) ? { ...item, newPricePaise: newPrice.get(item.id) } : item,
-    );
+    )
+    .map((item) => {
+      const by = named.get(item.id);
+      return by ? { ...item, listedBy: by } : item;
+    });
 }
 
 /**
@@ -305,6 +325,12 @@ export function filterShopItems(items: readonly ShopItem[], f: ShopFilters): Sho
     return (
       terms.every((term) => hay.includes(term)) &&
       (!f.grade || item.grade === f.grade) &&
+      // Parts are shown apart from devices; a search by words or a tag looks at both.
+      (f.kind === "parts"
+        ? item.category === "part"
+        : f.kind === "devices" || terms.length === 0
+          ? item.category !== "part"
+          : true) &&
       (!f.category || item.category === f.category) &&
       (!brand || (item.brand ?? "").toLowerCase() === brand) &&
       (f.min === undefined || item.pricePaise >= f.min * 100) &&

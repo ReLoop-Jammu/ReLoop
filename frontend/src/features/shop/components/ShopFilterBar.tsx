@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import Form from "next/form";
 import { useRef } from "react";
 import { controlClasses } from "@/components/ui/controls";
-import { CATEGORIES } from "@/features/inventory/model";
+import { ACTIVE_CATEGORIES } from "@/features/inventory/model";
 import { SHOP_SORTS, type ShopFilters } from "../model";
 
 const selectClass = controlClasses({ select: true });
@@ -34,6 +34,7 @@ export function ShopFilterBar({
       className="mb-5 grid grid-cols-2 gap-3 rounded-card border border-line bg-surface p-3 shadow-soft lg:grid-cols-[minmax(0,1fr)_180px_160px_180px]"
     >
       {filters.grade && <input type="hidden" name="grade" value={filters.grade} />}
+      {filters.kind && <input type="hidden" name="kind" value={filters.kind} />}
       <label className="relative col-span-2 lg:col-span-1">
         <span className="sr-only">Search stock</span>
         <Search
@@ -44,7 +45,7 @@ export function ShopFilterBar({
           type="search"
           name="q"
           defaultValue={filters.q ?? ""}
-          placeholder="Search phones, laptops, RAM, item ID…"
+          placeholder="Search phones, laptops, boards, item ID…"
           maxLength={100}
           className="min-h-11 w-full rounded-xl border border-line bg-canvas pr-3.5 pl-10 text-base text-ink transition placeholder:text-muted hover:border-line-strong focus:border-brand-500 focus:bg-surface focus:ring-3 focus:ring-brand-500/15 focus:outline-none sm:text-sm"
         />
@@ -58,7 +59,7 @@ export function ShopFilterBar({
           className={selectClass}
         >
           <option value="">All categories</option>
-          {CATEGORIES.map((c) => (
+          {ACTIVE_CATEGORIES.filter((c) => c.value !== "part").map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
             </option>

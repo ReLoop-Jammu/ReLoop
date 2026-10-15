@@ -33,6 +33,8 @@ export type ShopItem = {
   sample?: boolean;
   /** True for hub stock (the items table): the only items that can be saved. */
   hub?: boolean;
+  /** A part a partner shop listed on the Parts Exchange, if the shop agreed to be named. */
+  listedBy?: { name: string; market?: string };
 };
 
 export type ShopReport = {
@@ -170,6 +172,7 @@ const rupees = first
 const filtersSchema = z.object({
   q: first.transform((v) => v?.trim().slice(0, 100) || undefined),
   grade: first.pipe(z.enum(["A", "B", "C"]).optional()).catch(undefined),
+  kind: first.pipe(z.enum(["devices", "parts"]).optional()).catch(undefined),
   category: first.pipe(z.enum(categoryValues).optional()).catch(undefined),
   brand: first.transform((v) => v?.trim().slice(0, 40) || undefined),
   min: rupees,
@@ -185,6 +188,8 @@ const filtersSchema = z.object({
 export type ShopFilters = {
   q?: string;
   grade?: "A" | "B" | "C";
+  /** Devices (the default) or the Parts Exchange: parts are shown apart from refurbished devices. */
+  kind?: "devices" | "parts";
   category?: Category;
   brand?: string;
   /** Price range in rupees. */

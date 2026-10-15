@@ -36,8 +36,9 @@ export async function Footer() {
             <Logo id="footer" inverted />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed">
-            ReLoop buys used and broken electronics in Jammu, grades every item at one hub, resells
-            what still works and sends only what is truly dead to an authorised recycler.
+            ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers and
+            institutions, tests and grades them at one hub, resells what still works and hands scrap
+            to VRRG Group, our dismantling partner, by weight.
           </p>
           {site.supportPhone && (
             <p className="mt-4 text-sm text-white">WhatsApp {site.supportPhone}</p>
