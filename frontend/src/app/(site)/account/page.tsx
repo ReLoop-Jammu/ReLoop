@@ -23,6 +23,7 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { MySubmissions } from "@/features/account/MySubmissions";
+import { MyWeighins } from "@/features/account/MyWeighins";
 import { useNotifications } from "@/features/account/notifications-store";
 import { useHubBadges } from "@/features/hub/badges";
 import { badgeCount, TOOL_GROUPS, toolsFor } from "@/features/hub/tools";
@@ -217,7 +218,12 @@ function ShopOwner({ access }: { access: Access }) {
         )}
         <div className="mt-5 flex flex-wrap gap-3">
           {status === "verified" ? (
-            <ButtonLink href="/sell/shops">Submit items to ReLoop</ButtonLink>
+            <>
+              <ButtonLink href="/sell/shops">Offer devices to ReLoop</ButtonLink>
+              <ButtonLink href="/account/parts" variant="secondary">
+                Parts Exchange
+              </ButtonLink>
+            </>
           ) : (
             <ButtonLink href="/what-we-accept" variant="secondary">
               What we accept
@@ -237,6 +243,10 @@ function ShopOwner({ access }: { access: Access }) {
       <div className="rounded-card border border-line bg-surface p-6">
         <h2 className="text-xl font-bold">My submissions</h2>
         <MySubmissions />
+      </div>
+      <div className="mt-6 rounded-card border border-line bg-surface p-6">
+        <h2 className="text-xl font-bold">My scrap weigh-ins</h2>
+        <MyWeighins />
       </div>
     </section>
   );

@@ -4,14 +4,56 @@
     "hi": "पार्टनर दुकानों के लिए मदद"
   },
   "intro": {
-    "en": "How to sell your shop's old, broken and dead electronics to ReLoop, step by step.",
-    "hi": "अपनी दुकान के पुराने, खराब और बंद पड़े इलेक्ट्रॉनिक सामान को ReLoop को बेचने का तरीका, एक-एक कदम।"
+    "en": "How to sell your shop's repair leftovers, working parts and dead devices to ReLoop, step by step.",
+    "hi": "अपनी दुकान के रिपेयर के बचे सामान, चालू पार्ट्स और बंद डिवाइस को ReLoop को बेचने का तरीका, एक-एक कदम।"
   },
   "sections": [
     {
+      "id": "counter",
+      "en": {
+        "title": "1. Scrap at the counter (no account needed)",
+        "steps": [
+          "Every week ReLoop's e-rickshaw visits your market on its fixed day. Your day is on {site}/locations; the rates are on {site}/rate-card.",
+          "We weigh your repair leftovers in front of you, by category: screens and displays, batteries, dead motherboards, and everything else.",
+          "You are paid by UPI on the spot at the rate card, and we give you a numbered receipt (RL-PAY-…). Cash is only an exception, and the receipt shows which was used.",
+          "Before we take anything you confirm that the scrap is yours to sell. We record it with the date and the staff member present.",
+          "We don't take TVs, printers, UPS units, small appliances, lead-acid or leaking batteries, or anything from homes."
+        ]
+      },
+      "hi": {
+        "title": "1. काउंटर पर कबाड़ (अकाउंट ज़रूरी नहीं)",
+        "steps": [
+          "हर हफ़्ते ReLoop की ई-रिक्शा आपके बाज़ार में तय दिन पर आती है। आपका दिन {site}/locations पर है; रेट {site}/rate-card पर हैं।",
+          "हम आपके सामने रिपेयर का बचा सामान श्रेणी के हिसाब से तौलते हैं: स्क्रीन और डिस्प्ले, बैटरी, खराब मदरबोर्ड, और बाकी सब।",
+          "रेट कार्ड के हिसाब से आपको उसी समय UPI से भुगतान होता है, और हम क्रमांक वाली रसीद (RL-PAY-…) देते हैं। नकद सिर्फ़ अपवाद है, और रसीद में लिखा होता है कि क्या इस्तेमाल हुआ।",
+          "कुछ भी लेने से पहले आप पुष्टि करते हैं कि कबाड़ आपका है और आप उसे बेच सकते हैं। हम तारीख़ और मौजूद स्टाफ़ के नाम के साथ इसे दर्ज करते हैं।",
+          "हम TV, प्रिंटर, UPS, छोटे घरेलू उपकरण, लेड-एसिड या रिसती बैटरी, और घरों से आया कोई भी सामान नहीं लेते।"
+        ]
+      }
+    },
+    {
+      "id": "parts",
+      "en": {
+        "title": "2. Working parts",
+        "steps": [
+          "If you think a board, camera, charging port, RAM, SSD or battery still works, put it in the to-test bag. We write it on your weigh-in slip with no money yet, and you confirm you may sell it.",
+          "Within 24 hours each part is tested and tagged. Working parts are paid as parts, not by the kilo, on the next route visit, as their own line on a receipt. You can decline.",
+          "Parts that fail the test go to their bin and are paid at the kilo rate. The weight we wrote at your counter is the paid weight: if our hub scale differs a little, it is never charged back."
+        ]
+      },
+      "hi": {
+        "title": "2. चालू (वर्किंग) पार्ट्स",
+        "steps": [
+          "अगर आपको लगता है कि कोई बोर्ड, कैमरा, चार्जिंग पोर्ट, RAM, SSD या बैटरी अभी चलती है, तो उसे टेस्ट वाले बैग में रखें। हम उसे आपकी वज़न पर्ची पर लिखते हैं, अभी कोई पैसा नहीं, और आप पुष्टि करते हैं कि आप उसे बेच सकते हैं।",
+          "24 घंटे के अंदर हर पार्ट टेस्ट और टैग होता है। चालू पार्ट्स का भुगतान किलो के हिसाब से नहीं, पार्ट के रूप में होता है: अगली रूट विज़िट पर, रसीद की अलग लाइन में। आप मना कर सकते हैं।",
+          "टेस्ट में फ़ेल पार्ट अपने बिन में जाते हैं और किलो के रेट पर गिने जाते हैं। आपके काउंटर पर लिखा वज़न ही भुगतान वाला वज़न है: हब की तराज़ू में थोड़ा फ़र्क हो तो भी वह कभी आपसे वापस नहीं लिया जाता।"
+        ]
+      }
+    },
+    {
       "id": "sign-up",
       "en": {
-        "title": "1. Sign up",
+        "title": "3. Create an account (for devices and the Parts Exchange)",
         "steps": [
           "Open {site}/register and choose \"I'm a shop owner\".",
           "Fill in your shop name, your name, your phone / WhatsApp number and a password of at least 8 characters.",
@@ -20,7 +62,7 @@
         ]
       },
       "hi": {
-        "title": "1. साइन अप करें",
+        "title": "3. अकाउंट बनाएँ (डिवाइस और पार्ट्स एक्सचेंज के लिए)",
         "steps": [
           "{site}/register खोलें और \"I'm a shop owner\" चुनें।",
           "अपनी दुकान का नाम, अपना नाम, फ़ोन / WhatsApp नंबर और कम से कम 8 अक्षरों का पासवर्ड भरें।",
@@ -32,111 +74,136 @@
     {
       "id": "verification",
       "en": {
-        "title": "2. Wait for verification",
+        "title": "4. Wait for verification",
         "steps": [
-          "Every new shop starts as \"pending\". ReLoop's staff check your details and call you on the phone number you gave, to make sure it's really you.",
-          "Open {site}/account to see your status. When it says \"verified\", a \"Submit items to ReLoop\" link appears.",
-          "You can't submit items until your shop is verified. If it is taking long or was rejected, message us on WhatsApp."
+          "Every new shop starts as \"pending\". ReLoop's staff check your details and call you on the phone number you gave.",
+          "Open {site}/account to see your status. When it says \"verified\", you can submit devices for an offer, and list parts on the Parts Exchange once ReLoop has linked your account to your shop's route stop.",
+          "A verified account is optional: you are paid for scrap at the counter without one. If verification takes long or was rejected, message us on WhatsApp."
         ]
       },
       "hi": {
-        "title": "2. सत्यापन (वेरिफ़िकेशन) का इंतज़ार करें",
+        "title": "4. सत्यापन (वेरिफ़िकेशन) का इंतज़ार करें",
         "steps": [
-          "हर नई दुकान पहले \"pending\" रहती है। ReLoop की टीम आपकी जानकारी जाँचती है और आपके दिए फ़ोन नंबर पर कॉल करके पक्का करती है कि यह आप ही हैं।",
-          "अपना स्टेटस देखने के लिए {site}/account खोलें। जब वहाँ \"verified\" लिखा हो, तो \"Submit items to ReLoop\" लिंक दिखेगा।",
-          "दुकान वेरिफ़ाई होने तक आप सामान जमा नहीं कर सकते। अगर देर हो रही है या आवेदन रद्द हुआ है, तो हमें WhatsApp करें।"
+          "हर नई दुकान पहले \"pending\" रहती है। ReLoop की टीम आपकी जानकारी जाँचती है और आपके दिए फ़ोन नंबर पर कॉल करती है।",
+          "अपना स्टेटस देखने के लिए {site}/account खोलें। जब वहाँ \"verified\" लिखा हो, तो आप डिवाइस ऑफ़र के लिए जमा कर सकते हैं, और जब ReLoop आपका अकाउंट आपकी दुकान के रूट स्टॉप से जोड़ दे, तो पार्ट्स एक्सचेंज पर पार्ट लिस्ट कर सकते हैं।",
+          "वेरिफ़ाइड अकाउंट ज़रूरी नहीं है: कबाड़ का भुगतान काउंटर पर उसके बिना भी होता है। अगर देर हो रही है या आवेदन रद्द हुआ है, तो हमें WhatsApp करें।"
         ]
       }
     },
     {
       "id": "submit",
       "en": {
-        "title": "3. Submit your items",
+        "title": "5. Offer devices (dead handsets, trade-ins)",
         "steps": [
           "Log in and open {site}/sell/shops (or use the link on your account page).",
-          "Add up to 10 different items in one submission. For each one, give the item name, its condition (Working, Partially working, Broken, Dead / scrap or Untested) and how many you have.",
-          "Brand, model, your expected price per item, a photo link and extra details are optional, but they help us make a fair offer.",
-          "Press \"Submit items to ReLoop\". Only ReLoop's staff can see your submission."
+          "Add up to 10 different devices in one submission. For each one, give the item name, its condition and the quantity.",
+          "Brand, model, your expected price per item and extra details are optional, but they help us make a fair offer.",
+          "Press \"Submit items to ReLoop\". Only ReLoop's staff can see your submission. Before we buy any device you confirm that you own it or have it signed over."
         ]
       },
       "hi": {
-        "title": "3. अपना सामान जमा करें",
+        "title": "5. डिवाइस का ऑफ़र लें (बंद हैंडसेट, ट्रेड-इन)",
         "steps": [
           "लॉग इन करें और {site}/sell/shops खोलें (या अपने अकाउंट पेज का लिंक इस्तेमाल करें)।",
-          "एक बार में 10 तक अलग-अलग सामान जोड़ें। हर सामान का नाम, उसकी हालत (Working, Partially working, Broken, Dead / scrap या Untested) और कितने नग हैं, यह भरें।",
-          "ब्रांड, मॉडल, प्रति नग आपकी उम्मीद की कीमत, फ़ोटो का लिंक और बाकी जानकारी भरना ज़रूरी नहीं है, पर इससे हम सही ऑफ़र दे पाते हैं।",
-          "\"Submit items to ReLoop\" दबाएँ। आपका सामान सिर्फ़ ReLoop की टीम देख सकती है।"
+          "एक बार में 10 तक अलग-अलग डिवाइस जोड़ें। हर डिवाइस का नाम, उसकी हालत और संख्या दें।",
+          "ब्रांड, मॉडल, प्रति नग आपकी उम्मीद की कीमत और बाकी जानकारी भरना ज़रूरी नहीं है, पर इससे हम सही ऑफ़र दे पाते हैं।",
+          "\"Submit items to ReLoop\" दबाएँ। आपका सबमिशन सिर्फ़ ReLoop की टीम देख सकती है। कोई भी डिवाइस खरीदने से पहले आप पुष्टि करते हैं कि वह आपका है या आपके नाम लिखकर दिया गया है।"
         ]
       }
     },
     {
       "id": "offers",
       "en": {
-        "title": "4. See our offer",
+        "title": "6. See our offer",
         "steps": [
-          "Open {site}/account. Under \"My submissions\" each item shows its status: \"Waiting for review\", \"Offer made\", \"You accepted: pickup booked\", \"You declined the offer\", \"Not accepted\" or \"Bought by ReLoop\". The bell at the top tells you when something changes.",
+          "Open {site}/account. Under \"My submissions\" each lot shows its status: \"Waiting for review\", \"Offer made\", \"Your offer\" or \"Not accepted\".",
           "\"Offer made\" shows our price per item and a short note. \"Not accepted\" shows the reason.",
-          "To accept, tap \"Accept the offer\": we book the pickup on the next route day and show the date. Or tap \"Decline…\" and tell us why if you like. Questions are welcome on WhatsApp."
+          "To accept, tap \"Accept the offer\": we book the pickup on your market's next route day and show the date. If your market is not on the route yet, it says the day is to be confirmed. Or tap \"Decline\": there is no obligation."
         ]
       },
       "hi": {
-        "title": "4. हमारा ऑफ़र देखें",
+        "title": "6. हमारा ऑफ़र देखें",
         "steps": [
-          "{site}/account खोलें। \"My submissions\" में हर सामान का स्टेटस दिखता है: \"Waiting for review\", \"Offer made\", \"You accepted: pickup booked\", \"You declined the offer\", \"Not accepted\" या \"Bought by ReLoop\"। कुछ बदलने पर ऊपर की घंटी में सूचना आती है।",
+          "{site}/account खोलें। \"My submissions\" में हर लॉट का स्टेटस दिखता है: \"Waiting for review\", \"Offer made\", \"Your offer\" या \"Not accepted\"।",
           "\"Offer made\" में प्रति नग हमारी कीमत और एक छोटा नोट दिखता है। \"Not accepted\" में कारण लिखा होता है।",
-          "ऑफ़र मानने के लिए \"Accept the offer\" दबाएँ: हम अगले रूट वाले दिन पिकअप बुक करते हैं और तारीख़ वहीं दिखती है। मना करना हो तो \"Decline…\" दबाएँ और चाहें तो कारण लिखें। सवाल WhatsApp पर पूछ सकते हैं।"
+          "ऑफ़र मानने के लिए \"Accept the offer\" दबाएँ: हम आपके बाज़ार के अगले रूट वाले दिन पिकअप बुक करते हैं और तारीख़ दिखाते हैं। अगर आपका बाज़ार अभी रूट पर नहीं है, तो लिखा होता है कि दिन बाद में बताया जाएगा। या \"Decline\" दबाएँ: कोई मजबूरी नहीं है।"
         ]
       }
     },
     {
       "id": "pickup",
       "en": {
-        "title": "5. Pickup",
+        "title": "7. The weekly pickup",
         "steps": [
-          "We collect by e-rickshaw on our {days} route through Raghunath Bazaar, Residency Road and Gandhi Nagar. Your pickup day shows under \"My submissions\"; if we can't come, it moves to the next route day and we tell you.",
-          "Keep the items together at your counter so the pickup is quick. The route and stops are on {site}/locations."
+          "We collect by e-rickshaw. Tuesday: the Gandhi Nagar cluster (Bahu Plaza, Gole Market), from November 2026. Friday: the old city (Raghunath Bazaar, Residency Road), from January 2027. Your pickup date shows on {site}/account.",
+          "Keep your scrap together at your counter so the weighing is quick. The routes and stops are on {site}/locations."
         ]
       },
       "hi": {
-        "title": "5. पिकअप",
+        "title": "7. साप्ताहिक पिकअप",
         "steps": [
-          "हम {days_hi} को रघुनाथ बाज़ार, रेज़िडेंसी रोड और गांधी नगर के रास्ते ई-रिक्शा से सामान उठाते हैं। आपके पिकअप का दिन \"My submissions\" में दिखता है; अगर हम न आ पाएँ, तो वह अगले रूट वाले दिन पर चला जाता है और हम आपको बताते हैं।",
-          "सामान अपने काउंटर पर एक साथ रखें, ताकि पिकअप जल्दी हो जाए। रूट और स्टॉप {site}/locations पर देखें।"
+          "हम ई-रिक्शा से सामान उठाते हैं। मंगलवार: गांधी नगर क्लस्टर (बहू प्लाज़ा, गोले मार्केट), नवंबर 2026 से। शुक्रवार: पुराना शहर (रघुनाथ बाज़ार, रेज़िडेंसी रोड), जनवरी 2027 से। आपके पिकअप की तारीख़ {site}/account पर दिखती है।",
+          "कबाड़ अपने काउंटर पर एक साथ रखें, ताकि तौल जल्दी हो जाए। रूट और स्टॉप {site}/locations पर देखें।"
         ]
       }
     },
     {
       "id": "payment",
       "en": {
-        "title": "6. Payment",
+        "title": "8. Payment and receipts",
         "steps": [
-          "You are paid in cash or by UPI, at the offer you accepted. Each payment has a receipt number (RL-PAY-…); download the receipt as a PDF under \"Payments from ReLoop\" on your account.",
-          "You don't wait for the items to sell: once we buy them, they are ReLoop's."
+          "Scrap is paid by UPI on the spot. Devices are paid at the offer you accepted. Parts are paid as parts. Each payment has its own receipt number (RL-PAY-…).",
+          "Staff can send you your receipt on WhatsApp as a private link. All your receipts are also on {site}/account, where you can download each one.",
+          "You don't wait for items to sell: once we buy them, they are ReLoop's."
         ]
       },
       "hi": {
-        "title": "6. भुगतान",
+        "title": "8. भुगतान और रसीदें",
         "steps": [
-          "आपके माने हुए ऑफ़र के हिसाब से नकद या UPI से भुगतान होता है। हर भुगतान की एक रसीद संख्या (RL-PAY-…) होती है; रसीद PDF में अपने खाते के \"Payments from ReLoop\" से डाउनलोड करें।",
+          "कबाड़ का भुगतान उसी समय UPI से होता है। डिवाइस का भुगतान आपके माने हुए ऑफ़र पर। पार्ट्स का भुगतान पार्ट के रूप में। हर भुगतान की अपनी रसीद संख्या (RL-PAY-…) होती है।",
+          "स्टाफ़ आपको WhatsApp पर रसीद का निजी लिंक भेज सकता है। आपकी सारी रसीदें {site}/account पर भी हैं, जहाँ से आप हर रसीद डाउनलोड कर सकते हैं।",
           "सामान बिकने का इंतज़ार नहीं करना पड़ता: खरीदने के बाद सामान ReLoop का हो जाता है।"
+        ]
+      }
+    },
+    {
+      "id": "exchange",
+      "en": {
+        "title": "9. List parts on the Jammu Parts Exchange",
+        "steps": [
+          "Verified shops linked to the route can list parts they harvest: open {site}/account/parts, choose the part type, add brand, model, a description, your asking price and up to three photos.",
+          "You agree to be named on the listing (\"Listed by your shop, your market\"). The commission is shown to you on that page; buyers never see it.",
+          "Hand the part to us on the route. Staff test and tag it, wipe it where needed, and approve the listing. Nothing is listed without a test.",
+          "When it sells, ReLoop records the commission, handles any 7-day return, and pays your share after day 7 by UPI, on its own receipt. If the part is refunded, there is no payout.",
+          "A part unsold after 30 days gets a reminder to you instead of a price cut: lower the price or take it back."
+        ]
+      },
+      "hi": {
+        "title": "9. जम्मू पार्ट्स एक्सचेंज पर पार्ट लिस्ट करें",
+        "steps": [
+          "रूट से जुड़ी वेरिफ़ाइड दुकानें अपने निकाले हुए पार्ट लिस्ट कर सकती हैं: {site}/account/parts खोलें, पार्ट का प्रकार चुनें, ब्रांड, मॉडल, विवरण, अपनी माँगी कीमत और तीन तक फ़ोटो जोड़ें।",
+          "आप लिस्टिंग पर अपना नाम दिखने की सहमति देते हैं (\"Listed by आपकी दुकान, आपका बाज़ार\")। कमीशन उसी पेज पर आपको दिखता है; खरीदार उसे कभी नहीं देखते।",
+          "पार्ट रूट पर हमें दें। स्टाफ़ उसे टेस्ट और टैग करता है, ज़रूरत हो तो वाइप करता है, और लिस्टिंग मंज़ूर करता है। बिना टेस्ट कुछ लिस्ट नहीं होता।",
+          "बिकने पर ReLoop कमीशन दर्ज करता है, 7 दिन की वापसी संभालता है, और 7वें दिन के बाद आपका हिस्सा UPI से, अलग रसीद पर देता है। अगर पार्ट वापस हो जाए, तो भुगतान नहीं होता।",
+          "30 दिन में न बिके पार्ट पर कीमत घटाने की जगह आपको याद दिलाया जाता है: कीमत घटाएँ या पार्ट वापस ले लें।"
         ]
       }
     },
     {
       "id": "contact",
       "en": {
-        "title": "7. Contact us",
+        "title": "10. Contact us",
         "steps": [
           "WhatsApp: {whatsapp}. {hours}",
-          "Forgot your password? There is no reset email. Message us on WhatsApp: an admin calls you to confirm it's you, then gives you a temporary password that you change when you next log in.",
+          "Forgot your password? There is no reset email. Message us on WhatsApp: an admin calls you to confirm it's you, then gives you a temporary password to change straight away.",
           "Complaints go to our grievance officer, named on {site}/contact with their email and phone."
         ]
       },
       "hi": {
-        "title": "7. हमसे संपर्क करें",
+        "title": "10. हमसे संपर्क करें",
         "steps": [
           "WhatsApp: {whatsapp}। {hours_hi}",
-          "पासवर्ड भूल गए? रीसेट ईमेल नहीं आता। हमें WhatsApp करें: एडमिन आपको कॉल करके पहचान पक्की करेगा, फिर एक अस्थायी पासवर्ड देगा, जिसे आप अगली बार लॉग इन करते समय बदल देंगे।",
+          "पासवर्ड भूल गए? रीसेट ईमेल नहीं आता। हमें WhatsApp करें: एडमिन आपको कॉल करके पहचान पक्की करेगा, फिर एक अस्थायी पासवर्ड देगा जिसे आप तुरंत बदल लें।",
           "शिकायत के लिए हमारे शिकायत अधिकारी (ग्रीवेंस ऑफ़िसर) से संपर्क करें। उनका नाम, ईमेल और फ़ोन {site}/contact पर है।"
         ]
       }
