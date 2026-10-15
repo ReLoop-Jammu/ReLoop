@@ -7,13 +7,22 @@ E-waste / used-electronics business for the Jammu pilot, built to **Business Pla
 - **[docs/architecture.md](docs/architecture.md)**: stack, repo structure, roles, data model, routes, design system and phased roadmap.
 - **[docs/engineering-standards.md](docs/engineering-standards.md)**: mandatory code, security, testing and workflow rules.
 - **[docs/adr/](docs/adr/)**: why the key decisions were made. Changing a decision means writing a new ADR.
-- **[docs/handoff/v1-cloud-handoff.md](docs/handoff/v1-cloud-handoff.md)**: where the v1.0.0 release stands, the remaining batches (rest of 15b, then 16 to 27), the decisions on Business Plan v2 and what only a local session can do. **Business Plan v2 is the source of truth**; its public summary is `docs/business-plan-v2-summary.md`.
+- **[docs/handoff/v1-cloud-handoff.md](docs/handoff/v1-cloud-handoff.md)**: the decisions on Business Plan v2 and what only a local session can do (section 7). All batches up to 27 are built on `release/v1`; **[scripts/finish-v1-local.md](scripts/finish-v1-local.md)** lists the ordered local steps to release it. **Business Plan v2 is the source of truth**; its public summary is `docs/business-plan-v2-summary.md`.
 
 ## Layout
 
 - `frontend/`: the Next.js 16 website. Read `frontend/AGENTS.md` before touching Next.js APIs; this version differs from older training data.
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
+
+## Feature freeze (v1.0.0)
+
+v1.0.0 is feature-complete on `release/v1` (see `CHANGELOG.md`). Until it is merged to `main`, applied and tagged (`scripts/finish-v1-local.md`):
+
+- Only fixes go in: a bug, a failing gate, a wording problem or a security issue. No new pages, tables or settings.
+- Every fix is still a branch off `release/v1` with tests, merged only when `npm run check` and `CI=true npm run test:e2e` pass.
+- No database change outside a new migration file; the 13 migrations `20261106000001` to `20261107000007` are applied together by the local session, simulation first.
+- After the release, new work follows the roadmap again: one phase per branch, reviewed before merging.
 
 ## Current state (2026-10-15, release/v1 in progress; the sections below describe `main` plus Business Plan v2)
 
@@ -30,7 +39,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - Never run e2e tests, seeds or migrations against a preview or production.
   - **e2e tests need a separate test database.** Until one exists, they run only in CI (`CI=true`, not on Vercel), where the shop falls back to the sample stock file `frontend/src/data/shop-snapshot.json`. Anywhere else, missing Supabase variables fail the build on purpose.
 - **Public site:**
-  - Pages: home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
+  - Pages: home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions), `/rate-card`, `/partners`, how-it-works, where-scrap-goes, warranty, `/impact`, `/network`, `/ledger`, `/reports`, `/data`, `/standards`, `/compliance`, `/about`, `/faq`, `/accessibility`, contact, legal. The full route list is in `docs/architecture.md`.
   - Accounts: `/register`, `/login`, `/account`.
   - The shop reads the live `listings` and `categories` tables (`frontend/src/features/shop/queries.ts`).
   - Institution forms hand off to WhatsApp or email (`SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
