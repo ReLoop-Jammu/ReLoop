@@ -763,38 +763,121 @@ describe("staff hub on Supabase (20261018000001)", () => {
   const runAt = (days) =>
     db.query("select public.apply_stock_rules(now() + make_interval(days => $1))", [days]);
 
-  test("the day-45 cut and the day-75 downgrade each happen once, however often the rules run", async () => {
+  test("a device unsold for 45 days is stripped once; a reserved one is skipped; watchers are told", async () => {
     const id = await listedItem(0);
+    const reserved = await listedItem(50);
+    await db.query("update public.items set status = 'reserved' where id = $1", [reserved]);
+    await db.query("insert into public.saved_items (user_id, item_id) values ($1, $2)", [
+      buyer,
+      id,
+    ]);
     for (let i = 0; i < 3; i++) await runAt(0);
-    assert.equal((await item(id)).current_paise, 100000, "nothing before day 45");
-
+    assert.equal((await item(id)).status, "listed", "nothing before day 45");
     for (let i = 0; i < 3; i++) await runAt(46);
-    const cut = await item(id);
-    assert.equal(cut.current_paise, 80000, "cut by 20% once");
-    for (const d of [50, 60, 74]) await runAt(d);
-    assert.equal((await item(id)).current_paise, 80000, "never cut again");
-
-    for (let i = 0; i < 3; i++) await runAt(76);
     const after = await item(id);
-    assert.deepEqual([after.grade, after.status], ["C", "stripping"]);
+    assert.deepEqual([after.grade, after.status, after.current_paise], ["C", "stripping", 100000]);
+    assert.equal((await item(reserved)).status, "reserved");
     await runAt(120);
-    assert.equal((await item(id)).current_paise, 80000, "a stripped item is left alone");
+    assert.equal((await item(id)).status, "stripping", "a stripped item is left alone");
+    const n = await db.query(
+      "select count(*)::int as n from public.notifications where user_id = $1 and kind = 'saved_unavailable'",
+      [buyer],
+    );
+    assert.equal(n.rows[0].n, 1);
   });
 
-  test("parts are cut once but not downgraded, and a cheap item never breaks the run", async () => {
-    const part = await listedItem(80, {
+  test("a part gets one 25% cut at day 30, rounded to Rs 10, never below Rs 10; devices get none", async () => {
+    const part = await listedItem(10, {
       category: "part",
       grade: "C",
       pricePaise: 50000,
       partType: "board",
     });
-    const cheap = await listedItem(50, { pricePaise: 1000 });
-    for (let i = 0; i < 2; i++) await runAt(0);
-    assert.deepEqual(
-      [(await item(part)).status, (await item(part)).current_paise],
-      ["listed", 40000],
+    const cheap = await listedItem(10, {
+      category: "part",
+      grade: "C",
+      pricePaise: 1500,
+      partType: "screen",
+    });
+    const pre = await listedItem(10, {
+      category: "part",
+      grade: "C",
+      pricePaise: 90000,
+      partType: "ram",
+    });
+    await db.query(
+      "update public.items set price_cut_at = now() - interval '5 days' where id = $1",
+      [pre],
     );
+    const device = await listedItem(10, { pricePaise: 100000 });
+    for (let i = 0; i < 2; i++) await runAt(0);
+    assert.equal((await item(part)).current_paise, 50000, "nothing before day 30");
+    for (const d of [21, 21, 22, 40]) await runAt(d);
+    assert.equal((await item(part)).current_paise, 38000, "37,500 rounds to Rs 380");
     assert.equal((await item(cheap)).current_paise, 1000, "never below Rs 10");
+    assert.equal((await item(pre)).current_paise, 90000, "an earlier cut counts as the once");
+    assert.equal((await item(device)).current_paise, 100000);
+  });
+
+  test("a shop-listed part is not cut: the shop gets one reminder at day 30", async () => {
+    const owner = await createUser(db, "Listing Shop", {
+      meta: {
+        account_type: "shop_owner",
+        shop_name: "Listing Shop",
+        business_address: "Gole Market",
+      },
+    });
+    const p = (
+      await db.query(
+        `insert into public.partners (type, name, phone, status, shop_owner_id)
+         values ('repair_shop', 'Listing Shop', '9000000002', 'active', $1) returning id`,
+        [owner],
+      )
+    ).rows[0].id;
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, part_type, buy_mode, buy_paise, grade, current_paise, list_paise,
+                                 status, listed_at, wiped_at, inspection, inspected_at, listed_by_partner_id, commission_pct)
+       values ('partner_listing', 'part', 'board', 'free', 0, 'C', 80000, 80000, 'listed', now() - interval '31 days',
+               now(), '{"version": 1, "checks": {}}', now(), $1, 12) returning id`,
+      [p],
+    );
+    for (let i = 0; i < 3; i++) await runAt(0);
+    assert.equal((await item(rows[0].id)).current_paise, 80000);
+    const n = await db.query(
+      "select count(*)::int as n from public.notifications where user_id = $1 and kind = 'part_unsold_days'",
+      [owner],
+    );
+    assert.equal(n.rows[0].n, 1);
+  });
+
+  test("the grace date holds the rules back; the stock alerts list what is overdue", async () => {
+    const id = await listedItem(50);
+    await db.query(
+      "update public.app_settings set value = to_jsonb((current_date + 10)::text) where key = 'stock.grace_until'",
+    );
+    await runAt(0);
+    assert.equal((await item(id)).status, "listed", "inside the grace period");
+    await db.query("update public.app_settings set value = 'null' where key = 'stock.grace_until'");
+    const part = await listedItem(65, {
+      category: "part",
+      grade: "C",
+      pricePaise: 50000,
+      partType: "board",
+    });
+    const alerts = await as(db, staff, (tx) =>
+      tx.query("select kind, item_id from public.stock_alerts()"),
+    );
+    assert.ok(alerts.rows.some((r) => r.kind === "consider_scrap" && r.item_id === part));
+    const soon = await listedItem(42);
+    const alerts2 = await as(db, staff, (tx) =>
+      tx.query("select kind, item_id from public.stock_alerts()"),
+    );
+    assert.ok(alerts2.rows.some((r) => r.kind === "strip_soon" && r.item_id === soon));
+    await assert.rejects(
+      as(db, buyer, (tx) => tx.query("select * from public.stock_alerts()")),
+      /Only hub staff/,
+    );
+    await runAt(0);
   });
 
   test("staff run the rules from the dashboard; buyers and visitors can't", async () => {
@@ -1828,6 +1911,10 @@ describe("hub home: badges and link series (20261028000001)", () => {
       payouts_due: 0,
       pickups_next: 0,
       open_claims: 0,
+      pickups_unconfirmed: 0,
+      part_listings_waiting: 0,
+      part_sales_to_pay: 0,
+      bins_due: 0,
       pending_shops: null,
       deletion_requests: null,
     });
@@ -2855,8 +2942,8 @@ describe("warranty claims (20261101000001)", () => {
       /permission denied/,
     );
     assert.ok(id);
-    await assert.rejects(open(buyer, await sold({ daysAgo: 31 })), /no longer under warranty/);
-    await assert.rejects(open(buyer, await sold({ grade: "C" })), /no longer under warranty/);
+    await assert.rejects(open(buyer, await sold({ daysAgo: 31 })), /no longer covered/);
+    await assert.rejects(open(buyer, await sold({ grade: "C" })), /no longer covered/);
   });
 
   test("staff decide; the buyer sees the outcome, never the staff note, and is notified", async () => {

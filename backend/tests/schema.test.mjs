@@ -125,7 +125,7 @@ describe("business rules on sale", () => {
 });
 
 describe("unsold-stock rules", () => {
-  test("day 45 cuts the price 20% once; day 75 downgrades to C for stripping", async () => {
+  test("a device unsold for 45 days becomes C and is stripped, with no price cut", async () => {
     const item = await as(db, staff, (tx) =>
       intake(tx, {
         category: "monitor",
@@ -143,19 +143,17 @@ describe("unsold-stock rules", () => {
       [item.id],
     );
     assert.equal(Number(rows[0].current_paise), 320000);
+    assert.equal(rows[0].status, "listed");
 
     await run("2026-12-16T00:00:00Z"); // day 45
-    await run("2026-12-20T00:00:00Z"); // still only one cut
+    await run("2026-12-20T00:00:00Z"); // idempotent
     ({ rows } = await db.query(
-      "select current_paise, price_cut_at from public.items where id = $1",
+      "select current_paise, price_cut_at, grade, status from public.items where id = $1",
       [item.id],
     ));
-    assert.equal(Number(rows[0].current_paise), 256000);
-    assert.ok(rows[0].price_cut_at);
-
-    await run("2027-01-15T00:00:00Z"); // day 75
-    ({ rows } = await db.query("select grade, status from public.items where id = $1", [item.id]));
-    assert.deepEqual(rows[0], { grade: "C", status: "stripping" });
+    assert.equal(Number(rows[0].current_paise), 320000, "devices are never cut");
+    assert.equal(rows[0].price_cut_at, null);
+    assert.deepEqual([rows[0].grade, rows[0].status], ["C", "stripping"]);
   });
 
   test("only trusted server jobs can run the rules", async () => {
