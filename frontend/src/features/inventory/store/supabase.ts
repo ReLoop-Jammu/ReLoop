@@ -244,6 +244,7 @@ export function itemToRow(i: Omit<Item, "id" | "events" | "photos">) {
     new_price_checked_on: i.newPriceCheckedOn ?? null,
     ownership_confirmed_at: i.ownershipConfirmedAt ?? null,
     locked_device: i.lockedDevice ?? false,
+    weighin_id: i.weighinId ?? null,
   };
 }
 
@@ -445,6 +446,8 @@ type PartnerRow = {
   status: Partner["status"];
   joined_at: string;
   notes: string;
+  label?: string;
+  shop_owner_id?: string | null;
 };
 const toPartner = (r: PartnerRow): Partner => ({
   id: r.id,
@@ -458,6 +461,8 @@ const toPartner = (r: PartnerRow): Partner => ({
   status: r.status,
   joinedAt: r.joined_at,
   notes: r.notes,
+  ...(r.label && { label: r.label }),
+  ...(r.shop_owner_id && { shopOwnerId: r.shop_owner_id }),
 });
 
 export async function getPartners(): Promise<Partner[]> {
@@ -487,6 +492,8 @@ export async function savePartner(p: Omit<Partner, "id"> & { id?: string }): Pro
     status: p.status,
     joined_at: p.joinedAt,
     notes: p.notes,
+    label: p.label ?? "",
+    shop_owner_id: p.shopOwnerId || null,
   };
   return toPartner(await upsertRow<PartnerRow>("partners", dbId(p.id).id, row));
 }

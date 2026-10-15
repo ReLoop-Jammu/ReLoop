@@ -9,6 +9,8 @@ import {
   Link2,
   PackageOpen,
   PackagePlus,
+  Scale,
+  Truck,
   Recycle,
   Settings,
   ShieldCheck,
@@ -32,6 +34,10 @@ export type HubBadges = {
   payouts_due: number;
   pickups_next: number;
   open_claims: number;
+  pickups_unconfirmed: number;
+  part_listings_waiting: number;
+  part_sales_to_pay: number;
+  bins_due: number;
   pending_shops: number | null;
   deletion_requests: number | null;
 };
@@ -40,6 +46,9 @@ export type BadgeKey =
   | "new_submissions"
   | "offers_accepted"
   | "open_claims"
+  | "part_listings_waiting"
+  | "part_sales_to_pay"
+  | "bins_due"
   | "pending_shops"
   | "deletion_requests";
 
@@ -102,9 +111,34 @@ export const HUB_TOOLS: readonly HubTool[] = [
     badge: ["new_submissions", "offers_accepted"],
   },
   {
+    href: "/hub/weighins",
+    label: "Weigh-ins",
+    description: "Weigh a shop's scrap, pay by the rate card, share the receipt.",
+    icon: Scale,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/exchange",
+    label: "Parts Exchange",
+    description: "Receive, test and approve shops' part listings; pay their share.",
+    icon: Store,
+    role: "staff",
+    group: "Daily work",
+    badge: ["part_listings_waiting", "part_sales_to_pay"],
+  },
+  {
+    href: "/hub/lots",
+    label: "Institution lots",
+    description: "Lot fees, equipment bought, and dead e-waste sent to VRRG Group.",
+    icon: Truck,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
     href: "/hub/warranty",
-    label: "Warranty claims",
-    description: "Claims on grade A and B devices within 30 days of the sale.",
+    label: "Warranty and returns",
+    description: "Claims on grade A and B devices (30 days) and returns of parts (7 days).",
     icon: ShieldCheck,
     role: "staff",
     group: "Daily work",
@@ -125,6 +159,7 @@ export const HUB_TOOLS: readonly HubTool[] = [
     icon: Recycle,
     role: "staff",
     group: "Records",
+    badge: "bins_due",
   },
   {
     href: "/hub/pricing/references",

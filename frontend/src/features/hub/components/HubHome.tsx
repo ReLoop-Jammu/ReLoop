@@ -95,9 +95,57 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       level: "act",
     },
     {
+      key: "pickups_unconfirmed",
+      count: b.pickups_unconfirmed ?? 0,
+      label: plural(
+        b.pickups_unconfirmed ?? 0,
+        "pickup waiting for its route day to be confirmed",
+        "pickups waiting for their route day to be confirmed",
+      ),
+      href: "/hub/submissions",
+      level: "act",
+    },
+    {
+      key: "part_listings_waiting",
+      count: b.part_listings_waiting ?? 0,
+      label: plural(
+        b.part_listings_waiting ?? 0,
+        "Parts Exchange listing to receive, test or approve",
+        "Parts Exchange listings to receive, test or approve",
+      ),
+      href: "/hub/exchange",
+      level: "act",
+    },
+    {
+      key: "part_sales_to_pay",
+      count: b.part_sales_to_pay ?? 0,
+      label: plural(
+        b.part_sales_to_pay ?? 0,
+        "shop share to pay (the 7-day window has passed)",
+        "shop shares to pay (the 7-day window has passed)",
+      ),
+      href: "/hub/exchange",
+      level: "act",
+    },
+    {
+      key: "bins_due",
+      count: b.bins_due ?? 0,
+      label: plural(
+        b.bins_due ?? 0,
+        "scrap bin due for handover to VRRG Group",
+        "scrap bins due for handover to VRRG Group",
+      ),
+      href: "/hub/handovers",
+      level: "act",
+    },
+    {
       key: "open_claims",
       count: b.open_claims,
-      label: plural(b.open_claims, "open warranty claim", "open warranty claims"),
+      label: plural(
+        b.open_claims,
+        "open warranty claim or part return",
+        "open warranty claims or part returns",
+      ),
       href: "/hub/warranty",
       level: "act",
     },

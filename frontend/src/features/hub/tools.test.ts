@@ -41,6 +41,10 @@ describe("badge counts", () => {
       payouts_due: 0,
       pickups_next: 0,
       open_claims: 0,
+      pickups_unconfirmed: 0,
+      part_listings_waiting: 0,
+      part_sales_to_pay: 0,
+      bins_due: 0,
       pending_shops: null,
       deletion_requests: null,
     };
@@ -65,6 +69,10 @@ describe("overview queues", async () => {
       payouts_due: 0,
       pickups_next: 0,
       open_claims: 0,
+      pickups_unconfirmed: 0,
+      part_listings_waiting: 0,
+      part_sales_to_pay: 0,
+      bins_due: 0,
       pending_shops: null,
       deletion_requests: null,
     };

@@ -172,7 +172,7 @@ export default async function WhatWeAcceptPage() {
           ))}
         </ul>
         <div className="mt-8">
-          <WhatsAppButton message="Hi ReLoop, I'd like to sell old electronics" />
+          <WhatsAppButton message="Hi ReLoop, I run a shop or represent an institution and would like to sell to ReLoop. Our name is: " />
         </div>
       </section>
     </Container>

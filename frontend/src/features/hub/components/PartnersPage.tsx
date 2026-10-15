@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Institution, Partner } from "@/features/inventory/model";
-import { saveInstitution, savePartner } from "@/features/inventory/store";
+import { SHARED_DATABASE, saveInstitution, savePartner } from "@/features/inventory/store";
+import { call } from "@/lib/rpc";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select } from "./ui";
 
-const MARKETS = ["Raghunath Bazaar", "Residency Road", "Gandhi Nagar", "Other"];
+const MARKETS = [
+  "Bahu Plaza",
+  "Gole Market",
+  "Raghunath Bazaar",
+  "Residency Road",
+  "Janipur",
+  "Trikuta Nagar",
+  "Talab Tillo",
+  "Other",
+];
 
 const blankPartner = (): Omit<Partner, "id"> => ({
   type: "repair_shop",
@@ -37,6 +47,15 @@ export function PartnersPage() {
   const [p, setP] = useState(blankPartner);
   const [inst, setInst] = useState(blankInstitution);
   const [editing, setEditing] = useState<string | null>(null);
+  const [owners, setOwners] = useState<{ id: string; shop_name: string }[]>([]);
+  useEffect(() => {
+    if (!SHARED_DATABASE) return;
+    call<{ id: string; shop_name: string }[]>(
+      "shop_owners?select=id,shop_name&verification_status=eq.verified&order=shop_name.asc",
+    )
+      .then(setOwners)
+      .catch(() => setOwners([]));
+  }, []);
 
   const itemsFrom = (key: "partnerId" | "institutionId", id: string) =>
     items.filter((i) => i.source[key] === id).length;
@@ -155,7 +174,7 @@ export function PartnersPage() {
                   onChange={(e) => setP({ ...p, type: e.target.value as Partner["type"] })}
                 >
                   <option value="repair_shop">Repair shop</option>
-                  <option value="retailer">Retailer</option>
+                  <option value="retailer">Retailer or exchange store</option>
                 </Select>
               </Field>
               <Field label="Market">
@@ -165,6 +184,31 @@ export function PartnersPage() {
                   ))}
                 </Select>
               </Field>
+              <Field label="Label (optional)" hint="For example: Exchange store">
+                <Input
+                  value={p.label ?? ""}
+                  maxLength={40}
+                  onChange={(e) => setP({ ...p, label: e.target.value })}
+                />
+              </Field>
+              {SHARED_DATABASE && (
+                <Field
+                  label="Linked shop account"
+                  hint="Needed to list parts on the Parts Exchange. Verified shops only."
+                >
+                  <Select
+                    value={p.shopOwnerId ?? ""}
+                    onChange={(e) => setP({ ...p, shopOwnerId: e.target.value || undefined })}
+                  >
+                    <option value="">Not linked</option>
+                    {owners.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.shop_name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              )}
               <Field label="Route day">
                 <Select
                   value={p.routeDay}

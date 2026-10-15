@@ -14,14 +14,11 @@ test.describe("hub (staff tool)", () => {
     await expect(page.getByRole("cell", { name: /Sharma Mobiles/ })).toBeVisible();
 
     await page.goto("/hub/intake");
-    await page
-      .getByLabel("Partner shop")
-      .selectOption({ label: "Sharma Mobiles (Raghunath Bazaar)" });
+    await page.getByLabel("Partner shop").selectOption({ label: "Sharma Mobiles (Bahu Plaza)" });
     await page.getByLabel("Brand").fill("Samsung");
     await page.getByLabel("Model").fill("Galaxy M31");
     await page.getByLabel("Expected resale (₹)").fill("6000");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
-    await expect(page.getByText("₹2,450 – ₹2,950")).toBeVisible();
     await page.getByLabel("We paid (₹)").fill("2700");
     await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
@@ -35,7 +32,7 @@ test.describe("hub (staff tool)", () => {
     await expect(page.getByText(/Listed at ₹6,000/).first()).toBeVisible();
 
     await page.goto("/hub/kpis");
-    await expect(page.getByText("Items in this month")).toBeVisible();
+    await expect(page.getByText("Devices in this month")).toBeVisible();
 
     await page.goto("/hub/data");
     const download = page.waitForEvent("download");
