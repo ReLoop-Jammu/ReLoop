@@ -27,5 +27,14 @@ select check_name, ok
         and has_function_privilege('authenticated', 'public.return_repair_job(uuid, text)', 'EXECUTE')
         and not has_function_privilege('anon', 'public.return_repair_job(uuid, text)', 'EXECUTE')
         and not has_table_privilege('anon', 'public.repair_jobs', 'SELECT'))
+    ,
+    (34, 'Capacity, battery ledger and handover records are staff-only functions; the ledger itself is staff-read only',
+        has_function_privilege('authenticated', 'public.capacity_status()', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.capacity_status()', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.log_battery(numeric, integer, text, text)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.mark_battery_reused(bigint, text)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.handover_record(uuid)', 'EXECUTE')
+        and not has_table_privilege('anon', 'public.scrap_ledger', 'SELECT')
+        and exists (select 1 from pg_constraint where conname = 'scrap_ledger_battery_fields'))
   ) as c(n, check_name, ok)
  order by n;

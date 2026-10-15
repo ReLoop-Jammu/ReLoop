@@ -258,6 +258,12 @@ Every money value below is **absent from the repository**. The code reads it fro
 1. Apply migration `20261107000002_route_and_repairs.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 33 must be true).
 2. Check `route.markets` in the simulation and production settings: the run sheet only lists a partner shop from its market's start date. Spot-check the Tuesday and Friday sheets against the real partner list.
 
+### 7d. Added by batch 21 (capacity, batteries, records), in run order
+
+1. Apply migration `20261107000003_capacity_batteries_records.sql` to the simulation project, then production (after a backup), and re-seed the simulation. Run `supabase-fixes/live-checks-v3.sql` (check 34 must be true).
+2. The hub lead counts the device rack slots and sets `capacity.device_rack_slots` in `/hub/settings` (it stays unset in production until then, so no percentage or alert shows). The simulation uses a labelled simulated value.
+3. Open one institution lot's "Handover record (PDF)" on the simulation and read it through: it must list tags and the VRRG receipt, with no prices and no "certificate" or "disposal" wording.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).
