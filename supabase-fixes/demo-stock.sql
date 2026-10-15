@@ -1,18 +1,10 @@
 -- DEMO STOCK for trying the live shop before real stock exists.
--- Run once in the production project's SQL editor. Adds 10 listed hub items
--- (devices and tested parts) that can be reserved like real stock; the sample
--- listings hide themselves while hub stock exists.
--- Every row is marked source_name = 'DEMO STOCK (delete before launch)'.
+-- One single statement, so it runs in any SQL editor. Run it ONCE in the
+-- production project's SQL editor. It adds 10 listed hub items (devices and
+-- tested parts) that can be reserved like real stock; the sample listings hide
+-- themselves while hub stock exists. Every row is marked
+-- source_name = 'DEMO STOCK (delete before launch)'.
 -- Remove it all with supabase-fixes/demo-stock-wipe.sql.
-
-begin;
-
-do $$
-begin
-  if exists (select 1 from public.items where source_name = 'DEMO STOCK (delete before launch)') then
-    raise exception 'Demo stock is already there; run demo-stock-wipe.sql first';
-  end if;
-end $$;
 
 insert into public.items
   (source_type, source_name, category, part_type, brand, model, description, has_battery, weight_kg,
@@ -78,9 +70,5 @@ values
    true, 0.07, 'C', 'free', 0, 45000, 45000, 'listed', now() - interval '1 day',
    null, null,
    '{"version":1,"checks":{"Tested working":"pass"},"battery_health_pct":88}',
-   now() - interval '1 day', now() - interval '2 days');
-
-select id, category, brand, model, grade, current_paise / 100 as price_rupees
-  from public.items where source_name = 'DEMO STOCK (delete before launch)' order by id;
-
-commit;
+   now() - interval '1 day', now() - interval '2 days')
+returning id, category, brand, model, grade, current_paise / 100 as price_rupees;
