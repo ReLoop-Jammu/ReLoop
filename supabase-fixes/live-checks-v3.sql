@@ -52,5 +52,14 @@ select check_name, ok
         and exists (select 1 from pg_constraint where conname = 'partners_directory_needs_consent')
         and not has_function_privilege('anon', 'public.my_partner_dashboard()', 'EXECUTE')
         and not has_function_privilege('anon', 'public.set_partner_directory(uuid, boolean)', 'EXECUTE'))
+    ,
+    (37, 'Ledger, monthly reports and activity feed: public views with no rates, amounts, notes, tags, names of people or receipt scans',
+        has_table_privilege('anon', 'public.public_ledger', 'SELECT')
+        and has_table_privilege('anon', 'public.public_monthly_reports', 'SELECT')
+        and has_table_privilege('anon', 'public.activity_feed', 'SELECT')
+        and not exists (select 1 from information_schema.columns
+                         where table_schema = 'public'
+                           and table_name in ('public_ledger', 'public_monthly_reports', 'activity_feed')
+                           and column_name ~ '(paise|rate|amount|note|item_ids|phone|owner|scan|id$)'))
   ) as c(n, check_name, ok)
  order by n;
