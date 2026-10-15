@@ -89,11 +89,12 @@ test.describe("map & locations", () => {
 });
 
 test.describe("printable outreach", () => {
-  test("/print links both A4 PDFs, and they download", async ({ page, request }) => {
+  test("/print links the PDFs, and they download", async ({ page, request }) => {
     await page.goto("/print");
     for (const [name, file] of [
       ["Shopkeeper counter card (PDF)", "/print/counter-card.pdf"],
       ["Buyer and campus flyer (PDF)", "/print/awareness-flyer.pdf"],
+      ["ReLoop Partner window badge (A5) (PDF)", "/print/partner-badge.pdf"],
     ]) {
       await expect(page.getByRole("link", { name })).toHaveAttribute("href", file);
       const res = await request.get(file);

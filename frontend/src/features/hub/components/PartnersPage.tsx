@@ -4,7 +4,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Institution, Partner } from "@/features/inventory/model";
 import { SHARED_DATABASE, saveInstitution, savePartner } from "@/features/inventory/store";
-import { call } from "@/lib/rpc";
+import { call, rpc } from "@/lib/rpc";
+import { useAccess } from "@/lib/use-access";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select } from "./ui";
 
@@ -44,6 +45,8 @@ const blankInstitution = (): Omit<Institution, "id"> => ({
 
 export function PartnersPage() {
   const { partners, institutions, items, refresh } = useHubData();
+  const access = useAccess();
+  const admin = access.state === "ready" && Boolean(access.access?.is_admin);
   const [p, setP] = useState(blankPartner);
   const [inst, setInst] = useState(blankInstitution);
   const [editing, setEditing] = useState<string | null>(null);
@@ -125,7 +128,24 @@ export function PartnersPage() {
                       {x.market} ·{" "}
                       {x.routeDay === "tue" ? "Tue" : x.routeDay === "fri" ? "Fri" : "–"}
                     </td>
-                    <td className="py-2 capitalize">{x.status}</td>
+                    <td className="py-2">
+                      <span className="capitalize">{x.status}</span>
+                      {SHARED_DATABASE && admin && (
+                        <label className="mt-1 flex items-center gap-1.5 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(x.showInDirectory)}
+                            onChange={(e) =>
+                              void rpc("set_partner_directory", {
+                                p_partner: x.id,
+                                p_show: e.target.checked,
+                              }).then(refresh)
+                            }
+                          />
+                          In public directory (shop agreed)
+                        </label>
+                      )}
+                    </td>
                     <td className="py-2 text-right tabular-nums">{itemsFrom("partnerId", x.id)}</td>
                     <td className="py-2 text-right">
                       <button

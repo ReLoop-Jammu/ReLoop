@@ -458,6 +458,7 @@ type PartnerRow = {
   notes: string;
   label?: string;
   shop_owner_id?: string | null;
+  show_in_directory?: boolean;
 };
 const toPartner = (r: PartnerRow): Partner => ({
   id: r.id,
@@ -473,6 +474,7 @@ const toPartner = (r: PartnerRow): Partner => ({
   notes: r.notes,
   ...(r.label && { label: r.label }),
   ...(r.shop_owner_id && { shopOwnerId: r.shop_owner_id }),
+  ...(r.show_in_directory && { showInDirectory: true }),
 });
 
 export async function getPartners(): Promise<Partner[]> {

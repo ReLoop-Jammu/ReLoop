@@ -21,6 +21,7 @@ const PAGES = [
   "/warranty",
   "/impact",
   "/network",
+  "/partners",
   "/contact",
   "/privacy",
   "/terms",

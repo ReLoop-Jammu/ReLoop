@@ -69,6 +69,14 @@ export const TRACKED_LINKS: readonly TrackedLink[] = [
     campaign: "rate-card-print",
     landing: "/rate-card",
   },
+  {
+    slug: "partner-badge",
+    use: "ReLoop Partner window badge (QR code)",
+    source: "qr",
+    medium: "print",
+    campaign: "partner-badge",
+    landing: "/locations",
+  },
 ];
 
 export const findTrackedLink = (slug: string) => TRACKED_LINKS.find((l) => l.slug === slug);

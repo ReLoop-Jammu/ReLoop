@@ -43,5 +43,14 @@ select check_name, ok
         and not has_function_privilege('anon', 'public.pricing_benchmarks()', 'EXECUTE')
         and not has_function_privilege('anon', 'public.suggested_price(public.item_category, public.part_type, text, text, public.grade)', 'EXECUTE')
         and not exists (select 1 from public.app_settings where key = 'pricing.target_margin_pct'))
+    ,
+    (36, 'Partner directory: consenting active shops only, kg in bands, no phone, owner or money columns; the dashboard and toggle are functions',
+        has_table_privilege('anon', 'public.partner_directory', 'SELECT')
+        and not exists (select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'partner_directory'
+                           and column_name ~ '(phone|owner|paise|kg$|id$|address)')
+        and exists (select 1 from pg_constraint where conname = 'partners_directory_needs_consent')
+        and not has_function_privilege('anon', 'public.my_partner_dashboard()', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.set_partner_directory(uuid, boolean)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

@@ -201,6 +201,8 @@ export type Partner = {
   status: "lead" | "active" | "paused";
   joinedAt: string;
   notes: string;
+  /** Listed in the public partner directory (admins switch it on once the shop agrees). */
+  showInDirectory?: boolean;
 };
 
 export type Institution = {

@@ -24,3 +24,12 @@ const rateUrl = `${origin}/go/rate-card`;
 writeFileSync(out("rate-card.svg"), await QRCode.toString(rateUrl, { ...options, type: "svg" }));
 await QRCode.toFile(out("rate-card.png").pathname, rateUrl, { ...options, width: 1200 });
 console.log(`QR code for ${rateUrl} written to public/qr/`);
+
+// The partner window badge points at /go/partner-badge (counted, then /locations).
+const badgeUrl = `${origin}/go/partner-badge`;
+writeFileSync(
+  out("partner-badge.svg"),
+  await QRCode.toString(badgeUrl, { ...options, type: "svg" }),
+);
+await QRCode.toFile(out("partner-badge.png").pathname, badgeUrl, { ...options, width: 1200 });
+console.log(`QR code for ${badgeUrl} written to public/qr/`);

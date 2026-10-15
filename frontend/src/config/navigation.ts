@@ -49,6 +49,11 @@ export const NAV_GROUPS: NavGroup[] = [
         description: "What we pay per kilo of scrap",
       },
       {
+        href: "/partners",
+        label: "Partner shops",
+        description: "Jammu shops in the loop, listed with their agreement",
+      },
+      {
         href: "/sell/institutions",
         label: "Colleges, schools & offices",
         description: "Booked lot pickups with a handover record",

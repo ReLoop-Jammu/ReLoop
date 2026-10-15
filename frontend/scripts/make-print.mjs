@@ -4,7 +4,11 @@
 import { spawn } from "node:child_process";
 import { chromium } from "@playwright/test";
 
-const SHEETS = ["counter-card", "awareness-flyer"];
+const SHEETS = [
+  ["counter-card", "A4"],
+  ["awareness-flyer", "A4"],
+  ["partner-badge", "A5"],
+];
 const PORT = 3310;
 const base = `http://localhost:${PORT}`;
 
@@ -29,11 +33,11 @@ try {
     }),
   });
   const page = await browser.newPage();
-  for (const name of SHEETS) {
+  for (const [name, format] of SHEETS) {
     await page.goto(`${base}/print/${name}`, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
     const path = new URL(`../public/print/${name}.pdf`, import.meta.url).pathname;
-    await page.pdf({ path, format: "A4", printBackground: true, preferCSSPageSize: true });
+    await page.pdf({ path, format, printBackground: true, preferCSSPageSize: true });
     console.log(`public/print/${name}.pdf`);
   }
   await browser.close();
