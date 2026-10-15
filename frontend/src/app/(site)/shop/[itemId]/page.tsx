@@ -6,6 +6,8 @@ import { ReLoopChecked } from "@/features/shop/components/ReLoopChecked";
 import { PriceFacts } from "@/features/pricing/PriceFacts";
 import { CompareButton } from "@/features/shop/components/CompareButton";
 import { Gallery } from "@/features/shop/components/Gallery";
+import { SaveButton } from "@/features/shop/components/SaveButton";
+import { ShareButton } from "@/features/shop/components/ShareButton";
 import { TrackView } from "@/features/shop/components/RecentlyViewed";
 import { getPriceBand, getPriceHistory } from "@/features/pricing/server";
 import { Container } from "@/components/ui/Container";
@@ -123,8 +125,14 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
           </div>
           <PriceFacts price={item.pricePaise} band={band} history={history} />
           {!item.sample && (
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              {item.hub && <SaveButton itemId={item.id} />}
               <CompareButton item={saved} />
+              <ShareButton
+                title={item.title}
+                pricePaise={item.pricePaise}
+                url={`${env.NEXT_PUBLIC_SITE_URL}/shop/${item.id}`}
+              />
             </div>
           )}
           {!item.sample && <TrackView item={saved} />}

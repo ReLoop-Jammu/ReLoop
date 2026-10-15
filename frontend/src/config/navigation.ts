@@ -22,6 +22,11 @@ export const NAV_GROUPS: NavGroup[] = [
         label: "Warranty & delivery",
         description: "30 days on grade A and B devices",
       },
+      {
+        href: "/account/saved",
+        label: "Saved items",
+        description: "Items you're watching, with price-drop alerts",
+      },
     ],
   },
   {

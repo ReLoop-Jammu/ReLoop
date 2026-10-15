@@ -174,6 +174,36 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     assert.ok(["A", "B"].includes(rows[0].grade) && rows[0].covered);
   });
 
+  test("the demo buyer has saved items: one cheaper since, one sold, with notices", async () => {
+    const { rows } = await db.query(
+      `select s.price_when_saved_paise > i.current_paise as cheaper, i.status::text as status
+         from public.saved_items s join public.items i on i.id = s.item_id
+         join auth.users u on u.id = s.user_id where u.email = 'demo-buyer@reloop.demo'`,
+    );
+    assert.equal(rows.length, 4);
+    assert.equal(rows.filter((r) => r.cheaper && r.status === "listed").length, 1);
+    assert.equal(rows.filter((r) => r.status === "sold").length, 1);
+    const own = await db.query(
+      `select count(*)::int as n from public.saved_items s join auth.users u on u.id = s.user_id
+         join public.submissions r on r.item_id = s.item_id and r.buyer_id = s.user_id
+        where u.email = 'demo-buyer@reloop.demo'`,
+    );
+    assert.equal(own.rows[0].n, 0, "never the buyer's own reservations");
+    const cut = await db.query(
+      `select count(*)::int as n from public.saved_items s join public.items i on i.id = s.item_id
+        where s.price_when_saved_paise = i.list_paise and i.price_cut_at > s.saved_at
+          and s.saved_at > i.listed_at`,
+    );
+    assert.equal(cut.rows[0].n, 1, "the price drop is a real day-45 cut after saving");
+    const notes = await db.query(
+      "select kind from public.notifications where kind like 'saved_%' order by kind",
+    );
+    assert.deepEqual(
+      notes.rows.map((r) => r.kind),
+      ["saved_price_drop", "saved_sold"],
+    );
+  });
+
   test("the demo buyer has their own requests and notifications, and a pickup is booked", async () => {
     const mine = await db.query(
       `select s.status, s.cancelled_by, s.cancel_reason from public.submissions s

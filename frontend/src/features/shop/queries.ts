@@ -215,7 +215,7 @@ export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopIt
   const photos = [...(row.item_photos ?? [])]
     .sort((a, b) => a.position - b.position)
     .map((p) => `${photoBase}/${p.storage_path}`);
-  return toShopItem({
+  const item = toShopItem({
     id: row.id,
     category: row.category,
     ...(row.part_type && { partType: row.part_type }),
@@ -238,6 +238,7 @@ export function hubItemToShopItem(row: PublicHubItem, photoBase: string): ShopIt
     ...(row.listed_at && { listedAt: row.listed_at }),
     photos,
   } as Item);
+  return item && { ...item, hub: true };
 }
 
 async function getHubItems(): Promise<ShopItem[]> {

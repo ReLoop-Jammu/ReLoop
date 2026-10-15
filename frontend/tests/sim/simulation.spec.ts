@@ -447,3 +447,44 @@ test.describe("shop discovery (simulated stock)", () => {
     await expect(page.getByText(/to compare:/)).toBeVisible();
   });
 });
+
+test.describe("saved items (real logins)", () => {
+  test.skip(({ isMobile }) => isMobile, "one viewport is enough for shared demo data");
+
+  test("the demo buyer sees saved items with price drops, saves another and removes it", async ({
+    page,
+  }) => {
+    await loginAs(page, "demo-buyer@reloop.demo", "/account/saved");
+    await expect(page.getByText(/less than when you saved it/).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText("Sold", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Similar items" }).first()).toBeVisible();
+
+    // An item on sale that isn't saved yet (others may have saved some on the shared login).
+    await page.goto("/shop?category=phone");
+    const hrefs = await page
+      .locator("main article a")
+      .evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+    let id = "";
+    for (const href of hrefs.slice(0, 8)) {
+      await page.goto(href!);
+      const save = page.getByRole("button", { name: /^Saved?$/ });
+      await expect(save).toBeEnabled({ timeout: 15_000 });
+      if ((await save.getAttribute("aria-pressed")) === "false") {
+        id = href!.split("/shop/")[1];
+        break;
+      }
+    }
+    expect(id, "an unsaved phone on sale").not.toBe("");
+    // The simulation's stock isn't real, so it can't be shared.
+    await expect(page.getByRole("link", { name: /Share on WhatsApp/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Save", pressed: false }).click();
+    await expect(page.getByRole("button", { name: "Saved", pressed: true })).toBeVisible();
+    await page.getByRole("link", { name: "Your saved items" }).click();
+    const row = page.getByRole("listitem").filter({ hasText: id });
+    await expect(row.getByText("On sale")).toBeVisible();
+    await row.getByRole("button", { name: /Remove/ }).click();
+    await expect(page.getByRole("listitem").filter({ hasText: id })).toHaveCount(0);
+  });
+});

@@ -6,6 +6,7 @@ import {
   Inbox,
   UserCog,
   Clock,
+  Heart,
   HelpCircle,
   KeyRound,
   LogOut,
@@ -257,6 +258,12 @@ function AccountLinks() {
       icon: Bell,
       title: unread ? `Notifications (${unread} unread)` : "Notifications",
       body: "Updates on your requests, offers and account.",
+    },
+    {
+      href: "/account/saved",
+      icon: Heart,
+      title: "Saved items",
+      body: "Items you're watching, with today's price; we tell you when one drops or sells.",
     },
     {
       href: "/account/warranty",
