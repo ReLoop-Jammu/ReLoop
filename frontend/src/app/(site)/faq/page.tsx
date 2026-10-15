@@ -97,7 +97,9 @@ export default function FaqPage() {
     <Container className="py-12 sm:py-20">
       <article className="mx-auto max-w-3xl">
         <Eyebrow>Questions and answers</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Questions and answers</h1>
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
+          Questions and answers
+        </h1>
         <div className="mt-10 divide-y divide-line rounded-card border border-line bg-surface shadow-soft">
           {FAQ.map((f) => (
             <details key={f.q} className="group p-5">

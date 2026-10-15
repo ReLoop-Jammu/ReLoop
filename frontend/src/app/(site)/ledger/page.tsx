@@ -21,7 +21,7 @@ export default async function LedgerPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Transparency</Eyebrow>
-      <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Handover ledger</h1>
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">Handover ledger</h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
         Every time scrap leaves the hub for VRRG Group, our dismantling partner, it is weighed on
         their receipt. ReLoop&apos;s own handovers show that receipt&apos;s number. Lots collected

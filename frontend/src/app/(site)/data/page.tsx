@@ -13,7 +13,7 @@ export default function OpenDataPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Transparency</Eyebrow>
-      <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Open data</h1>
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">Open data</h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
         The same numbers as the impact, network, ledger and report pages, as CSV files. They hold
         dates, categories, counts and kilograms only: no names, contacts or prices. Updated every

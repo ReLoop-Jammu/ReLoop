@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 /*
- * ReLoop design tokens, from the business plan's palette (Business Plan v2; unchanged from v1):
- * sand and paper neutrals, ink text, navy for actions and the loop, amber as
- * the warm accent (fills only: it is too light for text). Every text colour
- * below passes WCAG AA (4.5:1) on canvas, surface and sunken.
- * Components use these semantic names, never raw hex.
+ * ReLoop design tokens (v1.0.0 glow-up). The logo's navy and amber stay the
+ * brand; around them sit crisp, cool neutrals, deep ink text and generous
+ * radii, so the site reads as a premium refurb store. Amber is a fill colour
+ * only (too light for text). Every text colour below passes WCAG AA (4.5:1)
+ * on canvas, surface and sunken. Components use these names, never raw hex.
  */
 @theme {
   /* Navy: actions, links, the loop */
   --color-brand-50: #eef2f8;
   --color-brand-100: #d9e2ef;
   --color-brand-200: #b3c5de;
+  --color-brand-300: #8aa6cf;
+  --color-brand-400: #5b7fb3;
   --color-brand-500: #3a5f92;
   --color-brand-600: #26436c;
   --color-brand-700: #1e3657;
+  --color-brand-800: #182c48;
   --color-brand-900: #142640;
   --color-brand-950: #0e1a27;
   /* Amber: the warm accent (fills, highlights); gold-700 is its text-safe ink */
@@ -23,16 +26,16 @@
   --color-gold-500: #dc9c4a;
   --color-gold-700: #7a4e14;
 
-  /* Neutrals: sand page, paper surfaces */
-  --color-sand: #f0e1d1;
-  --color-canvas: #f6ede2;
-  --color-surface: #fffcf7;
-  --color-sunken: #efe2d3;
-  --color-line: #e2d2bf;
-  --color-line-strong: #c9b39a;
-  --color-ink: #0e1a27;
-  --color-ink-soft: #3b4e66;
-  --color-muted: #56667a;
+  /* Neutrals: a cool, bright page, white surfaces, deep ink */
+  --color-sand: #f3ece2;
+  --color-canvas: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-sunken: #edf1f7;
+  --color-line: #e2e7ef;
+  --color-line-strong: #c3cbd8;
+  --color-ink: #0b1628;
+  --color-ink-soft: #33435b;
+  --color-muted: #566376;
 
   /* Status */
   --color-success: #2f6b4f;
@@ -65,19 +68,20 @@
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Type scale (1.2 minor third, 16px body) */
-  --text-display: 3.75rem;
+  --text-display: 4.5rem;
   --text-display--line-height: 1.04;
   --text-title: 2.25rem;
   --text-title--line-height: 1.12;
 
-  /* Radii: controls are pills, cards are softly rounded, panels a little more */
-  --radius-card: 0.875rem;
-  --radius-panel: 1.25rem;
+  /* Radii: controls are pills, cards generously rounded, panels more so */
+  --radius-card: 1.25rem;
+  --radius-panel: 2rem;
 
-  /* Shadows tinted with ink, used sparingly: cards sit on lines, not shadows */
-  --shadow-soft: 0 1px 2px rgb(14 26 39 / 0.05);
-  --shadow-lift: 0 1px 2px rgb(14 26 39 / 0.05), 0 12px 32px -12px rgb(14 26 39 / 0.22);
-  --shadow-float: 0 24px 56px -20px rgb(14 26 39 / 0.4);
+  /* Shadows tinted with ink: soft at rest, lifted on hover, floating for overlays */
+  --shadow-soft: 0 1px 2px rgb(11 22 40 / 0.04), 0 4px 14px -6px rgb(11 22 40 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(11 22 40 / 0.04), 0 18px 40px -14px rgb(11 22 40 / 0.22);
+  --shadow-float: 0 30px 70px -24px rgb(11 22 40 / 0.45);
+  --shadow-glow: 0 10px 30px -10px rgb(38 67 108 / 0.55);
 
   --animate-rise: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-drift: drift 7s ease-in-out infinite;
@@ -116,7 +120,10 @@
   h3 {
     @apply font-display text-ink;
     text-wrap: balance;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+  }
+  h1 {
+    letter-spacing: -0.035em;
   }
   p {
     text-wrap: pretty;
@@ -127,6 +134,36 @@
   ::selection {
     @apply bg-gold-400/60;
   }
+}
+
+/* The brand mesh: deep navy with a warm amber glow, for hero and feature panels. */
+@utility bg-mesh {
+  background-color: var(--color-brand-950);
+  background-image:
+    radial-gradient(45% 60% at 88% 0%, rgb(233 178 110 / 0.22), transparent 70%),
+    radial-gradient(70% 90% at 10% 100%, rgb(91 127 179 / 0.45), transparent 60%),
+    linear-gradient(135deg, var(--color-brand-800), var(--color-brand-950));
+}
+
+/* A faint grid for light sections. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgb(11 22 40 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(11 22 40 / 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Text filled with the brand gradient (large display text only). */
+@utility text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brand-600),
+    var(--color-brand-400) 55%,
+    var(--color-gold-500)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 @utility bg-dots {

@@ -56,7 +56,7 @@ export default async function RateCardPage() {
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
         <Eyebrow>Rate card</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">What we pay per kilo</h1>
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">What we pay per kilo</h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">
           For scrap from repair shops, retailers and exchange stores. Weighed in front of you and
           paid by UPI on the spot, with a receipt. As of {dateLabel(site.rateCardAsOf)}.

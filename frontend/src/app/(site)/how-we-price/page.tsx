@@ -19,7 +19,7 @@ export default async function HowWePricePage() {
     <Container className="py-12 sm:py-20">
       <article className="mx-auto max-w-3xl">
         <Eyebrow>How we price</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
           A fair price, and why it is that price
         </h1>
         <div className="mt-8 grid gap-6 leading-relaxed text-ink-soft">
