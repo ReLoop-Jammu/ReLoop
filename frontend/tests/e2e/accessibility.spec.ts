@@ -42,7 +42,6 @@ const PAGES = [
   "/login",
   "/forgot-password",
   "/reset-password",
-  "/resend-confirmation",
   "/hub",
   "/hub/intake",
   "/hub/items",

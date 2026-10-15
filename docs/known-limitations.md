@@ -24,7 +24,7 @@ What ReLoop does not do yet, or does only partly, as of 2026-10-15. These are de
   - **Password recovery is admin-only.** `/forgot-password` asks people to message ReLoop. An admin confirms it's them by calling the phone number on their account, then resets the password on `/hub/users`.
   - The temporary password is shown once, and stays valid until the person changes it, with no time limit. Until then, `is_admin()` and `is_staff()` are false and the site sends them to `/account/change-password`.
   - Each reset is logged in `admin_audit_log` (who, whom, when; never the password).
-  - `/resend-confirmation` is no longer linked anywhere. It and the self-service reset code are kept for when email sending is set up.
+  - `/resend-confirmation` was removed in v1.0.0 (batch 26). The self-service reset code is kept for when email sending is set up.
   - Nobody gets email or phone notifications. Updates on requests, offers, verification and deletion requests appear only on the site (the bell and `/account/notifications`, kept 90 days), so people see them only when they visit. WhatsApp stays the channel for anything urgent.
 - **Login sessions live in the browser** (`localStorage`), not in secure HTTP-only cookies. A script injected into the page could read them.
   - Sessions are refreshed automatically shortly before the hourly access token expires. If the refresh fails, the user is logged out.
@@ -116,3 +116,11 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 ## Bidding (not built, by decision)
 
 Buyers bidding on items, or shops bidding against each other, is written up here and not built. It conflicts with the fixed prices of the business plan: one published rate card per kilo, one grade-based list price per item, and the automatic stock rules (a part is cut by 25% once on day 30; an A or B device becomes grade C on day 45). A bid would change a price outside those rules, and would favour whoever can watch the site most. If it is ever reconsidered, it needs a new ADR.
+
+## Dependency audit (v1.0.0)
+
+`npm audit --omit=dev` finds no vulnerabilities in what the site ships. `npm audit` (including development tools) reports 5 high-severity advisories, all through `micromatch` under `eslint-config-next`'s lint plugin. They affect only the linter on a developer's machine, never the built site; the fix needs a breaking `eslint-config-next` upgrade, left for after the release.
+
+## Gates that need production or the demo
+
+Lighthouse scores, the console sweep signed in as each role, the link crawl of the demo, screenshots and the production leak scan need the live or simulation site. They are listed in `scripts/finish-v1-local.md`. The console test ignores third-party resources that fail to load (map tiles behind a proxy); same-site errors still fail it.
