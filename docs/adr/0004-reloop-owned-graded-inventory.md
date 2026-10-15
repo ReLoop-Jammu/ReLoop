@@ -1,6 +1,6 @@
 # ADR 0004: ReLoop-owned, graded inventory
 
-- **Status:** Accepted (2026-10-07). **Supersedes** [ADR 0002](0002-hybrid-moderation.md).
+- **Status:** Accepted (2026-10-07), **partly superseded** by [ADR 0005](0005-parts-exchange-and-scrap-ledger.md) (Business Plan v2: no households, no consignment, no self-listing, a scrap ledger and a partner-listed Parts Exchange). **Supersedes** [ADR 0002](0002-hybrid-moderation.md).
 
 ## Context
 

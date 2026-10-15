@@ -1,19 +1,19 @@
 # Known limitations
 
-What ReLoop does not do yet, or does only partly, as of 2026-10-13. These are deliberate trade-offs for a pilot that opens in November 2026, not hidden bugs. Each has a reason and the fix we'd make. Section 1 lists what must be done before launch.
+What ReLoop does not do yet, or does only partly, as of 2026-10-15. These are deliberate trade-offs for a pilot that opens in November 2026, not hidden bugs. Each has a reason and the fix we'd make. Section 1 lists what must be done before launch.
 
 ## 1. Before launch
 
-| Item                          | Now                                                                                                                                                                                          | To launch                                                                              |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| "Early preview" labels        | Shown in the header and footer, because the hub isn't open                                                                                                                                   | Remove when the hub opens and real stock is listed                                     |
-| Privacy policy and terms      | Marked "working draft"                                                                                                                                                                       | Legal review, then remove the draft labels                                             |
-| Sample listings               | The shop shows 5 listings marked "Sample · not for sale" that can't be reserved                                                                                                              | Replace with real graded stock, then deactivate the samples                            |
-| Hub address                   | An area ("old-city market belt"), drawn approximately on the map                                                                                                                             | Exact address once the room is rented                                                  |
-| Pickup route                  | Stops and times "planned from November 2026"                                                                                                                                                 | Confirm with the first partner shops                                                   |
-| Partner drop-off shops        | None listed yet                                                                                                                                                                              | Add shops to `frontend/src/config/locations.ts` only after each one agrees to be shown |
-| Legal name and postal address | Not set (`SITE.legalName`, `SITE.address`)                                                                                                                                                   | Fill in once the business is registered                                                |
-| Compliance                    | ReLoop holds no JKPCC consent and no CPCB refurbisher registration (Phase 2 of the plan, from month 6). The site says so and only claims to use an authorised recycler (VRG Groups, Gangyal) | Apply as planned, then update the site's wording                                       |
+| Item                          | Now                                                                                                           | To launch                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| "Early preview" labels        | Shown in the header and footer, because the hub isn't open                                                    | Remove when the hub opens and real stock is listed                        |
+| Privacy policy and terms      | Marked "working draft"                                                                                        | Legal review, then remove the draft labels                                |
+| Sample listings               | The shop shows 5 listings marked "Sample · not for sale" that can't be reserved                               | Replace with real graded stock, then deactivate the samples               |
+| Hub address                   | A small ground-floor room in Gandhi Nagar, between Bahu Plaza and Gole Market, drawn approximately on the map | Exact address once the room is rented                                     |
+| Pickup routes                 | Tuesday (Gandhi Nagar cluster) from November 2026; Friday (old city) from January 2027                        | Confirm with the first partner shops                                      |
+| Partner shops on the map      | None listed yet                                                                                               | Admins list a verified shop from `/hub/shops` after it agrees to be shown |
+| Legal name and postal address | Not set (`SITE.legalName`, `SITE.address`)                                                                    | Fill in once the business is registered                                   |
+| Compliance                    | Phase 2 registration (JKPCC consent, CPCB refurbisher) planned from month 6.                                  | Apply as planned                                                          |
 
 ## 2. Accounts and email
 
@@ -84,10 +84,10 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 
 - **Who can use it:** hub staff and admins, managed on `/hub/team`. Today that's only the shared ReLoop admin account.
 - **Tags:** RL-JMU numbers come from the database. The first real item gets `RL-JMU-0006`, because 0001–0005 are taken by the sample listings.
-- **Stock rules:** the day-45 price cut (20%) and day-75 downgrade to C run every day at 06:00 IST (`pg_cron`, `supabase-fixes/2026-10-18-stock-rules-cron.sql`). The dashboard's button runs them too. Each happens once per item, however often the rules run; tests run them repeatedly to prove it.
+- **Stock rules:** a part unsold for 30 days gets one 25% cut (a shop's own part gets a reminder instead), and an A or B device unsold for 45 days becomes C and is stripped. They run every day at 06:00 IST (`pg_cron`, `supabase-fixes/2026-10-18-stock-rules-cron.sql`). The dashboard's button runs them too. Each happens once per item, however often the rules run; tests run them repeatedly to prove it. Stock already past a threshold at the switch-over gets a grace period (`stock.grace_until`).
 - **What visitors see:** only shop-facing item columns, and only for listed items. Buy price, supplier, payment, faults, rack and other staff-only fields are never readable by visitors or buyers. `supabase-fixes/live-checks-extra.sql` checks this.
 - **Item photos are public by link.** They're stored in the public `item-photos` bucket, so anyone with a photo's exact address can open it, even before the item is listed. The addresses aren't listed anywhere public. Fix: a private bucket with signed links for unlisted items.
-- **CSV exports** (dashboard): items and monthly KPIs, for hub staff only. They exclude supplier contact names and phone numbers, and household sellers' names.
+- **CSV exports** (dashboard): items and monthly KPIs, for hub staff only. They exclude supplier contact names and phone numbers.
 - **Device data:** items saved in a browser before the move can be copied to the shared database from `/hub/data`, but only items a person ticks and confirms as real. Copied items get new tags; the old tag is noted in their history.
 - **Not built yet:**
   - repair-partner fee tracking beyond the repair log;
@@ -104,3 +104,11 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 - **What we don't take** (large appliances, non-electronics, leaking batteries except at the hub) is a team policy choice; the business plan doesn't list exclusions.
 - **Hindi** on `/help` and in `docs/report/shop-owner-guide.md` hasn't been checked by a native speaker yet. The printables are English-only until it has.
 - **Printables** (`/print`): regenerate the PDFs with `npm run build -w frontend && npm run print -w frontend` after editing the sheet pages. The flyer uses national figures only; no official Jammu figure exists for those years.
+
+## Business Plan v2 (batch 15b onwards)
+
+- **No WhatsApp API in v1.** Staff tap "Share on WhatsApp" (a `wa.me` link with the private receipt page) from the hub phone; the receipt is always in the shop's account. Weekly price cuts are shown on the Parts Exchange page, as on-site notices to people who saved the item, and on a weekly hub list with a `wa.me` share button. The simulation marks receipts "not sent".
+- **Bidding is not built.** It conflicts with fixed prices and the stock rules.
+- **Weights come from weighed records only.** A tagged device with no measured weight shows a labelled estimate. Per-shop kg is shown to the public only in bands, and only for shops that consent.
+- **Launch switches are empty until a local session sets them:** the ownership-tick date, the wipe-before-stripping date, the stock-rules grace date, the device rack slots, the VRRG rates and every plan benchmark. See `scripts/finish-v1-local.md`.
+- **Shop part photos** go to a private bucket (5 MB, JPEG, PNG or WebP) and are copied to the public photo path only when staff approve the listing.
