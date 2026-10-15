@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * ReLoop design tokens, from the business plan's palette (docs/ReLoop_Business_Plan.html):
+ * ReLoop design tokens, from the business plan's palette (Business Plan v2; unchanged from v1):
  * sand and paper neutrals, ink text, navy for actions and the loop, amber as
  * the warm accent (fills only: it is too light for text). Every text colour
  * below passes WCAG AA (4.5:1) on canvas, surface and sunken.

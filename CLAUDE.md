@@ -7,6 +7,7 @@ E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades 
 - **[docs/architecture.md](docs/architecture.md)**: stack, repo structure, roles, data model, routes, design system and phased roadmap.
 - **[docs/engineering-standards.md](docs/engineering-standards.md)**: mandatory code, security, testing and workflow rules.
 - **[docs/adr/](docs/adr/)**: why the key decisions were made. Changing a decision means writing a new ADR.
+- **[docs/handoff/v1-cloud-handoff.md](docs/handoff/v1-cloud-handoff.md)**: where the v1.0.0 release stands, the remaining batches (rest of 15b, then 16 to 27), the decisions on Business Plan v2 and what only a local session can do. **Business Plan v2 is the source of truth**; its public summary is `docs/business-plan-v2-summary.md`.
 
 ## Layout
 

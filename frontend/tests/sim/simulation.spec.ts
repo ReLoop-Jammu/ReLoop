@@ -162,20 +162,23 @@ test.describe("accounts and requests (real logins)", () => {
     await loginAs(page, "demo-buyer@reloop.demo", "/account");
     await page.goto("/shop");
     await page.locator("main article a").first().click();
+    await page.waitForURL(/\/shop\/RL-JMU-\d+$/);
     const tag = (page.url().match(/RL-JMU-\d+/) ?? [""])[0];
     await page.getByRole("button", { name: "Ask a question" }).click();
     await page.getByLabel("Your name").fill("Demo Buyer");
     await page.getByLabel("Phone / WhatsApp").fill("9000000123");
     await page.getByLabel("Your question").fill(question);
     await page.getByRole("button", { name: "Prepare my question" }).click();
-    await expect(page.getByText("Your request is saved")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Your request is saved", { exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
     return tag;
   }
 
   test("a signed-in buyer's question appears under My requests, with a status page, and they can cancel it", async ({
     page,
   }) => {
-    const tag = await askAsBuyer(page, "Does it come with a charger? (journey test)");
+    const tag = await askAsBuyer(page, `Does it come with a charger? (journey test ${Date.now()})`);
     const statusHref = await page
       .getByRole("link", { name: "Open the status page" })
       .getAttribute("href");
@@ -188,10 +191,8 @@ test.describe("accounts and requests (real logins)", () => {
     await expect(page.getByText("9000000123")).toHaveCount(0);
 
     await page.goto("/account/requests");
-    const card = page
-      .locator("li")
-      .filter({ hasText: `Question for ${tag}` })
-      .first();
+    // This run's request: its card links to its own status page.
+    const card = page.locator("li").filter({ has: page.locator(`a[href="${statusHref}"]`) });
     await card.getByRole("button", { name: "Cancel" }).click();
     await card.getByRole("button", { name: "Yes, cancel it" }).click();
     await expect(card.getByText("Cancelled by you")).toBeVisible();
@@ -203,13 +204,12 @@ test.describe("accounts and requests (real logins)", () => {
     page,
     browser,
   }) => {
-    const tag = await askAsBuyer(page, "Can you hold it until Saturday? (journey test)");
+    // Unique per run: an earlier run may have left the same question behind.
+    const question = `Can you hold it until Saturday? (journey test ${Date.now()})`;
+    const tag = await askAsBuyer(page, question);
     const staff = await (await browser.newContext()).newPage();
     await loginAs(staff, "demo-staff@reloop.demo", "/hub/requests");
-    const row = staff
-      .locator("li")
-      .filter({ hasText: "Can you hold it until Saturday? (journey test)" })
-      .first();
+    const row = staff.locator("li").filter({ hasText: question }).first();
     await expect(row.getByText(/Sent from a ReLoop account/)).toBeVisible({ timeout: 15_000 });
     await row.getByRole("button", { name: "Cancel…" }).click();
     await row
@@ -220,11 +220,13 @@ test.describe("accounts and requests (real logins)", () => {
     await staff.context().close();
 
     await page.goto("/account/notifications");
-    await expect(page.getByText(`Your question for ${tag} was cancelled`).first()).toBeVisible({
+    // In the page, not the header bell's (closed) list.
+    const main = page.getByRole("main");
+    await expect(main.getByText(`Your question for ${tag} was cancelled`).first()).toBeVisible({
       timeout: 15_000,
     });
     await expect(
-      page.getByText("Already sold in the hub shop (journey test)").first(),
+      main.getByText("Already sold in the hub shop (journey test)").first(),
     ).toBeVisible();
     await page.goto("/account/requests");
     await expect(

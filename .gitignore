@@ -34,3 +34,6 @@ backup-*.sql
 
 # Supabase CLI scratch files
 **/supabase/.temp/
+
+# Business Plan v2 holds the P&L and supplier prices; the repo is public (docs/business-rules.md is the public summary).
+docs/ReLoop_Business_Plan_v2.html
