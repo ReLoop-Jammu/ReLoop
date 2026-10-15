@@ -148,3 +148,36 @@ export async function downloadReceipt(receiptNo: string) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
+
+// ---------------------------------------------------------------- saved items
+
+export type SavedState =
+  "on_sale" | "reserved" | "reserved_for_you" | "sold" | "bought" | "unavailable";
+export type MySavedItem = {
+  item_id: string;
+  title: string | null;
+  grade: string;
+  category: string;
+  /** Only while it's on sale or reserved. */
+  price_paise: number | null;
+  price_when_saved_paise: number | null;
+  state: SavedState;
+  saved_at: string;
+};
+
+export const mySavedItems = () =>
+  rpc<MySavedItem[]>("my_saved_items").then((rows) =>
+    rows.map((r) => ({
+      ...r,
+      price_paise: r.price_paise === null ? null : Number(r.price_paise),
+      price_when_saved_paise:
+        r.price_when_saved_paise === null ? null : Number(r.price_when_saved_paise),
+    })),
+  );
+/** Whether the signed-in person saved this item (their own rows only). */
+export const isSaved = (itemId: string) =>
+  select<unknown[]>(`saved_items?select=item_id&item_id=eq.${encodeURIComponent(itemId)}`).then(
+    (r) => r.length > 0,
+  );
+export const saveItem = (itemId: string) => rpc<null>("save_item", { p_item: itemId });
+export const unsaveItem = (itemId: string) => rpc<null>("unsave_item", { p_item: itemId });

@@ -1013,6 +1013,7 @@ delete from public.repair_jobs;
 delete from public.consignments;
 delete from public.submissions;
 delete from public.notifications;
+delete from public.saved_items;
 delete from public.deletion_requests;
 delete from public.warranty_claims;
 delete from public.reference_prices;
@@ -1185,6 +1186,69 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
       note: `Battery doesn't hold charge (simulated warranty claim) (sold ${soldOn}${soldFor})`,
     });
   }
+  // The demo buyer's saved items (no random draws, so the rest of the seed
+  // stays the same), never their own reservations or hidden items: one whose
+  // day-45 cut came after they saved it, two more on sale, and one someone
+  // else bought; with the notices the database would have sent.
+  const ownItems = new Set(
+    requests.filter((r) => r.buyer_id === demoBuyer.id && r.item_id).map((r) => r.item_id),
+  );
+  const free = (i) => i.category !== "part" && !i.hidden && !ownItems.has(i.id);
+  const listedOk = items.filter((i) => i.status === "listed" && free(i));
+  const cutOne = listedOk
+    .filter((i) => i.price_cut_at)
+    .sort((x, y) => y.price_cut_at - x.price_cut_at)[0];
+  const lastSold = items
+    .filter((i) => i.status === "sold" && free(i))
+    .sort((x, y) => y.sold_at - x.sold_at)[0];
+  const titleOf = (i) => [i.brand, i.model].filter(Boolean).join(" ") || i.id;
+  const rupees = (paise) => (paise / 100).toLocaleString("en-IN");
+  // Saved a while before `t`, but never before it was listed.
+  const savedBefore = (i, t) =>
+    at(new Date(Math.max(new Date(i.listed_at).getTime() + HOUR, t.getTime() - 2 * DAY)));
+  const saved = [
+    ...(cutOne
+      ? [{ i: cutOne, paise: cutOne.list_paise, at: savedBefore(cutOne, cutOne.price_cut_at) }]
+      : []),
+    ...listedOk
+      .filter((i) => !i.price_cut_at)
+      .slice(-2)
+      .map((i) => ({ i, paise: i.current_paise, at: savedBefore(i, end) })),
+    ...(lastSold
+      ? [
+          {
+            i: lastSold,
+            paise: lastSold.current_paise,
+            at: savedBefore(lastSold, lastSold.sold_at),
+          },
+        ]
+      : []),
+  ].map(({ i, paise, at: when }) => ({
+    user_id: demoBuyer.id,
+    item_id: i.id,
+    price_when_saved_paise: paise,
+    saved_at: when,
+  }));
+  if (cutOne)
+    notifications.push({
+      user_id: demoBuyer.id,
+      kind: "saved_price_drop",
+      title: `Price dropped: ${titleOf(cutOne)}`,
+      body: `₹${rupees(cutOne.list_paise)} → ₹${rupees(cutOne.current_paise)}`,
+      href: `/shop/${cutOne.id}`,
+      created_at: cutOne.price_cut_at,
+      read_at: null,
+    });
+  if (lastSold)
+    notifications.push({
+      user_id: demoBuyer.id,
+      kind: "saved_sold",
+      title: `Sold: ${titleOf(lastSold)}`,
+      body: "It found a new owner. Similar items are in the shop.",
+      href: `/shop?category=${lastSold.category}`,
+      created_at: lastSold.sold_at,
+      read_at: null,
+    });
   // Every graded item has its inspection (version 1), from its checklist:
   // battery and storage health where measured. A grade B item on sale was
   // checked again after its repair, so its checks pass.
@@ -1376,6 +1440,13 @@ alter table public.submissions enable trigger user;`);
       "public.notifications",
       ["user_id", "kind", "title", "body", "href", "created_at", "read_at"],
       notifications,
+    ),
+  );
+  sql.push(
+    ...inserts(
+      "public.saved_items",
+      ["user_id", "item_id", "price_when_saved_paise", "saved_at"],
+      saved,
     ),
   );
   sql.push(`update public.item_counters set last_number = ${counter} where hub_code = 'JMU';`);

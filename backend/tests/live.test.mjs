@@ -3234,3 +3234,150 @@ describe("public pricing (20261104000001)", () => {
     assert.equal(none.rows.length, 0);
   });
 });
+
+describe("saved items (20261105000001)", () => {
+  let db;
+  let staff;
+  let buyer;
+  let other;
+  before(async () => {
+    db = await createTestDb({ seed: false });
+    staff = await createUser(db, "Staff", { staff: true });
+    buyer = await createUser(db, "Buyer");
+    other = await createUser(db, "Other");
+  });
+  const listed = async () => {
+    const { rows } = await db.query(
+      `insert into public.items (source_type, category, buy_mode, buy_paise, grade, current_paise, list_paise, status,
+                                 listed_at, wiped_at, inspection, inspected_at, brand, model)
+       values ('repair_shop', 'laptop', 'cash', 400000, 'A', 1500000, 1500000, 'listed', now(), now(),
+               '{"version": 1, "checks": {}}', now(), 'Dell', 'Latitude')
+       returning id`,
+    );
+    return rows[0].id;
+  };
+  const save = (who, id) => as(db, who, (tx) => tx.query("select public.save_item($1)", [id]));
+  const mine = (who) =>
+    as(db, who, (tx) => tx.query("select * from public.my_saved_items()")).then((r) => r.rows);
+  const notes = (who) =>
+    as(db, who, (tx) =>
+      tx.query("select kind, title, body from public.notifications order by id"),
+    ).then((r) => r.rows);
+
+  test("a buyer saves items on sale, once, and sees only their own list, never buy prices", async () => {
+    const id = await listed();
+    await assert.rejects(save(null, id), /permission denied/);
+    await save(buyer, id);
+    await save(buyer, id);
+    const list = await mine(buyer);
+    assert.equal(list.length, 1);
+    assert.deepEqual(
+      {
+        state: list[0].state,
+        price: Number(list[0].price_paise),
+        saved: Number(list[0].price_when_saved_paise),
+      },
+      { state: "on_sale", price: 1500000, saved: 1500000 },
+    );
+    assert.ok(!Object.keys(list[0]).some((k) => /buy|source|note/.test(k)));
+    assert.equal((await mine(other)).length, 0);
+    assert.equal(
+      (await as(db, other, (tx) => tx.query("select * from public.saved_items"))).rows.length,
+      0,
+    );
+    await assert.rejects(
+      as(db, buyer, (tx) =>
+        tx.query("insert into public.saved_items (user_id, item_id) values ($1, $2)", [other, id]),
+      ),
+      /permission denied/,
+    );
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set status = 'sold' where id = $1", [id]),
+    );
+    await assert.rejects(save(other, id), /not on sale/);
+  });
+
+  test("savers are told about a price drop, a reservation and a sale; hidden items stay quiet", async () => {
+    const id = await listed();
+    await save(buyer, id);
+    await save(other, id);
+    const [b0, o0] = [(await notes(buyer)).length, (await notes(other)).length];
+    const set = (sql) => as(db, staff, (tx) => tx.query(sql, [id]));
+    await set("update public.items set current_paise = 1200000 where id = $1");
+    await set("update public.items set status = 'reserved' where id = $1");
+    await set("update public.items set status = 'listed' where id = $1");
+    await set("update public.items set status = 'reserved' where id = $1");
+    await set("update public.items set status = 'sold' where id = $1");
+    const n = (await notes(buyer)).slice(b0);
+    assert.deepEqual(
+      n.map((x) => x.kind),
+      ["saved_price_drop", "saved_reserved", "saved_back_on_sale", "saved_reserved", "saved_sold"],
+    );
+    assert.equal(n[0].body, "₹15,000 → ₹12,000");
+    assert.equal((await notes(other)).length - o0, 5);
+    assert.equal((await mine(buyer)).find((x) => x.item_id === id).state, "sold");
+
+    const quiet = await listed();
+    await save(buyer, quiet);
+    await as(db, staff, (tx) =>
+      tx.query("update public.items set hidden = true, current_paise = 900000 where id = $1", [
+        quiet,
+      ]),
+    );
+    assert.equal((await notes(buyer)).length, b0 + 5);
+    const row = (await mine(buyer)).find((x) => x.item_id === quiet);
+    assert.deepEqual([row.state, row.price_paise], ["unavailable", null]);
+    await as(db, buyer, (tx) => tx.query("select public.unsave_item($1)", [quiet]));
+    assert.ok(!(await mine(buyer)).some((x) => x.item_id === quiet));
+  });
+
+  test("an item coming out of hiding counts as back on sale, once", async () => {
+    const id = await listed();
+    await save(other, id);
+    const o0 = (await notes(other)).length;
+    const set = (sql) => as(db, staff, (tx) => tx.query(sql, [id]));
+    await set("update public.items set hidden = true where id = $1");
+    await set("update public.items set current_paise = 1000000 where id = $1");
+    await set("update public.items set hidden = false where id = $1");
+    await set("update public.items set hidden = false where id = $1");
+    assert.deepEqual(
+      (await notes(other)).slice(o0).map((x) => x.kind),
+      ["saved_back_on_sale"],
+    );
+  });
+
+  test("the saver who reserved or bought it isn't told someone else did", async () => {
+    const id = await listed();
+    await save(buyer, id);
+    await save(other, id);
+    const [b0, o0] = [(await notes(buyer)).length, (await notes(other)).length];
+    await db.query(
+      "insert into public.submissions (kind, fields, item_id, buyer_id) values ('reservation', '{}', $1, $2)",
+      [id, buyer],
+    );
+    const set = (sql) => as(db, staff, (tx) => tx.query(sql, [id]));
+    await set("update public.items set status = 'reserved' where id = $1");
+    assert.equal((await mine(buyer)).find((x) => x.item_id === id).state, "reserved_for_you");
+    assert.equal((await mine(other)).find((x) => x.item_id === id).state, "reserved");
+    await set("update public.items set status = 'sold' where id = $1");
+    assert.equal((await mine(buyer)).find((x) => x.item_id === id).state, "bought");
+    assert.equal((await mine(other)).find((x) => x.item_id === id).state, "sold");
+    assert.ok(!(await notes(buyer)).slice(b0).some((x) => x.kind.startsWith("saved_")));
+    assert.deepEqual(
+      (await notes(other)).slice(o0).map((x) => x.kind),
+      ["saved_reserved", "saved_sold"],
+    );
+  });
+
+  test("up to 100 saved items; saving one already saved still works at the limit", async () => {
+    const who = await createUser(db, "Collector");
+    const ids = [];
+    for (let n = 0; n < 101; n++) ids.push(await listed());
+    await db.query(
+      "insert into public.saved_items (user_id, item_id) select $1, unnest($2::text[])",
+      [who, ids.slice(0, 100)],
+    );
+    await save(who, ids[0]);
+    await assert.rejects(save(who, ids[100]), /up to 100/);
+  });
+});

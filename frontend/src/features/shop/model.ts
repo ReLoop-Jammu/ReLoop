@@ -38,6 +38,8 @@ export type ShopItem = {
   report?: ShopReport;
   /** True for illustrative items shown before real stock exists. */
   sample?: boolean;
+  /** True for hub stock (the items table): the only items that can be saved. */
+  hub?: boolean;
 };
 
 export type ShopReport = {

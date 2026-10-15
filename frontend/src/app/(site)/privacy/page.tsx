@@ -51,6 +51,10 @@ export default async function PrivacyPage() {
             account. ReLoop sends no marketing messages and no email.
           </li>
           <li>
+            <strong>Saved items:</strong> the shop items you save, when, and their price then, so we
+            can tell you when one drops in price, is reserved or sells. Only you see your list.
+          </li>
+          <li>
             <strong>Technical data:</strong> anonymous, aggregated usage statistics (pages viewed,
             page speed) that do not identify you.
           </li>
@@ -86,12 +90,15 @@ export default async function PrivacyPage() {
           We keep your details while we have an active relationship with you. You can ask us to
           delete your account and data from your account&apos;s Profile and settings page, or by
           contacting us. An admin carries out the request within 30 days: your account, profile,
-          shop details and notifications are deleted. Records we must keep by law (items we bought
-          from you and what we paid, for tax and e-waste records) are kept with your name replaced
-          by &ldquo;Deleted account&rdquo;, and your requests keep only their stage. Handled
-          deletion requests are themselves deleted after 12 months.
+          shop details, saved items and notifications are deleted. Records we must keep by law
+          (items we bought from you and what we paid, for tax and e-waste records) are kept with
+          your name replaced by &ldquo;Deleted account&rdquo;, and your requests keep only their
+          stage. Handled deletion requests are themselves deleted after 12 months.
         </p>
-        <p>Notifications on the site are deleted after 90 days.</p>
+        <p>
+          Notifications on the site are deleted after 90 days. Saved items stay until you remove
+          them or delete your account.
+        </p>
         <p>
           Warranty claims (what you reported and what we decided, and for a claim we log for you at
           the hub, your name and phone) are deleted 12 months after the claim is closed.

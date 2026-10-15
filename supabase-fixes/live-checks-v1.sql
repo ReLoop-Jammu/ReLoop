@@ -160,6 +160,19 @@ select check_name, ok
         and pg_get_viewdef('public.public_price_bands'::regclass) not like '%buy_%'
         and pg_get_viewdef('public.public_price_bands'::regclass) like '%NOT i.hidden%'
         and pg_get_viewdef('public.public_price_history'::regclass) not like '%buy_%'
-        and not has_column_privilege('anon', 'public.items', 'new_price_paise', 'SELECT'))
+        and not has_column_privilege('anon', 'public.items', 'new_price_paise', 'SELECT')),
+    (19, 'Saved items: each person reads only their own list; nobody writes it directly',
+        not has_table_privilege('anon', 'public.saved_items', 'SELECT')
+        and not has_table_privilege('authenticated', 'public.saved_items', 'INSERT')
+        and not has_table_privilege('authenticated', 'public.saved_items', 'DELETE')
+        and not has_table_privilege('authenticated', 'public.saved_items', 'UPDATE')
+        and not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_items'
+                         and (cmd <> 'SELECT' or qual not like '%auth.uid()%'))
+        and not has_function_privilege('authenticated', 'public.reserved_by(text, uuid)', 'EXECUTE')
+        and (select relrowsecurity from pg_class where oid = 'public.saved_items'::regclass)
+        and exists (select 1 from pg_policies where tablename = 'saved_items' and qual like '%auth.uid()%')
+        and pg_get_functiondef('public.my_saved_items()'::regprocedure) like '%s.user_id = auth.uid()%'
+        and pg_get_functiondef('public.my_saved_items()'::regprocedure) not like '%buy_paise%'
+        and not has_function_privilege('anon', 'public.save_item(text)', 'EXECUTE'))
   ) as c(n, check_name, ok)
  order by n;

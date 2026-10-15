@@ -8,7 +8,7 @@ import { env } from "@/lib/env";
 const PAGES = [
   "",
   ...new Set([...allNavLinks(), ...FOOTER_EXTRA.flatMap((g) => g.links)].map((l) => l.href)),
-].filter((p) => !["/login", "/register"].includes(p));
+].filter((p) => !/^\/(login|register|account)(\/|$)/.test(p));
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = env.NEXT_PUBLIC_SITE_URL;
