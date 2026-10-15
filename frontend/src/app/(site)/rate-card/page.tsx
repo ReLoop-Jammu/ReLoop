@@ -63,7 +63,12 @@ export default async function RateCardPage() {
         </p>
       </div>
 
-      <div className="mt-10 overflow-x-auto rounded-card border border-line bg-surface shadow-soft">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Rate card table"
+        className="mt-10 overflow-x-auto rounded-card border border-line bg-surface shadow-soft"
+      >
         <table className="w-full min-w-[40rem] text-left text-sm">
           <caption className="sr-only">ReLoop rate card per kilo</caption>
           <thead className="bg-sunken text-xs text-muted">

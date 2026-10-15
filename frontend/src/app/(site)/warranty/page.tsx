@@ -24,7 +24,7 @@ const OPTIONS: { icon: LucideIcon; title: string; price: string; body: string }[
     icon: Truck,
     title: "Delivery in Jammu city",
     price: formatPrice(BUSINESS_RULES.jammuDeliveryPaise),
-    body: "Delivered to your door in Jammu city (the Jammu Municipal Corporation area). We sell in Jammu only: nothing is shipped outside Jammu.",
+    body: "Delivered to your door in Jammu city (the Jammu Municipal Corporation area). We deliver in Jammu only.",
   },
 ];
 

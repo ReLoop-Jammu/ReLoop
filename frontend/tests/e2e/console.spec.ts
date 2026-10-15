@@ -10,9 +10,9 @@ function watch(page: Page) {
   const problems: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error" || msg.type() === "warning")
-      problems.push(`console.${msg.type()}: ${msg.text()}`);
+      problems.push(`console.${msg.type()}: ${msg.text()} (on ${page.url()})`);
   });
-  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message}`));
+  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message} (on ${page.url()})`));
   page.on("requestfailed", (req) => {
     const url = new URL(req.url());
     // Ignore requests the test itself cancels by navigating away, and third-party beacons.

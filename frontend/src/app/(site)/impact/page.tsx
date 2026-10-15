@@ -229,7 +229,7 @@ export default function ImpactPage() {
             <div>
               <Eyebrow tone="dark">Why Jammu</Eyebrow>
               <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
-                Start local, connect nationally.
+                Start local, in Jammu.
               </h2>
               <p className="mt-4 leading-relaxed text-white/70">
                 A managed route for used electronics: local collection, clearer inventory

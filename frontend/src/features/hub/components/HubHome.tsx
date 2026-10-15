@@ -22,6 +22,12 @@ export type Todo = {
   ids?: string[];
 };
 
+/** "Thursday 15 October", built from parts: Node and browsers punctuate the one-call format differently, which breaks hydration. */
+const longToday = (d: Date) => {
+  const part = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-IN", o);
+  return `${part({ weekday: "long" })} ${part({ day: "numeric" })} ${part({ month: "long" })}`;
+};
+
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 /** The queues from hub_badges(), as to-dos (only the ones with something waiting). */
@@ -250,11 +256,7 @@ export function HubHome() {
     <>
       <PageTitle
         title={name ? `Good to see you, ${name}` : "Overview"}
-        description={now.toLocaleDateString("en-IN", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })}
+        description={longToday(now)}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href="/hub/intake" className={buttonClasses({ size: "sm" })}>

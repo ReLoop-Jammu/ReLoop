@@ -7,7 +7,7 @@ test.describe("public shop", () => {
   test("home explains the loop and shows graded stock", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Collect. Grade.");
-    await expect(page.locator("main article")).toHaveCount(8);
+    await expect(page.locator("main article")).toHaveCount(7);
     await expect(page.locator("main article [data-grade]").first()).toBeVisible();
   });
 
@@ -28,7 +28,7 @@ test.describe("public shop", () => {
     await page.goto("/shop?q=zzzz-nothing");
     await expect(page.getByRole("heading", { name: "Nothing matches yet" })).toBeVisible();
     await page.getByRole("link", { name: "Clear filters" }).click();
-    await expect(page.locator("main article")).toHaveCount(12);
+    await expect(page.locator("main article")).toHaveCount(7);
   });
 
   test("item page shows ID, grade, warranty and delivery", async ({ page }) => {
@@ -176,7 +176,7 @@ test.describe("sell to us", () => {
 
   test("every sell path is reachable from /sell", async ({ page }) => {
     await page.goto("/sell");
-    for (const name of ["Become a partner shop", "Book a lot pickup", "The rate card"]) {
+    for (const name of ["Become a partner shop", "Book a lot pickup", "The full rate card"]) {
       await expect(
         page.getByRole("main").getByRole("link", { name: new RegExp(name) }),
       ).toBeVisible();
@@ -412,33 +412,40 @@ test.describe("help for partner shops", () => {
     await page.getByRole("link", { name: "Step-by-step help, in English and Hindi" }).click();
     await expect(page).toHaveURL(/\/help$/);
     const main = page.getByRole("main");
-    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. Scrap at the counter (no account needed)" }),
+    ).toBeVisible();
     await expect(main.getByRole("button", { name: "English" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
     for (const title of [
-      "2. Wait for verification",
-      "3. Submit your items",
-      "4. See our offer",
-      "5. Pickup",
-      "6. Payment",
-      "7. Contact us",
+      "4. Wait for verification",
+      "6. See our offer",
+      "7. The weekly pickup",
+      "8. Payment and receipts",
+      "10. Contact us",
     ])
       await expect(main.getByRole("heading", { name: title })).toBeVisible();
 
     await main.getByRole("button", { name: "हिन्दी" }).click();
-    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
-    await expect(main.locator('[lang="hi"]').filter({ hasText: "साइन अप करें" })).toHaveCount(1);
+    await expect(
+      main.getByRole("heading", { name: "1. काउंटर पर कबाड़ (अकाउंट ज़रूरी नहीं)" }),
+    ).toBeVisible();
+    await expect(main.locator('[lang="hi"]').filter({ hasText: "काउंटर पर कबाड़" })).toHaveCount(1);
     await expect(main.getByRole("link", { name: "/register" })).toHaveAttribute(
       "href",
       "/register",
     );
 
     await page.reload();
-    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. काउंटर पर कबाड़ (अकाउंट ज़रूरी नहीं)" }),
+    ).toBeVisible();
     await main.getByRole("button", { name: "English" }).click();
-    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. Scrap at the counter (no account needed)" }),
+    ).toBeVisible();
   });
 
   test("is linked from the footer", async ({ page }) => {

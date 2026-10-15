@@ -55,6 +55,7 @@ test.describe("hub (staff tool)", () => {
   test("grade D goes to the D devices bin and out with a handover", async ({ page }) => {
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Old CRT");
     await page.getByLabel("Grade (if tested now)").selectOption("D");
@@ -105,11 +106,8 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Phone").first().fill("9876500000");
     await page.getByRole("button", { name: "Add shop" }).click();
     await page.goto("/hub/intake");
-    await page
-      .getByLabel("Partner shop")
-      .selectOption({ label: "Gupta Electronics (Raghunath Bazaar)" });
-    await page.getByLabel("Source").selectOption("repair_shop");
-    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Partner shop").selectOption({ label: "Gupta Electronics (Bahu Plaza)" });
+    await page.getByLabel("Source").selectOption("retailer");
     await expect(page.getByLabel("Partner shop")).toHaveValue("");
   });
 });
@@ -203,6 +201,7 @@ test.describe("hub overview, menu and search", () => {
 
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Lenovo");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
@@ -238,6 +237,7 @@ test.describe("hub overview, menu and search", () => {
     await page.getByRole("button", { name: "Add shop" }).click();
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Dell");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
@@ -252,7 +252,7 @@ test.describe("hub overview, menu and search", () => {
     await expect(page).toHaveURL(/\/hub\/search\?q=1$/);
     await expect(page.getByRole("link", { name: /RL-JMU-0001/ })).toBeVisible();
 
-    await page.goto("/hub/search?q=raghunath");
+    await page.goto("/hub/search?q=bahu");
     await expect(page.getByRole("link", { name: /Gupta Electronics/ })).toBeVisible();
     await expect(page.getByText(/No items match/)).toBeVisible();
   });
@@ -278,6 +278,7 @@ test.describe("listing controls", () => {
   test("hide, correct with a reason, sell, take back and scrap", async ({ page }) => {
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("LG");
     await page.getByLabel("Model").fill("22MK400");
@@ -323,6 +324,7 @@ test.describe("ReLoop Checked", () => {
   test("a grade B item is inspected before it can be listed", async ({ page }) => {
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Samsung");
     await page.getByLabel("Grade (if tested now)").selectOption("B");
