@@ -9,10 +9,44 @@ import { handoffChannels } from "../handoff";
 
 type Props = { subject: string; text: string; saved?: boolean; onReset?: () => void };
 
-/** Shown after a form is filled: sends the request by WhatsApp or email, or copies it. */
+/**
+ * Shown after a form is filled. When the request is saved (a ticket for the
+ * hub), WhatsApp and email are optional extras; when it couldn't be saved,
+ * they are how the request reaches ReLoop.
+ */
 export function HandoffPanel({ subject, text, saved = true, onReset }: Props) {
   const [copied, setCopied] = useState(false);
   const channels = handoffChannels(subject, text, useSiteSettings());
+
+  if (saved) {
+    if (channels.length === 0) return null;
+    return (
+      <div className="mt-4 rounded-card border border-line bg-surface p-5">
+        <p className="font-semibold text-ink">Want a quicker reply? (optional)</p>
+        <p className="mt-1 text-sm text-ink-soft">
+          You don&apos;t need to do anything else. If you like, also send us the details:
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {channels.map((c) => (
+            <a
+              key={c.kind}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClasses({ variant: "secondary", size: "sm" })}
+            >
+              {c.kind === "whatsapp" ? (
+                <MessageCircle className="size-4" aria-hidden="true" />
+              ) : (
+                <Mail className="size-4" aria-hidden="true" />
+              )}
+              {c.kind === "whatsapp" ? "Message us on WhatsApp" : "Email us"}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const copy = async () => {
     try {
@@ -62,9 +96,7 @@ export function HandoffPanel({ subject, text, saved = true, onReset }: Props) {
       {channels.length === 0 && (
         <p className="mt-4 text-sm text-ink-soft">
           {IS_SIMULATION
-            ? saved
-              ? "This is the simulation: your request is saved for the demo hub, but no WhatsApp message or email is sent."
-              : "This is the simulation: no WhatsApp message or email is sent."
+            ? "This is the simulation: no WhatsApp message or email is sent."
             : "Our WhatsApp number and email will be added here shortly. Meanwhile, copy your request and keep it handy."}
         </p>
       )}

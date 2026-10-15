@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 
-/** After a request is saved: its private status page, and where else to find it. */
+/** Inside the request-received panel: the request's private status page, and where else to find it. */
 export function StatusLink({ token, linked }: { token: string; linked: boolean }) {
   const [copied, setCopied] = useState(false);
   const path = `/status/${token}`;
@@ -18,9 +18,8 @@ export function StatusLink({ token, linked }: { token: string; linked: boolean }
     }
   }
   return (
-    <div className="mb-4 rounded-card border border-line bg-surface p-5">
-      <p className="font-semibold text-ink">Your request is saved</p>
-      <p className="mt-1 text-sm text-ink-soft">
+    <div className="mt-4 border-t border-grade-a/20 pt-4">
+      <p className="text-sm text-ink-soft">
         {linked
           ? "Follow it on your account under My requests, or with this private link."
           : "Keep this private link to see where your request stands. Anyone with the link sees its stage, never your details."}

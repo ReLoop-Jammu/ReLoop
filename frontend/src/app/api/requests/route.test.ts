@@ -29,7 +29,7 @@ beforeEach(() => {
         return Response.json([{ status: "listed", hidden: itemHidden }]);
       if (url.includes("/rest/v1/submissions") && init.method === "POST") {
         inserted = JSON.parse(String(init.body));
-        return Response.json([{ status_token: TOKEN }]);
+        return Response.json([{ id: "3f9a2c41-0000-4000-8000-000000000000", status_token: TOKEN }]);
       }
       return new Response("", { status: 404 });
     }),
@@ -59,7 +59,12 @@ describe("public requests", () => {
   it("saves a visitor's request without an account and returns its status link", async () => {
     const res = await send();
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, statusToken: TOKEN, linked: false });
+    expect(await res.json()).toEqual({
+      ok: true,
+      ticket: "RQ-3F9A2C",
+      statusToken: TOKEN,
+      linked: false,
+    });
     expect(inserted).toMatchObject({ kind: "reservation", item_id: "RL-JMU-0042", buyer_id: null });
   });
 

@@ -317,15 +317,16 @@ export async function saveRepairJob(
  * Records a public form request (reservation, enquiry or institution pickup)
  * for hub staff, through the site's /api/requests route; nothing is kept on
  * the visitor's device. When signed in, the request is linked to the account.
- * Resolves `saved: false` instead of failing, so the WhatsApp/email handoff
- * always goes ahead. `statusToken` opens the request's private status page.
+ * Resolves `saved: false` instead of failing, so the visitor can still send
+ * it by WhatsApp or email. `ticket` is the reference the visitor and staff
+ * quote; `statusToken` opens the request's private status page.
  */
 export async function addSubmission(
   kind: Submission["kind"],
   fields: Record<string, string>,
   itemId?: string,
-): Promise<{ saved: boolean; statusToken: string | null; linked: boolean }> {
-  const failed = { saved: false, statusToken: null, linked: false };
+): Promise<{ saved: boolean; ticket: string | null; statusToken: string | null; linked: boolean }> {
+  const failed = { saved: false, ticket: null, statusToken: null, linked: false };
   try {
     const body = JSON.stringify({ kind, fields, ...(itemId && { itemId }) });
     const anonymous = () =>
@@ -342,10 +343,16 @@ export async function addSubmission(
     if (!response || response.status === 401) response = await anonymous();
     if (!response.ok) return failed;
     const data = (await response.json().catch(() => ({}))) as {
+      ticket?: string | null;
       statusToken?: string | null;
       linked?: boolean;
     };
-    return { saved: true, statusToken: data.statusToken ?? null, linked: Boolean(data.linked) };
+    return {
+      saved: true,
+      ticket: data.ticket ?? null,
+      statusToken: data.statusToken ?? null,
+      linked: Boolean(data.linked),
+    };
   } catch {
     return failed;
   }

@@ -66,7 +66,7 @@ export function ReserveItem({ itemId, title, pricePaise, sample }: Props) {
           kind="reservation"
           itemId={itemId}
           title={`Reserve ${itemId}`}
-          submitLabel="Prepare my reservation"
+          submitLabel="Send my reservation"
           initial={{ item }}
           fields={[
             { name: "item", label: "Item", required: true, full: true },
@@ -86,7 +86,7 @@ export function ReserveItem({ itemId, title, pricePaise, sample }: Props) {
           kind="enquiry"
           itemId={itemId}
           title={`Question about ${itemId}`}
-          submitLabel="Prepare my question"
+          submitLabel="Send my question"
           initial={{ item }}
           fields={[
             { name: "item", label: "Item", required: true, full: true },

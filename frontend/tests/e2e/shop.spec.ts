@@ -325,11 +325,11 @@ test.describe("contact details", () => {
 });
 
 test.describe("institution pickup booking", () => {
-  test("is saved for staff, then handed off on WhatsApp or email", async ({ page }) => {
+  test("is saved for staff as a ticket, with WhatsApp or email as extras", async ({ page }) => {
     const bodies: unknown[] = [];
     await page.route("**/api/requests", async (route) => {
       bodies.push(route.request().postDataJSON());
-      await route.fulfill({ status: 200, json: { ok: true } });
+      await route.fulfill({ status: 200, json: { ok: true, ticket: "RQ-3F9A2C" } });
     });
     await page.goto("/sell/institutions");
     await page.getByLabel(/^Institution/).fill("IIM Jammu");
@@ -337,8 +337,10 @@ test.describe("institution pickup booking", () => {
     await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
     await page.getByLabel(/^Phone/).fill("98765 43210");
     await page.getByLabel(/^What is in the lot/).fill("20 desktops, 15 monitors");
-    await page.getByRole("button", { name: "Prepare my booking" }).click();
-    await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
+    await page.getByRole("button", { name: "Send my booking" }).click();
+    await expect(page.getByText("Booking received")).toBeVisible();
+    await expect(page.getByText("RQ-3F9A2C")).toBeVisible();
+    await expect(page.getByText("Almost done: send this to ReLoop")).toHaveCount(0);
     expect(bodies).toEqual([
       expect.objectContaining({
         kind: "institution_pickup",
@@ -363,8 +365,8 @@ test.describe("institution pickup booking", () => {
     await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
     await page.getByLabel(/^Phone/).fill("98765 43210");
     await page.getByLabel(/^What is in the lot/).fill("20 desktops");
-    await page.getByRole("button", { name: "Prepare my booking" }).click();
-    await expect(page.getByText("Your request is saved")).toBeVisible();
+    await page.getByRole("button", { name: "Send my booking" }).click();
+    await expect(page.getByText("Booking received")).toBeVisible();
     await expect(
       page.getByText(/Anyone with the link sees its stage, never your details/),
     ).toBeVisible();
@@ -385,9 +387,10 @@ test.describe("institution pickup booking", () => {
     await page.getByLabel(/^Contact person/).fill("Ravi Sharma");
     await page.getByLabel(/^Phone/).fill("98765 43210");
     await page.getByLabel(/^What is in the lot/).fill("20 desktops");
-    await page.getByRole("button", { name: "Prepare my booking" }).click();
+    await page.getByRole("button", { name: "Send my booking" }).click();
     await expect(page.getByText(/couldn't keep a copy/)).toBeVisible();
-    await expect(page.getByText("Your request is saved")).toHaveCount(0);
+    await expect(page.getByText("Almost done: send this to ReLoop")).toBeVisible();
+    await expect(page.getByText("Booking received")).toHaveCount(0);
   });
 });
 

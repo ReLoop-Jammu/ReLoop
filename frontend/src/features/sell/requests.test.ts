@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanRequest } from "./requests";
+import { cleanRequest, ticketRef } from "./requests";
 
 describe("public requests", () => {
   it("accepts an institution pickup with a contact and phone", () => {
@@ -59,5 +59,11 @@ describe("public requests", () => {
       fields: { name: "A", phone: "9876543210", "Bad Key": "x", nested: { a: 1 } },
     });
     expect("fields" in r && Object.keys(r.fields)).toEqual(["name", "phone"]);
+  });
+});
+
+describe("ticket references", () => {
+  it("are RQ- and the first six characters of the request's id, in capitals", () => {
+    expect(ticketRef("3f9a2c41-1b2d-4e5f-8a9b-0c1d2e3f4a5b")).toBe("RQ-3F9A2C");
   });
 });

@@ -1,4 +1,4 @@
-import { cleanRequest } from "@/features/sell/requests";
+import { cleanRequest, ticketRef } from "@/features/sell/requests";
 import { bearer, isConfigured, reply, serviceRest, checkToken } from "@/lib/server/supabase-admin";
 
 export const runtime = "nodejs";
@@ -8,8 +8,8 @@ export const runtime = "nodejs";
  * staff. Only staff can read requests; visitors can't insert them directly.
  * A signed-in sender's request is linked to their account; an expired session
  * is refused rather than saved under the wrong person. The reply carries the
- * request's private status link token. The visitor's WhatsApp/email handoff
- * happens in the browser either way.
+ * request's ticket reference and private status link token. WhatsApp or email
+ * is an optional extra the visitor can use from the browser.
  */
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
@@ -35,17 +35,25 @@ export async function POST(request: Request) {
         return reply({ error: "That item is no longer available." }, 409);
       }
     }
-    const saved = await serviceRest<{ status_token: string }[]>("submissions?select=status_token", {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        kind: clean.kind,
-        fields: clean.fields,
-        item_id: clean.itemId,
-        buyer_id: buyer?.id ?? null,
-      }),
+    const saved = await serviceRest<{ id: string; status_token: string }[]>(
+      "submissions?select=id,status_token",
+      {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          kind: clean.kind,
+          fields: clean.fields,
+          item_id: clean.itemId,
+          buyer_id: buyer?.id ?? null,
+        }),
+      },
+    );
+    return reply({
+      ok: true,
+      ticket: saved[0] ? ticketRef(saved[0].id) : null,
+      statusToken: saved[0]?.status_token ?? null,
+      linked: Boolean(buyer),
     });
-    return reply({ ok: true, statusToken: saved[0]?.status_token ?? null, linked: Boolean(buyer) });
   } catch {
     return reply({ error: "We couldn't save your request." }, 502);
   }

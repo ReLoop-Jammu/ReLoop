@@ -40,6 +40,25 @@ async function show(rows: HubRequest[]) {
 afterEach(cleanup);
 
 describe("hub requests", () => {
+  it("shows each request's ticket, and finds a closed one by ticket or phone", async () => {
+    await show([
+      row({ id: "3f9a2c41-1b2d-4e5f-8a9b-0c1d2e3f4a5b", kind: "reservation", status: "new" }),
+      row({
+        id: "7b0e9d12-0000-4000-8000-000000000000",
+        status: "done",
+        fields: { phone: "9811122233" },
+      }),
+    ]);
+    expect(screen.getByText("RQ-3F9A2C")).toBeTruthy();
+    expect(screen.queryByText("RQ-7B0E9D")).toBeNull();
+    const search = screen.getByLabelText("Ticket or phone");
+    fireEvent.change(search, { target: { value: "rq-7b0e9d" } });
+    expect(screen.getByText("RQ-7B0E9D")).toBeTruthy();
+    expect(screen.queryByText("RQ-3F9A2C")).toBeNull();
+    fireEvent.change(search, { target: { value: "98111 22233" } });
+    expect(screen.getByText("RQ-7B0E9D")).toBeTruthy();
+  });
+
   it("schedules a pickup on a date, and says when it came from an account", async () => {
     await show([row({})]);
     expect(screen.getByText(/Sent from a ReLoop account/)).toBeTruthy();
