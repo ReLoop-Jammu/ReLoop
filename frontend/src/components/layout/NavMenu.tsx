@@ -23,10 +23,10 @@ export function NavMenu({ group }: { group: NavGroup }) {
         aria-controls={panelId}
         onClick={toggle}
         className={cn(
-          "inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-sm font-semibold whitespace-nowrap transition",
+          "inline-flex min-h-10 items-center gap-1 rounded-full px-3.5 text-sm font-semibold whitespace-nowrap transition",
           current || open
-            ? "bg-ink/[0.06] text-ink"
-            : "text-ink-soft hover:bg-ink/[0.04] hover:text-ink",
+            ? "bg-surface text-ink shadow-soft"
+            : "text-ink-soft hover:bg-surface/70 hover:text-ink",
         )}
       >
         {group.label}
@@ -35,7 +35,7 @@ export function NavMenu({ group }: { group: NavGroup }) {
       <div
         id={panelId}
         hidden={!open}
-        className="absolute top-full left-0 z-50 mt-2 w-80 rounded-card border border-line bg-surface p-2 shadow-lift"
+        className="absolute top-full left-0 z-50 mt-3 w-[22rem] animate-rise rounded-card border border-line bg-surface/95 p-2 shadow-float backdrop-blur-xl [animation-duration:0.25s]"
       >
         <ul>
           {group.links.map((l) => (
@@ -43,7 +43,7 @@ export function NavMenu({ group }: { group: NavGroup }) {
               <Link
                 href={l.href}
                 aria-current={isActive(pathname, l.href) ? "page" : undefined}
-                className="block rounded-lg px-3 py-2.5 transition hover:bg-sunken aria-[current=page]:bg-brand-50"
+                className="block rounded-xl px-3.5 py-3 transition hover:bg-sunken aria-[current=page]:bg-brand-50"
               >
                 <span className="block text-sm font-semibold text-ink">{l.label}</span>
                 {l.description && (

@@ -99,7 +99,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <Gallery item={item} />
 
-        <div>
+        <div className="lg:sticky lg:top-28 lg:self-start lg:rounded-panel lg:border lg:border-line lg:bg-surface lg:p-8 lg:shadow-lift">
           <div className="flex flex-wrap items-center gap-2">
             {item.category === "part" ? <TestedPartBadge /> : <GradeBadge grade={item.grade} />}
             <span className="font-mono text-sm text-muted">{item.id}</span>
@@ -109,10 +109,12 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
               </span>
             )}
           </div>
-          <h1 className="mt-4 text-3xl font-bold sm:text-4xl">{item.title}</h1>
+          <h1 className="mt-4 text-3xl leading-[1.05] font-bold sm:text-5xl">{item.title}</h1>
           <p className="mt-2 text-sm text-muted">{categoryLabel(item.category)}</p>
           <div className="mt-6 flex flex-wrap items-baseline gap-x-3">
-            <p className="font-display text-4xl font-bold">{formatPrice(item.pricePaise)}</p>
+            <p className="font-display text-5xl font-bold tracking-tight">
+              {formatPrice(item.pricePaise)}
+            </p>
             {item.wasPaise && (
               <p className="text-muted">
                 <s>

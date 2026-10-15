@@ -21,7 +21,7 @@ export default async function ReportsPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Transparency</Eyebrow>
-      <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Monthly reports</h1>
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">Monthly reports</h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
         One page per month, from weighed and tagged records, with a PDF and a CSV.
       </p>

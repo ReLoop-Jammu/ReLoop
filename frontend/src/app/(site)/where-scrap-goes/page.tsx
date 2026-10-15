@@ -60,7 +60,7 @@ export default function WhereScrapGoesPage() {
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
         <Eyebrow>Where scrap goes</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
           Everything dead goes to one named partner, by weight.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">

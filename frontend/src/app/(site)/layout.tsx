@@ -13,7 +13,16 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
     <>
       <SkipLink />
       <Header />
-      <main id="main" className="flex-1">
+      <main id="main" className="relative isolate flex-1">
+        {/* A soft brand glow and grid behind the top of every page. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+          <div className="absolute -top-48 left-1/2 h-[520px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-brand-100),transparent)] opacity-80" />
+          <div className="absolute -top-32 right-[8%] h-80 w-80 rounded-full bg-[radial-gradient(closest-side,var(--color-gold-100),transparent)]" />
+        </div>
         <SignedOutNotice />
         {children}
       </main>

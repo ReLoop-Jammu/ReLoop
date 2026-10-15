@@ -9,7 +9,7 @@ import type { ShopItem } from "../model";
 export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }) {
   return (
     <article
-      className="group relative flex w-full animate-rise flex-col overflow-hidden rounded-card border border-line bg-surface shadow-soft transition duration-300 focus-within:ring-2 focus-within:ring-brand-500 hover:-translate-y-1 hover:shadow-lift"
+      className="group relative flex w-full animate-rise flex-col overflow-hidden rounded-card border border-line bg-surface shadow-soft transition duration-300 focus-within:ring-2 focus-within:ring-brand-500 hover:-translate-y-1.5 hover:border-brand-200 hover:shadow-lift"
       style={{ animationDelay: `${(index % 8) * 50}ms` }}
     >
       <ItemVisual
@@ -18,7 +18,7 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
         grade={item.grade}
         photo={item.photo}
         alt={item.title}
-        className="h-32 transition duration-500 group-hover:scale-[1.03] sm:h-44"
+        className="h-40 transition duration-700 group-hover:scale-[1.05] sm:h-56"
       />
       {item.category === "part" ? (
         <TestedPartBadge
@@ -37,7 +37,7 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
           Price cut
         </span>
       )}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <p className="font-mono text-xs tracking-wide text-muted">
           {item.id}
           {item.sample && (
@@ -58,7 +58,7 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
         <p className="mt-0.5 text-xs text-muted">{categoryLabel(item.category)}</p>
         <div className="mt-auto pt-3">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="font-display text-lg font-bold text-ink sm:text-xl">
+            <span className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">
               {formatPrice(item.pricePaise)}
             </span>
             {item.wasPaise && (

@@ -31,7 +31,9 @@ export default function StandardsPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Our standards</Eyebrow>
-      <h1 className="mt-4 max-w-3xl text-4xl font-bold sm:text-5xl">The rules we work to</h1>
+      <h1 className="mt-5 max-w-3xl text-4xl leading-[1.02] font-bold sm:text-6xl">
+        The rules we work to
+      </h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
         Each standard is written down here, and the hub&apos;s software enforces it: an item cannot
         be listed without an inspection, a phone cannot be sold before it is wiped, and every kilo

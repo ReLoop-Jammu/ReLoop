@@ -89,7 +89,7 @@ export default function HowItWorksPage() {
         <Container className="py-14 sm:py-20">
           <div className="mx-auto mb-14 max-w-2xl text-center">
             <Eyebrow>How it works</Eyebrow>
-            <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+            <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
               Collect. Grade. Resell. Hand over.
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-muted">

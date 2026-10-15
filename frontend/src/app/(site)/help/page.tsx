@@ -14,7 +14,7 @@ export default function HelpPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Help · मदद</Eyebrow>
-      <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
         Help for partner shops
         <span lang="hi" className="mt-2 block text-2xl font-semibold text-ink-soft sm:text-3xl">
           पार्टनर दुकानों के लिए मदद

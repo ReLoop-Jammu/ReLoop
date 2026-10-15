@@ -6,7 +6,7 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
   return (
     <section aria-labelledby="impact-heading" className="py-10 sm:py-12">
       <Container>
-        <div className="rounded-panel bg-brand-950 px-6 py-8 text-white sm:px-10">
+        <div className="relative overflow-hidden rounded-panel bg-mesh px-6 py-10 text-white shadow-lift sm:px-12 sm:py-12">
           <h2 id="impact-heading" className="text-sm font-semibold text-gold-400">
             Our impact so far
           </h2>

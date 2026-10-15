@@ -34,7 +34,7 @@ export default async function WarrantyPage() {
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
         <Eyebrow>Warranty, returns & delivery</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
           Bought from ReLoop, backed by ReLoop.
         </h1>
       </div>
