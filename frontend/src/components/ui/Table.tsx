@@ -12,7 +12,11 @@ export function Table({
   className?: string;
 }) {
   return (
-    <div className={cn("overflow-x-auto rounded-card border border-line bg-surface", className)}>
+    <div
+      // A scrolling area must be reachable by keyboard; a named region says what it holds.
+      {...(typeof caption === "string" && { role: "region", "aria-label": caption, tabIndex: 0 })}
+      className={cn("overflow-x-auto rounded-card border border-line bg-surface", className)}
+    >
       <table className="w-full border-collapse text-left text-sm">
         {caption && <caption className="sr-only">{caption}</caption>}
         {children}

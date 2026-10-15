@@ -10,6 +10,8 @@ import {
   PackageOpen,
   PackagePlus,
   Scale,
+  Route,
+  Wrench,
   Truck,
   Recycle,
   Settings,
@@ -109,6 +111,22 @@ export const HUB_TOOLS: readonly HubTool[] = [
     group: "Daily work",
     // New lots to review, and accepted ones to collect.
     badge: ["new_submissions", "offers_accepted"],
+  },
+  {
+    href: "/hub/route",
+    label: "Route",
+    description: "Tuesday and Friday run sheets: stops in order, booked lots, collected or missed.",
+    icon: Route,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/repairs",
+    label: "Repairs",
+    description: "Items out with repair partners: fault, fee, days out, and back fixed or not.",
+    icon: Wrench,
+    role: "staff",
+    group: "Daily work",
   },
   {
     href: "/hub/weighins",

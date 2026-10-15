@@ -549,3 +549,19 @@ test.describe("impact and network (simulated data)", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("route and repairs (real logins)", () => {
+  test("the demo admin sees the next route days with stops, and the repair board", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/route");
+    await expect(page.getByRole("heading", { level: 1, name: "Route" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Tuesday|Friday)/ }).first()).toBeVisible();
+    await expect(page.getByText("Loading the run sheet…")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await page.goto("/hub/repairs");
+    await expect(page.getByRole("heading", { level: 1, name: "Repairs" })).toBeVisible();
+  });
+});
