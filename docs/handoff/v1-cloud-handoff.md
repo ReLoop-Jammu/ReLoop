@@ -287,6 +287,10 @@ Every money value below is **absent from the repository**. The code reads it fro
 1. Apply migration `20261107000007_wipe_stats.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 38 must be true).
 2. Read the new public pages once with the business-plan owner: `/standards` and its pages, `/compliance`, `/about`, `/faq`, `/accessibility`, and the expanded `/how-we-price`.
 
+### 7i. The whole list, in run order
+
+`scripts/finish-v1-local.md` merges items 1 to 10 above and sections 7a to 7h into one ordered run: back up production, read-only queries, local-only values, migrations (simulation, then production) with all 81 live checks, re-seed, staff settings, environment check, simulation checks, merge to `main`, live checks, tag `v1.0.0`, clean up and delete the Keychain entries.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).

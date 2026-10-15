@@ -74,6 +74,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 | Scrap is paid by UPI on the spot. Devices are paid at the offer you accepted. Parts are paid as parts. Each payment has its own receipt number (RL-PAY-…). | कबाड़ का भुगतान उसी समय UPI से होता है। डिवाइस का भुगतान आपके माने हुए ऑफ़र पर। पार्ट्स का भुगतान पार्ट के रूप में। हर भुगतान की अपनी रसीद संख्या (RL-PAY-…) होती है। |
 | Staff can send you your receipt on WhatsApp as a private link. All your receipts are also on `/account`, where you can download each one. | स्टाफ़ आपको WhatsApp पर रसीद का निजी लिंक भेज सकता है। आपकी सारी रसीदें `/account` पर भी हैं, जहाँ से आप हर रसीद डाउनलोड कर सकते हैं। |
 | You don't wait for items to sell: once we buy them, they are ReLoop's. | सामान बिकने का इंतज़ार नहीं करना पड़ता: खरीदने के बाद सामान ReLoop का हो जाता है। |
+| Your account also shows your partnership in numbers: what you sent, offers, pickups, what we paid you, your weigh-ins in kg and your Parts Exchange sales. Weights we have not measured are marked "estimated". | आपके अकाउंट में आपकी साझेदारी के आँकड़े भी दिखते हैं: आपने क्या भेजा, ऑफ़र, पिकअप, हमने आपको कितना भुगतान किया, किलो में आपके वज़न और पार्ट्स एक्सचेंज की बिक्री। जो वज़न हमने नहीं तौला, उसे "अनुमानित" लिखा जाता है। |
 
 ## 9. List parts on the Jammu Parts Exchange / जम्मू पार्ट्स एक्सचेंज पर पार्ट लिस्ट करें
 
