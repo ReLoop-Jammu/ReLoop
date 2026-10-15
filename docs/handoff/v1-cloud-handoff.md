@@ -253,6 +253,11 @@ Every money value below is **absent from the repository**. The code reads it fro
 2. Staff review the `buyer_areas` list (it is a starting set of Jammu localities; admins can add or rename rows) before the first sale is recorded with an area.
 3. Look at `/impact` and `/network` on the simulation build: the Sankeys, the monthly bars and the Leaflet map need the data to be present.
 
+### 7c. Added by batch 20 (route and repairs), in run order
+
+1. Apply migration `20261107000002_route_and_repairs.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 33 must be true).
+2. Check `route.markets` in the simulation and production settings: the run sheet only lists a partner shop from its market's start date. Spot-check the Tuesday and Friday sheets against the real partner list.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).

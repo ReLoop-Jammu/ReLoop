@@ -378,3 +378,23 @@ test.describe("hub shell and daily panel", () => {
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   });
 });
+
+test.describe("route and repairs", () => {
+  test("the menu links the route and repairs screens", async ({ page }) => {
+    await page.goto("/hub");
+    const menu = page.getByRole("navigation", { name: "Hub" });
+    await expect(menu.getByRole("link", { name: "Route" })).toHaveAttribute("href", "/hub/route");
+    await expect(menu.getByRole("link", { name: "Repairs" })).toHaveAttribute(
+      "href",
+      "/hub/repairs",
+    );
+  });
+
+  test("the route needs the shared database; the repair board starts empty", async ({ page }) => {
+    await page.goto("/hub/route");
+    await expect(page.getByText("The route is kept in the shared database.")).toBeVisible();
+    await page.goto("/hub/repairs");
+    await expect(page.getByRole("heading", { level: 1, name: "Repairs" })).toBeVisible();
+    await expect(page.getByText("Nothing is out for repair.")).toBeVisible();
+  });
+});

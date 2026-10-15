@@ -36,7 +36,7 @@ export function HubShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
+      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0 print:hidden">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5 lg:py-6">
           <Link href="/hub" className="flex items-center gap-2 font-display text-lg font-bold">
             <LogoMark id="hub" inverted className="size-7" />
@@ -56,7 +56,7 @@ export function HubShell({ children }: { children: ReactNode }) {
       </aside>
       <div className="min-w-0 flex-1">
         {SHARED_DATABASE ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-sunken px-4 py-2 text-xs text-ink-soft sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-sunken px-4 py-2 text-xs text-ink-soft sm:px-8 print:hidden">
             <span>
               <strong>Shared database:</strong> everything you save here is stored for all hub
               staff.

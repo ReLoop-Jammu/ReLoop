@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { SHARED_DATABASE } from "@/features/inventory/store";
@@ -27,7 +28,9 @@ export function WeighinsPage() {
         description="Weigh the shop's scrap by category in front of them, pay by UPI at the rate card, and give them a numbered receipt. Likely-working parts go in the to-test bag, with no money yet."
       />
       {SHARED_DATABASE ? (
-        <WeighIns />
+        <Suspense fallback={null}>
+          <WeighIns />
+        </Suspense>
       ) : (
         <p className="text-sm text-muted">Weigh-ins are kept in the shared database.</p>
       )}
@@ -50,8 +53,10 @@ function WeighIns() {
       .catch(() => setList([]));
   }, [version]);
 
+  // The route sheet links here with the stop's partner already chosen.
+  const preset = useSearchParams().get("partner") ?? "";
   const [f, setF] = useState({
-    partnerId: "",
+    partnerId: preset,
     screens: "",
     boards: "",
     batteries: "",

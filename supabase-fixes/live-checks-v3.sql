@@ -20,5 +20,12 @@ select check_name, ok
         and exists (select 1 from pg_trigger where tgrelid = 'public.items'::regclass and tgname = 'items_clear_buyer_area')
         and has_table_privilege('anon', 'public.buyer_areas', 'SELECT')
         and not has_table_privilege('anon', 'public.buyer_areas', 'INSERT'))
+    ,
+    (33, 'Route and repairs: the run sheet and closing a repair job are staff-only, and repair fees are not readable by visitors',
+        has_function_privilege('authenticated', 'public.route_sheet(date)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.route_sheet(date)', 'EXECUTE')
+        and has_function_privilege('authenticated', 'public.return_repair_job(uuid, text)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.return_repair_job(uuid, text)', 'EXECUTE')
+        and not has_table_privilege('anon', 'public.repair_jobs', 'SELECT'))
   ) as c(n, check_name, ok)
  order by n;

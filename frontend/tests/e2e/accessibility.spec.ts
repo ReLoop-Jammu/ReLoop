@@ -36,6 +36,8 @@ const PAGES = [
   "/hub/partners",
   "/hub/handovers",
   "/hub/weighins",
+  "/hub/route",
+  "/hub/repairs",
   "/hub/exchange",
   "/hub/lots",
   "/hub/data",
