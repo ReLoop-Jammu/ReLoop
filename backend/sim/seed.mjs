@@ -1615,6 +1615,13 @@ update public.profiles set role = 'admin' where user_id = ${q(byKey.admin.id)};`
   sql.push(`update public.app_settings set value = ${q(markets)}, updated_at = now() where key = 'route.markets';
 update public.app_settings set value = to_jsonb(${q(isoDate(end))}::text), updated_at = now() where key in ('ownership.required_from', 'wipe.strip_required_from');
 update public.app_settings set value = '120', updated_at = now() where key = 'capacity.device_rack_slots'; -- simulated value
+${Object.entries(inputs.finance_benchmarks_paise ?? {})
+  .filter(([k, v]) => /^finance\.[a-z_]+$/.test(k) && Number.isInteger(v))
+  .map(
+    ([k, v]) =>
+      `insert into public.app_settings (key, value, is_public) values (${q(k)}, '${v}', false) on conflict (key) do update set value = excluded.value, updated_at = now(); -- simulated benchmark`,
+  )
+  .join("\n")}
 update public.app_settings set value = to_jsonb(${q(isoDate(end))}::text), updated_at = now() where key = 'rate_card.as_of';`);
 
   const PARTNER_COLS = [
