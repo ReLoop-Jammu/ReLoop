@@ -16,6 +16,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { CtaBanner } from "@/components/marketing/CtaBanner";
 import { GradeStrip } from "@/components/marketing/GradeStrip";
 import { HeroShowcase } from "@/components/marketing/HeroShowcase";
+import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
@@ -135,6 +136,8 @@ export default async function HomePage() {
           <HeroShowcase items={latest.slice(0, 3)} />
         </Container>
       </section>
+
+      <TrustStrip />
 
       {/* Promises */}
       <section aria-label="Why buy from ReLoop" className="border-y border-line bg-surface">
