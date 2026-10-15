@@ -26,7 +26,7 @@ export default async function TermsPage() {
         <h2>What ReLoop does</h2>
         <p>
           ReLoop buys used and broken electronics, tests and grades each item at its hub in Jammu,
-          and resells what can be reused. During the early preview, items shown in the shop are
+          and resells what can be reused. During the pilot, any sample items shown in the shop are
           samples and no sales are processed.
         </p>
       </section>

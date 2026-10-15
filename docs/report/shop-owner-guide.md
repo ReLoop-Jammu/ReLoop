@@ -64,7 +64,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 
 | English | हिन्दी |
 | --- | --- |
-| We collect by e-rickshaw. Tuesday: the Gandhi Nagar cluster (Bahu Plaza, Gole Market), from November 2026. Friday: the old city (Raghunath Bazaar, Residency Road), from January 2027. Your pickup date shows on `/account`. | हम ई-रिक्शा से सामान उठाते हैं। मंगलवार: गांधी नगर क्लस्टर (बहू प्लाज़ा, गोले मार्केट), नवंबर 2026 से। शुक्रवार: पुराना शहर (रघुनाथ बाज़ार, रेज़िडेंसी रोड), जनवरी 2027 से। आपके पिकअप की तारीख़ `/account` पर दिखती है। |
+| We collect by e-rickshaw. Tuesday: the Gandhi Nagar cluster (Bahu Plaza, Gole Market). Friday: the old city (Raghunath Bazaar, Residency Road). Start dates are on `/locations`. Your pickup date shows on `/account`. | हम ई-रिक्शा से सामान उठाते हैं। मंगलवार: गांधी नगर क्लस्टर (बहू प्लाज़ा, गोले मार्केट)। शुक्रवार: पुराना शहर (रघुनाथ बाज़ार, रेज़िडेंसी रोड)। शुरू होने की तारीख़ `/locations` पर है। आपके पिकअप की तारीख़ `/account` पर दिखती है। |
 | Keep your scrap together at your counter so the weighing is quick. The routes and stops are on `/locations`. | कबाड़ अपने काउंटर पर एक साथ रखें, ताकि तौल जल्दी हो जाए। रूट और स्टॉप `/locations` पर देखें। |
 
 ## 8. Payment and receipts / भुगतान और रसीदें
@@ -89,7 +89,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 
 | English | हिन्दी |
 | --- | --- |
-| WhatsApp: +91 98712 76179. Mon–Sat, 10:00–18:00 IST from November 2026. Until then, WhatsApp replies within one working day. | WhatsApp: +91 98712 76179। नवंबर 2026 से सोम–शनि, सुबह 10 से शाम 6 बजे तक। तब तक हम एक कामकाजी दिन के अंदर WhatsApp पर जवाब देते हैं। |
+| WhatsApp: +91 98712 76179. Mon–Sat, 10:00–18:00 IST. WhatsApp replies within one working day. | WhatsApp: +91 98712 76179। नवंबर 2026 से सोम–शनि, सुबह 10 से शाम 6 बजे तक। तब तक हम एक कामकाजी दिन के अंदर WhatsApp पर जवाब देते हैं। |
 | Forgot your password? There is no reset email. Message us on WhatsApp: an admin calls you to confirm it's you, then gives you a temporary password to change straight away. | पासवर्ड भूल गए? रीसेट ईमेल नहीं आता। हमें WhatsApp करें: एडमिन आपको कॉल करके पहचान पक्की करेगा, फिर एक अस्थायी पासवर्ड देगा जिसे आप तुरंत बदल लें। |
 | Complaints go to our grievance officer, named on `/contact` with their email and phone. | शिकायत के लिए हमारे शिकायत अधिकारी (ग्रीवेंस ऑफ़िसर) से संपर्क करें। उनका नाम, ईमेल और फ़ोन `/contact` पर है। |
 
