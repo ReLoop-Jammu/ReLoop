@@ -23,6 +23,7 @@ test.describe("hub (staff tool)", () => {
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await expect(page.getByText("₹2,450 – ₹2,950")).toBeVisible();
     await page.getByLabel("We paid (₹)").fill("2700");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByText("RL-JMU-0001", { exact: true })).toBeVisible();
 
@@ -54,26 +55,27 @@ test.describe("hub (staff tool)", () => {
     expect(JSON.stringify(snapshot)).not.toMatch(/buyPaise|Sharma/);
   });
 
-  test("grade D goes to the scrap cage and out with a handover", async ({ page }) => {
+  test("grade D goes to the D devices bin and out with a handover", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Old CRT");
     await page.getByLabel("Grade (if tested now)").selectOption("D");
     await page.getByLabel("How we bought it").selectOption("free");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("Weight (kg)").fill("14");
-    await page.getByRole("button", { name: "Move to scrap cage" }).click();
+    await page.getByRole("button", { name: "Move to the D devices bin" }).click();
 
     await page.goto("/hub/handovers");
     await expect(page.getByText(/1 items, 14.0 kg/)).toBeVisible();
-    await page.getByLabel("Recycler").fill("Authorised recycler");
+    await page.getByLabel("Dismantling partner").fill("VRRG Group, Gangyal");
     await page.getByLabel("Receipt number").fill("R-001");
     await page.getByLabel("Total weight on receipt (kg)").fill("14");
     await page.getByRole("button", { name: /Save handover/ }).click();
     await expect(page.getByRole("cell", { name: "R-001" })).toBeVisible();
-    await expect(page.getByText("The cage is empty.")).toBeVisible();
+    await expect(page.getByText("The bin is empty.")).toBeVisible();
   });
 });
 
@@ -85,6 +87,7 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Brand").fill("Acer");
     await page.getByLabel("Grade (if tested now)").selectOption("C");
     await page.getByLabel("We paid (₹)").fill("150");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByRole("button", { name: "Add part" }).click();
@@ -92,7 +95,7 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Part description").fill("8 GB DDR4");
     await page.getByLabel("Price (₹)").fill("900");
     await page.getByRole("button", { name: "Save parts, shell to scrap" }).click();
-    await expect(page.getByText("Parts tagged. Shell moved to the scrap cage.")).toBeVisible();
+    await expect(page.getByText("Parts tagged. Shell moved to the D devices bin.")).toBeVisible();
     await expect(page.locator("[data-grade]").first()).toHaveAttribute("data-grade", "C");
 
     await page.goto("/hub/items");
@@ -108,7 +111,7 @@ test.describe("hub item lifecycle", () => {
     await page
       .getByLabel("Partner shop")
       .selectOption({ label: "Gupta Electronics (Raghunath Bazaar)" });
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Source").selectOption("repair_shop");
     await expect(page.getByLabel("Partner shop")).toHaveValue("");
   });
@@ -135,6 +138,7 @@ test.describe("KPI dashboard exports", () => {
     await page.getByLabel("Brand").fill("Nokia");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
 
@@ -201,11 +205,12 @@ test.describe("hub overview, menu and search", () => {
     await expect(page.getByText(/arrive in the shared database/)).toBeVisible();
 
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Lenovo");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
     // A freshly graded item isn't overdue for anything yet.
@@ -235,11 +240,12 @@ test.describe("hub overview, menu and search", () => {
     await page.getByLabel("Phone").first().fill("9876543211");
     await page.getByRole("button", { name: "Add shop" }).click();
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Dell");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
 
@@ -274,12 +280,13 @@ test.describe("hub overview, menu and search", () => {
 test.describe("listing controls", () => {
   test("hide, correct with a reason, sell, take back and scrap", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("LG");
     await page.getByLabel("Model").fill("22MK400");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("400");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("List price (₹)").fill("2500");
@@ -309,8 +316,8 @@ test.describe("listing controls", () => {
     await page.getByLabel(/What happened/).fill("Dead pixels found at home (warranty)");
     await page.getByRole("button", { name: "Record the return" }).click();
     await expect(page.getByText("Return recorded. Decide where it goes next.")).toBeVisible();
-    await page.getByRole("button", { name: "Send it to the scrap cage" }).click();
-    await expect(page.getByText("Sent to the scrap cage.")).toBeVisible();
+    await page.getByRole("button", { name: "Send it to the D devices bin" }).click();
+    await expect(page.getByText("Sent to the D devices bin.")).toBeVisible();
     await expect(page.getByText(/returned · Dead pixels found at home/)).toBeVisible();
   });
 });
@@ -318,11 +325,12 @@ test.describe("listing controls", () => {
 test.describe("ReLoop Checked", () => {
   test("a grade B item is inspected before it can be listed", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Samsung");
     await page.getByLabel("Grade (if tested now)").selectOption("B");
     await page.getByLabel("We paid (₹)").fill("300");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("List price (₹)").fill("2000");

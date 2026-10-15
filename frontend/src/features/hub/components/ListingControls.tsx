@@ -215,11 +215,11 @@ export function ListingControls({
                 onClick={() =>
                   void run(
                     () => setItemStatus(item.id, "in_scrap_cage", "Returned item, not resellable"),
-                    "Sent to the scrap cage.",
+                    "Sent to the D devices bin.",
                   )
                 }
               >
-                Send it to the scrap cage
+                Send it to the D devices bin
               </Button>
             </div>
             {(!sellable || !wiped) && (

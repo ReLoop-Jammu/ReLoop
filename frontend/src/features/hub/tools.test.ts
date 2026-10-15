@@ -85,7 +85,7 @@ describe("overview queues", async () => {
 describe("overview stock to-dos", async () => {
   const { stockTodos } = await import("./components/HubHome");
   const { makeItem } = await import("@/features/inventory/test-helpers");
-  it("lists an item 40 days on sale once, under the day-45 price cut", () => {
+  it("lists a device 40 days on sale once, under the day-45 move to C", () => {
     const now = new Date("2026-12-11T10:00:00Z");
     const item = makeItem({
       id: "RL-JMU-0040",
@@ -96,7 +96,7 @@ describe("overview stock to-dos", async () => {
     });
     const todos = stockTodos([item], [], now);
     expect(todos.filter((t) => t.ids?.includes("RL-JMU-0040")).map((t) => t.key)).toEqual([
-      "price-cut",
+      "downgrade",
     ]);
   });
 });

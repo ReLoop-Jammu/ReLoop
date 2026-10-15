@@ -16,3 +16,11 @@ const out = (name) => new URL(`../public/qr/${name}`, import.meta.url);
 writeFileSync(out("awareness-drive.svg"), await QRCode.toString(url, { ...options, type: "svg" }));
 await QRCode.toFile(out("awareness-drive.png").pathname, url, { ...options, width: 1200 });
 console.log(`QR code for ${url} written to public/qr/`);
+
+// The printed rate card and counter card point at /go/rate-card (counted, then
+// redirected to /rate-card). The public site address is the same as the drive link's.
+const origin = new URL(url).origin;
+const rateUrl = `${origin}/go/rate-card`;
+writeFileSync(out("rate-card.svg"), await QRCode.toString(rateUrl, { ...options, type: "svg" }));
+await QRCode.toFile(out("rate-card.png").pathname, rateUrl, { ...options, width: 1200 });
+console.log(`QR code for ${rateUrl} written to public/qr/`);

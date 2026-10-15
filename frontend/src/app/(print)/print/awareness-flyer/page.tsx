@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/brand/Logo";
-import { DRIVE_LINK, LOCATIONS } from "@/config/locations";
+import { DRIVE_LINK } from "@/config/locations";
 import { DriveQr, Sheet } from "@/features/print/Sheet";
 import { getSiteSettings } from "@/features/settings/server";
 
-export const metadata: Metadata = { title: "Awareness-drive flyer (A4)" };
+export const metadata: Metadata = { title: "Buyer and campus flyer (A4)" };
 
-const steps = (hubOpens: string) => [
+const steps = [
   {
-    title: "Sell or drop off",
-    body: `Repair shops and retailers: our ${LOCATIONS.route.days.join(" and ")} pickup route. Colleges and offices: book a pickup. Households: drop off at the hub or a partner shop from ${hubOpens}.`,
+    title: "Tested, wiped and graded",
+    body: "Every phone, laptop and monitor is tagged at our Jammu hub, tested, wiped and graded A to D. Grade A and B devices carry a 30-day warranty.",
   },
   {
-    title: "We grade it at our Jammu hub",
-    body: "Every item gets an RL-JMU tag and a grade from A to D. Phones and drives are wiped before anything is listed.",
+    title: "Tested parts for technicians",
+    body: "Boards, screens, cameras, charging ports, RAM and SSDs, tested and listed on the Jammu Parts Exchange with a 7-day return.",
   },
   {
-    title: "It gets its next life",
-    body: `What works is resold, what can be fixed is repaired, good parts are reused. Only what is truly dead, and loose or swollen batteries, go to the authorised recycler, ${LOCATIONS.recycler.name}.`,
+    title: "Colleges, schools, banks and offices",
+    body: "Book a lot pickup for old desktops, laptops and monitors. We sort on site, buy what works and give you a handover record.",
   },
 ];
 
@@ -28,7 +28,7 @@ export default async function AwarenessFlyerPage() {
       <header className="bg-brand-950 px-[16mm] pt-[10mm] pb-[9mm] text-white">
         <Logo id="flyer" inverted className="origin-left scale-125" />
         <h1 className="mt-[7mm] font-display text-[34pt] leading-[1.05] font-bold text-white">
-          Old electronics don&apos;t belong in a drawer, or in the bin.
+          Tested phones, laptops and parts, from Jammu&apos;s own loop.
         </h1>
       </header>
 
@@ -54,9 +54,10 @@ export default async function AwarenessFlyerPage() {
             ))}
           </div>
           <p className="mt-[4mm] text-[11.5pt] leading-snug text-ink-soft">
-            In Jammu, old phones, laptops and chargers pile up in repair shops, offices and homes.
-            Much of it still works or can be fixed. Batteries and boards need safe handling, not the
-            scrap heap.
+            In Jammu, old phones and laptops pile up in repair shops, stores and offices. Much of it
+            still works or can be fixed. ReLoop is a circular-economy venture started by students in
+            Jammu: it buys from shops, retailers and institutions, tests everything, and keeps what
+            still works in use.
           </p>
         </section>
 
@@ -65,10 +66,10 @@ export default async function AwarenessFlyerPage() {
             id="how-heading"
             className="text-[12pt] font-semibold tracking-[0.12em] text-brand-600 uppercase"
           >
-            How ReLoop works
+            What you can do
           </h2>
           <ol className="mt-[4mm] grid gap-[3.5mm]">
-            {steps(site.hubOpens).map((s, i) => (
+            {steps.map((s, i) => (
               <li key={s.title} className="flex gap-[5mm]">
                 <span className="grid size-[11mm] shrink-0 place-items-center rounded-full bg-brand-600 font-display text-[16pt] font-bold text-white">
                   {i + 1}
@@ -80,6 +81,10 @@ export default async function AwarenessFlyerPage() {
               </li>
             ))}
           </ol>
+          <p className="mt-[4mm] text-[11pt] text-ink-soft">
+            We buy from shops, retailers and institutions only, not from homes. Anyone can buy from
+            us.
+          </p>
         </section>
 
         <div className="mt-[7mm] flex items-center gap-[8mm] rounded-[5mm] border-2 border-brand-600 p-[5mm]">
@@ -87,7 +92,7 @@ export default async function AwarenessFlyerPage() {
           <div>
             <p className="font-display text-[19pt] leading-tight font-bold">Scan to find ReLoop</p>
             <p className="mt-[1mm] text-[11pt] text-ink-soft">
-              The hub, our pickup route and what we accept
+              The hub, our pickup routes and what we accept
             </p>
             {site.supportPhone && (
               <p className="mt-[3mm] text-[12pt]">

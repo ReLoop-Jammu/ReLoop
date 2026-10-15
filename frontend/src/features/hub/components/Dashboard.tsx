@@ -14,11 +14,24 @@ import { cn } from "@/lib/utils/cn";
 import { formatPrice } from "@/lib/utils/money";
 import { itemsCsv, kpiCsv } from "../csv";
 import { downloadFile } from "../photos";
+import { pilotKpis, type PilotKpis } from "@/features/scrap/api";
 import { reportHubError, useHubData } from "../useHubData";
 import { PageTitle, Panel, Stat } from "./ui";
 
 const T = BUSINESS_RULES.targets;
 const pct = (n: number | null) => (n === null ? "–" : `${Math.round(n * 100)}%`);
+
+/** The month's staff-only numbers from the database (null without one, or while loading). */
+function usePilotKpis(month: string) {
+  const [kpis, setKpis] = useState<PilotKpis | null>(null);
+  useEffect(() => {
+    if (!SHARED_DATABASE) return;
+    pilotKpis(`${month}-01`)
+      .then(setKpis)
+      .catch(() => setKpis(null));
+  }, [month]);
+  return kpis;
+}
 
 export function Dashboard() {
   const { items, partners, institutions, handovers, loaded } = useHubData();
@@ -27,17 +40,21 @@ export function Dashboard() {
   const stats = dashboardStats(items, handovers, partners, now);
   const month = now.toISOString().slice(0, 7);
   const thisMonth = stats.months.find((m) => m.month === month);
+  const kpis = usePilotKpis(month);
   const alerts = hubAlerts(items, handovers, now);
   const byStatus = STATUSES.map((s) => ({
     ...s,
     count: items.filter((i) => i.status === s.value).length,
   })).filter((s) => s.count);
+  const kgMonth = kpis?.kg_weighed ?? null;
+  const targetMet = (n: number | null, target: number) => (n === null ? null : n >= target);
+  const partsTarget = kpis?.parts_target_paise ?? null;
 
   return (
     <>
       <PageTitle
         title="KPIs"
-        description={`The business plan's targets: ${now.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`}
+        description={`The pilot plan's targets: ${now.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}`}
         actions={
           <Link href="/hub/intake" className={buttonClasses({ size: "sm" })}>
             <PackagePlus className="size-4" aria-hidden="true" /> Log new item
@@ -45,37 +62,88 @@ export function Dashboard() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
-          label="Items in this month"
-          value={String(thisMonth?.itemsIn ?? 0)}
-          target={`${T.itemsPerMonth} by month 6`}
-          ok={thisMonth ? thisMonth.itemsIn >= T.itemsPerMonth : null}
-        />
-        <Stat
-          label="Reused (A + B + C)"
-          value={pct(thisMonth?.reuseShare ?? null)}
-          target={`≥ ${pct(T.reuseShare)}`}
-          ok={thisMonth?.reuseShare == null ? null : thisMonth.reuseShare >= T.reuseShare}
-        />
-        <Stat
-          label="Average stock age"
-          value={stats.avgStockAgeDays === null ? "–" : `${Math.round(stats.avgStockAgeDays)} d`}
-          target={`< ${T.avgStockAgeDays} days`}
-          ok={stats.avgStockAgeDays === null ? null : stats.avgStockAgeDays < T.avgStockAgeDays}
-        />
-        <Stat
-          label="Scrap handed over"
-          value={`${(thisMonth?.scrapKg ?? 0).toFixed(1)} kg`}
-          target="100% with receipt"
-        />
-        <Stat
-          label="Active partner shops"
+          label="Partner shops on the route"
           value={String(stats.activePartners)}
-          target={String(T.activePartnerShops)}
-          ok={stats.activePartners >= T.activePartnerShops}
+          target={`${T.partnerShops} by month 6`}
+          ok={stats.activePartners >= T.partnerShops}
+        />
+        <Stat
+          label="Scrap weighed this month"
+          value={kgMonth === null ? "–" : `${kgMonth.toFixed(1)} kg`}
+          target={`about ${T.kgPerMonth} kg a month`}
+          ok={targetMet(kgMonth, T.kgPerMonth)}
+        />
+        <Stat
+          label="Devices in this month"
+          value={String(thisMonth?.itemsIn ?? 0)}
+          target={`${BUSINESS_RULES.ramp.devices[0]} to ${BUSINESS_RULES.ramp.devices.at(-1)} a month`}
+        />
+        <Stat
+          label="Scrap handed to VRRG Group"
+          value={`${(thisMonth?.scrapKg ?? 0).toFixed(1)} kg`}
+          target="100% on a weight receipt"
+        />
+        <Stat
+          label="Tested parts sold (staff only)"
+          value={kpis ? formatPrice(kpis.parts_sold_paise) : "–"}
+          target={
+            partsTarget === null
+              ? "Target not set (Settings)"
+              : `Target ${formatPrice(partsTarget)} a month`
+          }
+          ok={kpis && partsTarget !== null ? kpis.parts_sold_paise >= partsTarget : null}
+        />
+        <Stat
+          label="Kg to outside dealers (staff only)"
+          value={kpis ? `${kpis.unregistered_dealer_kg} kg` : "–"}
+          target={
+            kpis
+              ? `Target 0 · ${kpis.dealer_reports} shop reports this month`
+              : "Target 0, from the monthly shop report"
+          }
+          ok={kpis ? kpis.unregistered_dealer_kg === 0 : null}
+        />
+        <Stat
+          label="Reuse share (measured)"
+          value={pct(kpis?.reuse_share ?? thisMonth?.reuseShare ?? null)}
+          target="No target"
+        />
+        <Stat
+          label="Average days in stock (measured)"
+          value={
+            kpis?.avg_days_in_stock != null
+              ? `${Math.round(kpis.avg_days_in_stock)} d`
+              : stats.avgStockAgeDays === null
+                ? "–"
+                : `${Math.round(stats.avgStockAgeDays)} d`
+          }
+          target="No target"
         />
       </div>
+
+      <Panel title="Stage gates" className="mt-6">
+        <ul className="grid gap-2 text-sm md:grid-cols-2">
+          <li>
+            <strong>Months 1 to 2:</strong> move on at {BUSINESS_RULES.stageGateOne.kgInMonth} kg in
+            a month with at most {BUSINESS_RULES.stageGateOne.maxMissedPickups} missed weekly
+            pickups.{" "}
+            {kpis ? (
+              <span className={kpis.gate_one_met ? "font-semibold text-success" : "text-muted"}>
+                This month: {kpis.kg_weighed.toFixed(1)} kg, {kpis.missed_pickups} missed pickups
+                {kpis.gate_one_met ? " (met)" : " (not yet)"}.
+              </span>
+            ) : (
+              <span className="text-muted">Measured from weigh-ins.</span>
+            )}
+          </li>
+          <li>
+            <strong>Months 3 to 4:</strong> move on when profitable two months running. This is a
+            staff judgement from the private plan.
+          </li>
+        </ul>
+      </Panel>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Panel title="Needs attention">

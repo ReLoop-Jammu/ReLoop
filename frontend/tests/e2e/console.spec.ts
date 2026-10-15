@@ -115,6 +115,7 @@ test("main interactions run without console errors", async ({ page }) => {
   await page.getByLabel("Brand").fill("Nokia");
   await page.getByLabel("Grade (if tested now)").selectOption("A");
   await page.getByLabel("We paid (₹)").fill("500");
+  await page.getByLabel(/Ownership/).check();
   await page.getByRole("button", { name: "Save and assign tag" }).click();
   await page.getByRole("link", { name: "Open item" }).click();
   await page.getByRole("button", { name: "Mark wiped" }).click();

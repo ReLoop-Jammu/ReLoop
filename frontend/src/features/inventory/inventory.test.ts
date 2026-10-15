@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { formatItemId, isItemId, nextItemId, parseItemNumber } from "./ids";
-import { shipsAcrossIndia, needsDataWipe } from "./model";
-import { cutPrice, estimateBuyPrice, likelyGrade } from "./pricing";
+import { needsDataWipe } from "./model";
+import { cutPrice } from "./pricing";
 import { applyStockRules, hubAlerts, stockRulesDue } from "./rules";
 import { dashboardStats } from "./stats";
 import { makeItem } from "./test-helpers";
@@ -28,67 +28,61 @@ describe("item IDs", () => {
   });
 });
 
-describe("buy-price estimate (plan §04)", () => {
-  it("pays about 45% of resale for grade A and 25% for grade B", () => {
-    const a = estimateBuyPrice("A", 320_000);
-    expect(a).toMatchObject({ kind: "range", minPaise: 130_000, maxPaise: 160_000 });
-    const b = estimateBuyPrice("B", 240_000);
-    expect(b).toMatchObject({ kind: "range", minPaise: 55_000, maxPaise: 65_000 });
-  });
-
-  it("pays a flat ₹100–200 for C and nothing for D", () => {
-    expect(estimateBuyPrice("C", 999_999)).toMatchObject({ minPaise: 10_000, maxPaise: 20_000 });
-    expect(estimateBuyPrice("D", 500_000)).toEqual({ kind: "free_disposal", grade: "D" });
-  });
-
-  it("states the rule only when the resale value is unknown", () => {
-    expect(estimateBuyPrice("A", null)).toEqual({
-      kind: "rule_only",
-      grade: "A",
-    });
-  });
-
-  it("guesses a likely grade from the seller's answers", () => {
-    expect(likelyGrade({ powersOn: "yes", allWorking: "yes", hazard: false })).toBe("A");
-    expect(likelyGrade({ powersOn: "yes", allWorking: "one_fault", hazard: false })).toBe("B");
-    expect(likelyGrade({ powersOn: "yes", allWorking: "several_faults", hazard: false })).toBe("C");
-    expect(likelyGrade({ powersOn: "no", allWorking: "unsure", hazard: false })).toBe("C");
-    expect(likelyGrade({ powersOn: "yes", allWorking: "yes", hazard: true })).toBe("D");
-  });
-
-  it("cuts price by 20%, rounded to ₹10", () => {
-    expect(cutPrice(320_000)).toBe(256_000);
-    expect(cutPrice(99_900)).toBe(80_000);
+describe("price cut", () => {
+  it("cuts a part price by 25%, rounded to ₹10 and never below ₹10", () => {
+    expect(cutPrice(320_000)).toBe(240_000);
+    expect(cutPrice(99_900)).toBe(75_000);
+    expect(cutPrice(50_000)).toBe(38_000); // 37,500 rounds to ₹380
+    expect(cutPrice(1_000)).toBe(1_000);
   });
 });
 
-describe("unsold-stock rules (day 45, day 75)", () => {
-  const listed = makeItem();
-
-  it("does nothing before day 45", () => {
-    expect(applyStockRules([listed], day(44))).toEqual([]);
+describe("unsold-stock rules (parts day 30, devices day 45)", () => {
+  const device = makeItem();
+  const part = makeItem({
+    id: "RL-JMU-0090",
+    category: "part",
+    partType: "board",
+    grade: "C",
+    currentPaise: 120_000,
+    listPaise: 120_000,
   });
 
-  it("cuts the price 20% on day 45, once", () => {
-    const [cut] = applyStockRules([listed], day(45));
-    expect(cut.currentPaise).toBe(256_000);
+  it("does nothing before the thresholds", () => {
+    expect(applyStockRules([device], day(44))).toEqual([]);
+    expect(applyStockRules([part], day(29))).toEqual([]);
+  });
+
+  it("moves an A or B device to C and strips it on day 45, with no price cut", () => {
+    const [down] = applyStockRules([device], day(45));
+    expect(down.grade).toBe("C");
+    expect(down.status).toBe("stripping");
+    expect(down.currentPaise).toBe(device.currentPaise);
+    expect(down.priceCutAt).toBeUndefined();
+    expect(applyStockRules([down], day(90))).toEqual([]);
+  });
+
+  it("cuts a part 25% on day 30, once", () => {
+    const [cut] = applyStockRules([part], day(30));
+    expect(cut.currentPaise).toBe(90_000);
     expect(cut.priceCutAt).toBeDefined();
+    expect(cut.status).toBe("listed");
     expect(cut.events.at(-1)?.type).toBe("auto_price_cut");
     expect(applyStockRules([cut], day(60))).toEqual([]);
   });
 
-  it("downgrades to C for stripping on day 75", () => {
-    const [down] = applyStockRules([listed], day(75));
-    expect(down.grade).toBe("C");
-    expect(down.status).toBe("stripping");
+  it("never cuts a part a shop listed (the shop is reminded instead), a reserved or hidden item, or a sold one", () => {
+    expect(applyStockRules([{ ...part, listedByPartnerId: "p1" }], day(40))).toEqual([]);
+    expect(applyStockRules([makeItem({ status: "reserved" })], day(90))).toEqual([]);
+    expect(applyStockRules([{ ...part, hidden: true }], day(40))).toEqual([]);
+    expect(applyStockRules([makeItem({ status: "sold" })], day(90))).toEqual([]);
   });
 
-  it("never touches sold items or loose parts", () => {
-    expect(applyStockRules([makeItem({ status: "sold" })], day(90))).toEqual([]);
-    const part = makeItem({ category: "part", partType: "ram", grade: "C" });
-    const [p] = applyStockRules([part], day(90));
-    expect(p.grade).toBe("C");
-    expect(p.status).toBe("listed");
+  it("lists what the rules will reach within a week", () => {
+    const due = stockRulesDue([device, part], day(40));
+    expect(due.downgrade).toEqual([device.id]);
+    expect(due.priceCut).toEqual([]);
+    expect(stockRulesDue([device, part], day(25)).priceCut).toEqual([part.id]);
   });
 });
 
@@ -116,7 +110,7 @@ describe("hub alerts", () => {
       now,
     );
     const text = alerts.map((a) => a.message).join(" | ");
-    expect(text).toMatch(/not graded within 24 hours/);
+    expect(text).toMatch(/not tested within 24 hours/);
     expect(text).toMatch(/105\.0 kg/);
     expect(text).toMatch(/batteries/);
   });
@@ -164,19 +158,17 @@ describe("dashboard", () => {
 });
 
 describe("item rules", () => {
-  it("ships only laptops and boards across India", () => {
-    expect(shipsAcrossIndia({ category: "laptop" })).toBe(true);
-    expect(shipsAcrossIndia({ category: "part", partType: "board" })).toBe(true);
-    expect(shipsAcrossIndia({ category: "phone" })).toBe(false);
-  });
-
-  it("requires a data wipe for phones, computers and drives", () => {
+  it("requires a data wipe for phones, computers, drives and boards (except a monitor's)", () => {
     expect(needsDataWipe({ category: "phone" })).toBe(true);
     expect(needsDataWipe({ category: "part", partType: "storage" })).toBe(true);
+    expect(needsDataWipe({ category: "part", partType: "board" })).toBe(true);
+    expect(needsDataWipe({ category: "part", partType: "board", parentCategory: "monitor" })).toBe(
+      false,
+    );
     expect(needsDataWipe({ category: "monitor" })).toBe(false);
   });
 
-  it("keeps the plan's numbers in one place", () => {
+  it("keeps the public rules in one place", () => {
     expect(BUSINESS_RULES.jammuDeliveryPaise).toBe(5_000);
     expect(BUSINESS_RULES.warrantyDays).toBe(30);
   });
@@ -193,24 +185,33 @@ describe("stock rules due soon (hub overview)", () => {
       ...extra,
     });
 
-  it("lists items the day-45 cut or the day-75 downgrade reaches within a week", () => {
+  it("lists devices reaching day 45 and parts reaching day 30 within a week", () => {
     const items = [
       listed("RL-JMU-0001"),
-      listed("RL-JMU-0002", { priceCutAt: day(45).toISOString() }),
+      listed("RL-JMU-0002", { category: "part", partType: "screen", grade: "C" }),
+      listed("RL-JMU-0006", {
+        category: "part",
+        partType: "board",
+        grade: "C",
+        priceCutAt: day(30).toISOString(),
+      }),
     ];
-    expect(stockRulesDue(items, day(37))).toEqual({ priceCut: [], downgrade: [] });
-    expect(stockRulesDue(items, day(38))).toEqual({ priceCut: ["RL-JMU-0001"], downgrade: [] });
+    expect(stockRulesDue(items, day(22))).toEqual({ priceCut: [], downgrade: [] });
+    expect(stockRulesDue(items, day(23))).toEqual({ priceCut: ["RL-JMU-0002"], downgrade: [] });
+    expect(stockRulesDue(items, day(30))).toEqual({ priceCut: [], downgrade: [] });
+    expect(stockRulesDue(items, day(38))).toEqual({ priceCut: [], downgrade: ["RL-JMU-0001"] });
     expect(stockRulesDue(items, day(45))).toEqual({ priceCut: [], downgrade: [] });
-    expect(stockRulesDue(items, day(70))).toEqual({
-      priceCut: [],
-      downgrade: ["RL-JMU-0001", "RL-JMU-0002"],
-    });
   });
 
-  it("ignores parts, grade C and anything not listed", () => {
+  it("ignores grade C devices, shop-listed parts and anything not listed", () => {
     const items = [
-      listed("RL-JMU-0003", { category: "part", partType: "screen" }),
-      listed("RL-JMU-0004", { grade: "C", category: "part", partType: "board" }),
+      listed("RL-JMU-0003", { grade: "C" }),
+      listed("RL-JMU-0004", {
+        grade: "C",
+        category: "part",
+        partType: "board",
+        listedByPartnerId: "p1",
+      }),
       makeItem({ id: "RL-JMU-0005", status: "sold", listedAt: day(0).toISOString() }),
     ];
     expect(stockRulesDue(items, day(70))).toEqual({ priceCut: [], downgrade: [] });

@@ -31,7 +31,7 @@ const PROMISES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ShieldCheck,
     title: "Tested and graded",
-    body: "Every item carries an RL-JMU tag and an A–C grade.",
+    body: "Every device carries an RL-JMU tag and grade A or B; every part is a tested part.",
   },
   {
     icon: Wrench,
@@ -41,12 +41,12 @@ const PROMISES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Truck,
     title: "Pickup or delivery",
-    body: `Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} anywhere in Jammu.`,
+    body: `Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} in Jammu city.`,
   },
   {
     icon: Recycle,
     title: "Nothing dumped",
-    body: "What can't be reused goes to an authorised recycler.",
+    body: "What can't be reused goes to VRRG Group, our dismantling partner, by weight.",
   },
 ];
 
@@ -54,14 +54,14 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
   {
     href: "/sell/shops",
     icon: Store,
-    title: "Repair shops & retailers",
-    body: "Paid in cash or UPI when we collect, every Tuesday and Friday.",
+    title: "Repair shops, retailers & exchange stores",
+    body: "Scrap weighed and paid by UPI on the spot, on a fixed weekly pickup day.",
   },
   {
     href: "/sell/institutions",
     icon: Building2,
-    title: "Institutions",
-    body: "Booked pickups with a handover record.",
+    title: "Colleges, schools, banks & offices",
+    body: "Booked lot pickups, sorted on site, with a handover record.",
   },
 ];
 
@@ -116,9 +116,10 @@ export default async function HomePage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers,
-              institutions and homes, grades every item at one hub, and gives it its next useful
-              life. Only what is truly dead goes to an authorised recycler.
+              ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers and
+              institutions, tests and grades them at one hub, and resells what still works as graded
+              devices and tested parts. Scrap is weighed and handed to VRRG Group, our dismantling
+              partner.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/shop" size="lg">
@@ -126,7 +127,7 @@ export default async function HomePage() {
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
               <ButtonLink href="/sell" size="lg" variant="secondary">
-                Sell to us
+                For shops &amp; institutions
               </ButtonLink>
             </div>
           </div>
@@ -161,8 +162,8 @@ export default async function HomePage() {
           <SectionHeading
             id="grades-heading"
             eyebrow={<Eyebrow>Four grades</Eyebrow>}
-            title="Every item gets an honest grade"
-            description="We test everything at our hub before it goes anywhere. The grade decides its next life."
+            title="Every device gets an honest grade"
+            description="We test everything at our hub before it goes anywhere. The grade decides a device's next life; a working part is a tested part."
           />
           <GradeStrip />
         </Container>
@@ -219,17 +220,17 @@ export default async function HomePage() {
         <Container>
           <SectionHeading
             id="sell-heading"
-            eyebrow={<Eyebrow>Sell to us</Eyebrow>}
-            title="Got electronics you don't use?"
-            description="Working, broken or dead: we test it, pay for what can be reused, and handle the rest properly."
+            eyebrow={<Eyebrow>For shops &amp; institutions</Eyebrow>}
+            title="Run a repair shop, store or office?"
+            description="Scrap is paid by the kilo at the rate card. Working devices get an offer after testing. Working parts are priced one by one, or listed by you on the Parts Exchange."
             actions={
-              <ButtonLink href="/sell" variant="secondary">
-                How we price
+              <ButtonLink href="/rate-card" variant="secondary">
+                The rate card
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             }
           />
-          <ul className="grid gap-4 md:grid-cols-3" role="list">
+          <ul className="grid gap-4 md:grid-cols-2" role="list">
             {SELL_PATHS.map(({ href, icon: Icon, title, body }) => (
               <li key={href}>
                 <Link
@@ -262,7 +263,7 @@ export default async function HomePage() {
           <CtaBanner
             eyebrow="Where scrap goes"
             title="Nothing dead goes in the bin."
-            description="Dead and hazardous items, and every battery, go only to an authorised recycler, weighed, with a receipt for each handover."
+            description="Dead scrap and every battery go to VRRG Group, Gangyal, by weight, with a weight receipt for each handover."
             actions={
               <ButtonLink href="/where-scrap-goes" size="lg" variant="dark">
                 Where scrap goes

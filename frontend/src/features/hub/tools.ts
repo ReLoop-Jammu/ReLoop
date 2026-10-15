@@ -120,8 +120,8 @@ export const HUB_TOOLS: readonly HubTool[] = [
   },
   {
     href: "/hub/handovers",
-    label: "Recycler handovers",
-    description: "Scrap and battery handovers, with the recycler's receipt.",
+    label: "Handovers to VRRG Group",
+    description: "Bins, batteries and the partner's weight receipts.",
     icon: Recycle,
     role: "staff",
     group: "Records",

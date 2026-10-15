@@ -149,7 +149,7 @@ export function stockTodos(
 ): Todo[] {
   const due = stockRulesDue(items, now);
   return [
-    // The day-45 reminder is listed below with the day-75 one (stockRulesDue).
+    // The day-30 reminder is listed below with the day-45 one (stockRulesDue).
     ...hubAlerts(items, handovers, now)
       .filter((al) => al.key !== "price_cut_soon")
       .map((al) => ({
@@ -165,7 +165,7 @@ export function stockTodos(
           {
             key: "price-cut",
             count: due.priceCut.length,
-            label: `${due.priceCut.length} listed ${plural(due.priceCut.length, "item reaches", "items reach")} the day-45 price cut this week`,
+            label: `${due.priceCut.length} listed ${plural(due.priceCut.length, "part reaches", "parts reach")} the day-30 price cut this week`,
             href: "/hub/items?status=listed",
             level: "check" as const,
             ids: due.priceCut,
@@ -177,7 +177,7 @@ export function stockTodos(
           {
             key: "downgrade",
             count: due.downgrade.length,
-            label: `${due.downgrade.length} listed ${plural(due.downgrade.length, "item reaches", "items reach")} day 75 (downgrade to C for parts) this week`,
+            label: `${due.downgrade.length} listed ${plural(due.downgrade.length, "device reaches", "devices reach")} day 45 (moves to C to be stripped) this week`,
             href: "/hub/items?status=listed",
             level: "act" as const,
             ids: due.downgrade,

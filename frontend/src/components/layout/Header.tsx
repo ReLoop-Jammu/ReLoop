@@ -56,7 +56,7 @@ export async function Header() {
             </div>
             <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
               <Plus className="size-4" aria-hidden="true" />
-              Sell to us
+              For shops & institutions
             </ButtonLink>
             <div className="lg:hidden">
               <MobileNav />

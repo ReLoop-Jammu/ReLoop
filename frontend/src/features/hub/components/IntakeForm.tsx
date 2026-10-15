@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import {
-  CATEGORIES,
+  ACTIVE_CATEGORIES,
   GRADES,
+  INTAKE_SOURCE_TYPES,
   PART_TYPES,
-  SOURCE_TYPES,
   categoryLabel,
   needsDataWipe,
   type BuyMode,
@@ -18,9 +18,7 @@ import {
   type PartType,
   type SourceType,
 } from "@/features/inventory/model";
-import { estimateBuyPrice } from "@/features/inventory/pricing";
 import { createItem } from "@/features/inventory/store";
-import { formatPrice } from "@/lib/utils/money";
 import { compressImage } from "../photos";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select, hubInput, rupeesToPaiseOrNull } from "./ui";
@@ -46,6 +44,10 @@ type Draft = {
   buy: string;
   resale: string;
   photos: string[];
+  /** The seller confirmed they own the device (or have it signed over). */
+  ownership: boolean;
+  /** A locked device is only ever C or D. */
+  locked: boolean;
 };
 
 const BLANK: Draft = {
@@ -69,6 +71,8 @@ const BLANK: Draft = {
   buy: "",
   resale: "",
   photos: [],
+  ownership: false,
+  locked: false,
 };
 
 export function IntakeForm() {
@@ -80,7 +84,6 @@ export function IntakeForm() {
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
   const resalePaise = rupeesToPaiseOrNull(d.resale);
-  const suggestion = d.grade ? estimateBuyPrice(d.grade, resalePaise) : null;
 
   const addPhotos = async (files: FileList | null) => {
     if (!files) return;
@@ -100,6 +103,12 @@ export function IntakeForm() {
     setError("");
     if (!d.brand.trim() && !d.model.trim()) return setError("Enter at least a brand or a model.");
     if (d.category === "part" && !d.partType) return setError("Choose the part type.");
+    if (!d.ownership)
+      return setError(
+        "The seller must confirm they own it or have it signed over. Tick the ownership box.",
+      );
+    if (d.locked && (d.grade === "A" || d.grade === "B"))
+      return setError("A locked device is only ever grade C or D, never resold whole.");
     if (d.sourceType === "repair_shop" || d.sourceType === "retailer") {
       if (!d.partnerId && !d.sourceName.trim())
         return setError("Choose the partner shop, or type the shop name.");
@@ -140,6 +149,8 @@ export function IntakeForm() {
         ...(d.buyMode !== "free" &&
           d.paymentMethod !== "not_paid" && { purchasePaidAt: new Date().toISOString() }),
         expectedResalePaise: resalePaise,
+        ownershipConfirmedAt: new Date().toISOString(),
+        ...(d.locked && { lockedDevice: true }),
       });
       setSaved(item);
       setD({
@@ -201,7 +212,7 @@ export function IntakeForm() {
                   }))
                 }
               >
-                {SOURCE_TYPES.filter((s) => s.value !== "stripped").map((s) => (
+                {INTAKE_SOURCE_TYPES.map((s) => (
                   <option key={s.value} value={s.value}>
                     {s.label}
                   </option>
@@ -245,11 +256,7 @@ export function IntakeForm() {
               </Field>
             )}
             {!d.partnerId && !d.institutionId && (
-              <Field
-                label={d.sourceType === "household" ? "Seller name (optional)" : "Seller name"}
-                htmlFor={`${id}-sname`}
-                className="sm:col-span-2"
-              >
+              <Field label="Seller name" htmlFor={`${id}-sname`} className="sm:col-span-2">
                 <Input
                   id={`${id}-sname`}
                   value={d.sourceName}
@@ -284,7 +291,7 @@ export function IntakeForm() {
                 value={d.category}
                 onChange={(e) => set("category", e.target.value as Category)}
               >
-                {CATEGORIES.map((c) => (
+                {ACTIVE_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.single}
                   </option>
@@ -398,7 +405,7 @@ export function IntakeForm() {
                 onChange={(e) => set("buyMode", e.target.value as BuyMode)}
               >
                 <option value="cash">Cash on pickup</option>
-                <option value="free">Free (scrap / disposal)</option>
+                <option value="free">Nothing paid (dead device, scrap by weight)</option>
               </Select>
             </Field>
             <Field label="We paid (₹)" htmlFor={`${id}-buy`}>
@@ -436,18 +443,32 @@ export function IntakeForm() {
               />
             </Field>
           </div>
-          {suggestion && (
-            <p className="mt-4 rounded-lg bg-sunken p-3 text-sm text-ink-soft">
-              Price list for grade {suggestion.grade}:{" "}
-              <strong className="text-ink">
-                {suggestion.kind === "range"
-                  ? `${formatPrice(suggestion.minPaise)} – ${formatPrice(suggestion.maxPaise)}`
-                  : suggestion.kind === "free_disposal"
-                    ? "free pickup, pay nothing"
-                    : "enter the expected resale to see a price"}
-              </strong>
-            </p>
-          )}
+          <div className="mt-4 grid gap-2 rounded-lg bg-sunken p-3 text-sm">
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4"
+                checked={d.ownership}
+                onChange={(e) => set("ownership", e.target.checked)}
+              />
+              <span>
+                <strong>Ownership.</strong> The seller confirms they own this device, or have it
+                signed over to them. Recorded with the time and the staff member present.
+              </span>
+            </label>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4"
+                checked={d.locked}
+                onChange={(e) => set("locked", e.target.checked)}
+              />
+              <span>
+                The device is locked (cannot be opened by us). It can only be grade C or D and is
+                never resold whole. Reported-lost or blacklisted devices are refused.
+              </span>
+            </label>
+          </div>
         </Panel>
 
         <Panel title="Photos">

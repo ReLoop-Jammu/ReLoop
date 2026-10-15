@@ -147,7 +147,7 @@ export function MobileNav() {
           </div>
           <Link href="/sell" className={buttonClasses({ size: "lg", className: "w-full" })}>
             <Plus className="size-4" aria-hidden="true" />
-            Sell to us
+            For shops & institutions
           </Link>
           <p className="text-center text-sm">
             <ReportProblem className="font-medium text-brand-600 underline" />
