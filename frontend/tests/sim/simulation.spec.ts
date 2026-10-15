@@ -585,3 +585,23 @@ test.describe("capacity and records (real logins)", () => {
     });
   });
 });
+
+test.describe("staff pricing (real logins)", () => {
+  test("the demo admin sees margins by category and grade, flags against the simulated figures, and the CSV", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/pricing");
+    await expect(page.getByRole("heading", { name: "By category and grade" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("button", { name: "Download margins (CSV)" })).toBeVisible();
+  });
+
+  test("the public shop never shows a buy price or margin", async ({ page }) => {
+    await page.goto("/shop");
+    const text = await page.locator("main").innerText();
+    expect(text).not.toMatch(/margin|COGS|we paid|buy price/i);
+  });
+});

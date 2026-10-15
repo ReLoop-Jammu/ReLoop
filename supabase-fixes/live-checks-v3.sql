@@ -36,5 +36,12 @@ select check_name, ok
         and not has_function_privilege('anon', 'public.handover_record(uuid)', 'EXECUTE')
         and not has_table_privilege('anon', 'public.scrap_ledger', 'SELECT')
         and exists (select 1 from pg_constraint where conname = 'scrap_ledger_battery_fields'))
+    ,
+    (35, 'Staff pricing: item_margins runs as the caller (staff by RLS), visitors are refused, and benchmarks and suggestions are staff-only functions',
+        exists (select 1 from pg_class where relname = 'item_margins' and 'security_invoker=true' = any (reloptions))
+        and not has_table_privilege('anon', 'public.item_margins', 'SELECT')
+        and not has_function_privilege('anon', 'public.pricing_benchmarks()', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.suggested_price(public.item_category, public.part_type, text, text, public.grade)', 'EXECUTE')
+        and not exists (select 1 from public.app_settings where key = 'pricing.target_margin_pct'))
   ) as c(n, check_name, ok)
  order by n;

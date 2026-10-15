@@ -1,6 +1,9 @@
 {
   "_note": "PLACEHOLDER values for the simulation only. They are not the business plan's figures. To calibrate the seed to the plan, copy this file to local-inputs.json (gitignored, never committed) and edit it on your own machine. See scripts/finish-v1-local.md.",
-  "buy_share_of_resale": { "A": 0.4, "B": 0.2 },
+  "buy_share_of_resale": {
+    "A": 0.4,
+    "B": 0.2
+  },
   "c_device_buy_rupees": [10, 20],
   "tested_part_buy_rupees": {
     "board": 100,
@@ -11,5 +14,10 @@
     "ram": 40,
     "storage": 50
   },
-  "vrrg_rates_paise": null
+  "vrrg_rates_paise": null,
+  "finance_benchmarks_paise": {
+    "_note": "SIMULATED placeholders, deliberately odd numbers, not the plan's unit figures.",
+    "finance.device_unit_paise": 12345,
+    "finance.scrap_spread_paise_per_kg": 111
+  }
 }

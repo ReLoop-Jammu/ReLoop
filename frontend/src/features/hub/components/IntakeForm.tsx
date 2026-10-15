@@ -19,7 +19,9 @@ import {
   type SourceType,
 } from "@/features/inventory/model";
 import { listWeighins, type Weighin } from "@/features/scrap/api";
-import { SHARED_DATABASE, createItem } from "@/features/inventory/store";
+import { SHARED_DATABASE, addItemNote, createItem } from "@/features/inventory/store";
+import { suggestedPrice, type Suggestion } from "@/features/pricing/api";
+import { needsOverrideReason } from "@/features/pricing/dashboard";
 import { compressImage } from "../photos";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select, hubInput, rupeesToPaiseOrNull } from "./ui";
@@ -37,6 +39,8 @@ type Draft = {
   partType: PartType | "";
   /** The scrap weigh-in whose to-test bag this part came from (optional). */
   weighinId: string;
+  /** Why the expected resale differs from the suggested price (logged in the history). */
+  priceReason: string;
   brand: string;
   model: string;
   description: string;
@@ -65,6 +69,7 @@ const BLANK: Draft = {
   category: "phone",
   partType: "",
   weighinId: "",
+  priceReason: "",
   brand: "",
   model: "",
   description: "",
@@ -99,6 +104,28 @@ export function IntakeForm() {
     };
   }, [d.category]);
 
+  // A suggested price from the freshest matching price reference (shared database only).
+  const [suggestion, setSuggestion] = useState<Suggestion>(null);
+  useEffect(() => {
+    if (!SHARED_DATABASE || !d.grade) return;
+    let live = true;
+    const t = setTimeout(() => {
+      suggestedPrice({
+        category: d.category,
+        partType: d.category === "part" ? d.partType || null : null,
+        brand: d.brand.trim(),
+        model: d.model.trim(),
+        grade: d.grade,
+      })
+        .then((s) => live && setSuggestion(s))
+        .catch(() => live && setSuggestion(null));
+    }, 400);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+  }, [d.category, d.partType, d.brand, d.model, d.grade]);
+
   const resalePaise = rupeesToPaiseOrNull(d.resale);
 
   const addPhotos = async (files: FileList | null) => {
@@ -114,9 +141,14 @@ export function IntakeForm() {
     }
   };
 
+  const shownSuggestion = d.grade ? suggestion : null;
+  const reasonNeeded = needsOverrideReason(resalePaise, shownSuggestion?.paise);
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    if (reasonNeeded && d.priceReason.trim().length < 3)
+      return setError("Say why the expected resale differs from the suggested price.");
     if (!d.brand.trim() && !d.model.trim()) return setError("Enter at least a brand or a model.");
     if (d.category === "part" && !d.partType) return setError("Choose the part type.");
     if (!d.ownership)
@@ -169,6 +201,14 @@ export function IntakeForm() {
         ownershipConfirmedAt: new Date().toISOString(),
         ...(d.locked && { lockedDevice: true }),
       });
+      if (reasonNeeded && shownSuggestion)
+        await addItemNote(
+          item.id,
+          `Expected resale ₹${(resalePaise ?? 0) / 100} instead of the suggested ₹${shownSuggestion.paise / 100}: ${d.priceReason.trim()}`.slice(
+            0,
+            500,
+          ),
+        );
       setSaved(item);
       setD({
         ...BLANK,
@@ -428,7 +468,11 @@ export function IntakeForm() {
             <Field
               label="Expected resale (₹)"
               htmlFor={`${id}-resale`}
-              hint="What it should sell for once listed."
+              hint={
+                shownSuggestion
+                  ? `Suggested ₹${(shownSuggestion.paise / 100).toLocaleString("en-IN")} (${shownSuggestion.source}, ${shownSuggestion.checked_on}).`
+                  : "What it should sell for once listed."
+              }
             >
               <Input
                 id={`${id}-resale`}
@@ -437,6 +481,20 @@ export function IntakeForm() {
                 onChange={(e) => set("resale", e.target.value)}
               />
             </Field>
+            {reasonNeeded && (
+              <Field
+                label="Why a different price?"
+                htmlFor={`${id}-why`}
+                hint="More than 10% from the suggestion: the reason goes into the item's history."
+              >
+                <Input
+                  id={`${id}-why`}
+                  value={d.priceReason}
+                  onChange={(e) => set("priceReason", e.target.value)}
+                  maxLength={200}
+                />
+              </Field>
+            )}
             <Field label="How we bought it" htmlFor={`${id}-mode`}>
               <Select
                 id={`${id}-mode`}

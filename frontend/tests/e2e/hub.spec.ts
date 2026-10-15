@@ -407,3 +407,19 @@ test.describe("route and repairs", () => {
     await expect(page.getByText("Nothing is out for repair.")).toBeVisible();
   });
 });
+
+test.describe("staff pricing", () => {
+  test("the pricing screen is staff-only, in Records, and needs the shared database", async ({
+    page,
+  }) => {
+    await page.goto("/hub");
+    await expect(
+      page
+        .getByRole("navigation", { name: "Hub" })
+        .getByRole("link", { name: "Pricing", exact: true }),
+    ).toHaveAttribute("href", "/hub/pricing");
+    await page.goto("/hub/pricing");
+    await expect(page.getByText("Pricing is kept in the shared database.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Price references" }).first()).toBeVisible();
+  });
+});

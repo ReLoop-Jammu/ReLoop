@@ -37,7 +37,7 @@ export default async function InstitutionsPage() {
             },
             {
               title: "Booked pickup",
-              body: "We schedule a date that suits you.",
+              body: "We schedule a date that suits you. Booking dates open from January 2027.",
             },
             {
               title: "Working equipment bought",
@@ -90,7 +90,8 @@ export default async function InstitutionsPage() {
               { name: "email", label: "Email", type: "email", autoComplete: "email" },
               {
                 name: "date",
-                label: "Preferred date",
+                label: "Preferred date (from January 2027)",
+                min: "2027-01-01",
                 type: "date",
               },
               {

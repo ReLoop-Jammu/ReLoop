@@ -264,6 +264,12 @@ Every money value below is **absent from the repository**. The code reads it fro
 2. The hub lead counts the device rack slots and sets `capacity.device_rack_slots` in `/hub/settings` (it stays unset in production until then, so no percentage or alert shows). The simulation uses a labelled simulated value.
 3. Open one institution lot's "Handover record (PDF)" on the simulation and read it through: it must list tags and the VRRG receipt, with no prices and no "certificate" or "disposal" wording.
 
+### 7e. Added by batch 22 (staff pricing), in run order
+
+1. Apply migration `20261107000004_staff_pricing.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 35 must be true).
+2. **LOCAL ONLY values:** in `backend/sim/local-inputs.json` set `finance_benchmarks_paise` (`finance.device_unit_paise`, `finance.scrap_spread_paise_per_kg`) from the plan if the simulation should be calibrated (the committed example has deliberately odd simulated numbers), then re-seed. In production an admin enters the same two keys and `vrg.rates_paise` in `/hub/settings`; never in a file.
+3. Sign in as staff on the simulation and open `/hub/pricing`: check the flags make sense, then download the CSV and confirm it has no supplier names or phone numbers.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).

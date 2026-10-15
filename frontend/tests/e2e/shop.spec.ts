@@ -300,7 +300,8 @@ test.describe("launch wording", () => {
     page,
     request,
   }) => {
-    const dated = /\b(november 2026|january 2027|hub opens|opening november)\b/i;
+    // Institution bookings open in January 2027 (decision 14); that date may appear on /sell/institutions.
+    const dated = /\b(november 2026|hub opens|opening november)\b/i;
     for (const path of await publicPaths(request)) {
       if (["/locations", "/contact"].includes(path)) continue;
       await page.goto(path);

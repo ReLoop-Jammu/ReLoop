@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  BadgePercent,
   ChartColumn,
   ClipboardList,
   Database,
@@ -189,6 +190,14 @@ export const HUB_TOOLS: readonly HubTool[] = [
     badge: "bins_due",
   },
   {
+    href: "/hub/pricing",
+    label: "Pricing",
+    description: "Staff only: buy against sale, COGS, days to sell and sell-through.",
+    icon: BadgePercent,
+    role: "staff",
+    group: "Records",
+  },
+  {
     href: "/hub/pricing/references",
     label: "Price references",
     description: "Used-market prices with their source and date, for the shop's fair-price bands.",
@@ -282,7 +291,14 @@ export function toolsFor(access: { is_staff: boolean; is_admin: boolean } | null
 
 /** Whether a menu entry is the current page (the overview only on /hub itself). */
 export const isToolActive = (href: string, pathname: string) =>
-  href === "/hub" ? pathname === "/hub" : pathname === href || pathname.startsWith(`${href}/`);
+  href === "/hub"
+    ? pathname === "/hub"
+    : pathname === href ||
+      (pathname.startsWith(`${href}/`) &&
+        // a more specific screen of its own (e.g. /hub/pricing/references) wins
+        !HUB_TOOLS.some(
+          (t) => t.href !== href && t.href.startsWith(`${href}/`) && pathname.startsWith(t.href),
+        ));
 
 /** A tool's badge count: the sum of its keys, or null when there is nothing to show. */
 export function badgeCount(tool: Pick<HubTool, "badge">, badges: HubBadges | null): number | null {
