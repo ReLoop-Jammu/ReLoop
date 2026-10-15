@@ -95,7 +95,7 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     );
     await db.query(
       `insert into public.items (source_type, category, grade, buy_mode, created_by)
-       values ('household', 'accessory', 'A', 'cash', $1)`,
+       values ('retailer', 'accessory', 'A', 'cash', $1)`,
       [staff.rows[0].id],
     );
     await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);

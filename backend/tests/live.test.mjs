@@ -854,7 +854,7 @@ describe("staff hub on Supabase (20261018000001)", () => {
     const s = await createUser(fresh, "Staff", { staff: true });
     const { rows } = await as(fresh, s, (tx) =>
       tx.query(
-        "insert into public.items (source_type, category, buy_mode) values ('household', 'phone', 'cash') returning id",
+        "insert into public.items (source_type, category, buy_mode) values ('retailer', 'phone', 'cash') returning id",
       ),
     );
     assert.equal(rows[0].id, "RL-JMU-0006");
@@ -868,7 +868,7 @@ describe("item notes (20261018000001)", () => {
     const buyer = await createUser(db, "Buyer");
     const { rows } = await as(db, staff, (tx) =>
       tx.query(
-        "insert into public.items (source_type, category, buy_mode) values ('household', 'phone', 'cash') returning id",
+        "insert into public.items (source_type, category, buy_mode) values ('retailer', 'phone', 'cash') returning id",
       ),
     );
     const id = rows[0].id;
@@ -1717,7 +1717,12 @@ describe("settings (20261027000001)", () => {
     const { rows } = await as(db, null, (tx) => tx.query("select key from public.public_settings"));
     const keys = rows.map((r) => r.key);
     assert.ok(keys.includes("contact.whatsapp") && keys.includes("accept.dont"));
-    for (const hidden of ["pricing.target_margin_pct", "pricing.handling_paise", "capacity.racks"])
+    for (const hidden of [
+      "finance.device_unit_paise",
+      "pricing.handling_paise",
+      "capacity.device_rack_slots",
+      "vrg.rates_paise",
+    ])
       assert.ok(!keys.includes(hidden), hidden);
     await assert.rejects(
       as(db, null, (tx) => tx.query("select * from public.app_settings")),
@@ -1727,7 +1732,7 @@ describe("settings (20261027000001)", () => {
     assert.equal(mine.rows.length, 0, "signed-in non-staff see no settings");
     const hub = await as(db, staff, (tx) => tx.query("select key from public.app_settings"));
     assert.ok(
-      hub.rows.some((r) => r.key === "pricing.target_margin_pct"),
+      hub.rows.some((r) => r.key === "finance.device_unit_paise"),
       "staff read them all",
     );
   });
@@ -1739,13 +1744,15 @@ describe("settings (20261027000001)", () => {
       "select value from public.app_settings where key = 'accept.dont'",
     );
     assert.deepEqual(rows[0].value, ["Fridges"]);
-    await assert.rejects(set(admin, "capacity.racks", "lots"), /must be a JSON number/);
+    await assert.rejects(set(admin, "capacity.device_rack_slots", "lots"), /must be a JSON number/);
     await assert.rejects(set(admin, "secret.key", 1), /Unknown setting/);
     await assert.rejects(set(staff, "contact.hours", "x"), /Only admins/);
     await assert.rejects(set(null, "contact.hours", "x"), /permission denied/);
     await assert.rejects(
       as(db, admin, (tx) =>
-        tx.query("update public.app_settings set value = '1' where key = 'capacity.racks'"),
+        tx.query(
+          "update public.app_settings set value = '1' where key = 'capacity.device_rack_slots'",
+        ),
       ),
       /permission denied/,
       "no direct writes: only set_setting",
@@ -1768,7 +1775,7 @@ describe("settings (20261027000001)", () => {
       "select jsonb_typeof(value) as t from public.app_settings where key = 'contact.email'",
     );
     assert.equal(rows[0].t, "null");
-    await assert.rejects(clear("capacity.racks"), /must be a JSON number/);
+    await assert.rejects(clear("pricing.reference_fresh_days"), /must be a JSON number/);
   });
 });
 
@@ -2202,7 +2209,9 @@ describe("accounts and requests (20261029000001)", () => {
     );
     await db.exec("alter table public.shop_submissions enable trigger user");
     const tags = await as(db, admin, (tx) =>
-      tx.query("select public.convert_submission($1, 'tv', null, 50000) as t", [subs.rows[0].id]),
+      tx.query("select public.convert_submission($1, 'monitor', null, 50000) as t", [
+        subs.rows[0].id,
+      ]),
     );
     const tag = tags.rows[0].t[0];
     const req = await request("reservation", seller, { name: "Seller", phone: "9000000003" });
@@ -2752,7 +2761,7 @@ describe("listing controls (20261031000001)", () => {
 
   test("a recorded data wipe is in the history", async () => {
     const { rows } = await db.query(
-      "insert into public.items (source_type, category, buy_mode, grade, status) values ('household', 'phone', 'cash', 'A', 'graded') returning id",
+      "insert into public.items (source_type, category, buy_mode, grade, status) values ('retailer', 'phone', 'cash', 'A', 'graded') returning id",
     );
     const id = rows[0].id;
     await as(db, staff, (tx) =>

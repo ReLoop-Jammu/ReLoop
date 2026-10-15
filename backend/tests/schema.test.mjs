@@ -169,7 +169,7 @@ describe("unsold-stock rules", () => {
 describe("recycler handovers", () => {
   test("recording a handover moves the scrap-cage items out", async () => {
     const item = await as(db, staff, (tx) =>
-      intake(tx, { category: "tv", grade: "D", buy_mode: "free" }),
+      intake(tx, { category: "monitor", grade: "D", buy_mode: "free" }),
     );
     await as(db, staff, (tx) =>
       tx.query("update public.items set status = 'in_scrap_cage', weight_kg = 14 where id = $1", [
