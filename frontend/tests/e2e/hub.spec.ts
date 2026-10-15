@@ -390,6 +390,15 @@ test.describe("route and repairs", () => {
     );
   });
 
+  test("the capacity screen is in the menu and needs the shared database", async ({ page }) => {
+    await page.goto("/hub");
+    await expect(
+      page.getByRole("navigation", { name: "Hub" }).getByRole("link", { name: "Capacity" }),
+    ).toHaveAttribute("href", "/hub/capacity");
+    await page.goto("/hub/capacity");
+    await expect(page.getByText("Capacity is kept in the shared database.")).toBeVisible();
+  });
+
   test("the route needs the shared database; the repair board starts empty", async ({ page }) => {
     await page.goto("/hub/route");
     await expect(page.getByText("The route is kept in the shared database.")).toBeVisible();

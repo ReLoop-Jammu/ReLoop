@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { SHARED_DATABASE } from "@/features/inventory/store";
+import { siteFetch } from "@/lib/auth-client";
 import { allPages } from "@/lib/pages";
 import { call, rpc } from "@/lib/rpc";
 import { formatPrice } from "@/lib/utils/money";
@@ -60,6 +61,19 @@ function Lots() {
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "Couldn't load."));
   }, []);
   useEffect(reload, [reload]);
+
+  async function openRecord(lotId: string) {
+    setError("");
+    try {
+      const r = await siteFetch(`/api/handover-record/${encodeURIComponent(lotId)}`);
+      if (!r.ok) throw new Error("The record couldn't be made. Please try again.");
+      const url = URL.createObjectURL(await r.blob());
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The record couldn't be made.");
+    }
+  }
 
   const run = async (fn: () => Promise<unknown>, done: string) => {
     setError("");
@@ -159,6 +173,11 @@ function Lots() {
                         </Button>
                       </>
                     )}
+                  </div>
+                  <div>
+                    <Button size="sm" variant="secondary" onClick={() => void openRecord(l.id)}>
+                      Handover record (PDF)
+                    </Button>
                   </div>
                   {l.handover_id ? (
                     <p className="text-success">

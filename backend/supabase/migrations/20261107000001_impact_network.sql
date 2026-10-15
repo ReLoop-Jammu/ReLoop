@@ -23,18 +23,24 @@ drop policy if exists "Admins manage buyer areas" on public.buyer_areas;
 create policy "Admins manage buyer areas" on public.buyer_areas for all to authenticated
   using ((select public.is_admin())) with check ((select public.is_admin()));
 
--- Localities in the Jammu Municipal Corporation area, plus collection at the hub.
+-- About a dozen localities in the Jammu Municipal Corporation area (the delivery
+-- zone, "Jammu city"), plus collection at the hub.
 -- Staff review this list before launch (it is only a starting point).
 insert into public.buyer_areas (name, sort) values
   ('Collected at the hub', 0),
-  ('Gandhi Nagar', 10), ('Trikuta Nagar', 11), ('Channi Himmat', 12), ('Channi Rama', 13),
-  ('Rehari Colony', 14), ('Talab Tillo', 15), ('Janipur', 16), ('Bakshi Nagar', 17),
-  ('Shastri Nagar', 18), ('Nanak Nagar', 19), ('Gangyal', 20), ('Sainik Colony', 21),
-  ('Digiana', 22), ('Sarwal', 23), ('Greater Kailash', 24), ('Residency Road', 25),
-  ('Raghunath Bazaar', 26), ('Canal Road', 27), ('Parade', 28), ('Gole Market', 29),
-  ('Jewel Chowk', 30), ('Satwari', 31), ('Bathindi', 32), ('Roop Nagar', 33),
-  ('Muthi', 34), ('Paloura', 35), ('Sunjwan', 36), ('Domana', 37), ('Narwal', 38),
-  ('Bhagwati Nagar', 39), ('Old Jammu city', 40), ('Other Jammu city area', 99)
+  ('Gandhi Nagar', 11),
+  ('Trikuta Nagar', 12),
+  ('Channi Himmat', 13),
+  ('Talab Tillo', 14),
+  ('Bakshi Nagar', 15),
+  ('Rehari Colony', 16),
+  ('Shastri Nagar', 17),
+  ('Nanak Nagar', 18),
+  ('Gangyal', 19),
+  ('Sainik Colony', 20),
+  ('Residency Road', 21),
+  ('Old Jammu city', 22),
+  ('Other Jammu city area', 99)
 on conflict (name) do nothing;
 
 alter table public.items

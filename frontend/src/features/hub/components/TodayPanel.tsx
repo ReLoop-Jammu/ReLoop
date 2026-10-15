@@ -4,27 +4,31 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SHARED_DATABASE } from "@/features/inventory/store";
 import type { Item } from "@/features/inventory/model";
-import {
-  BIN_LABEL,
-  binStatus,
-  listWeighins,
-  type BinStatus,
-  type Weighin,
-} from "@/features/scrap/api";
+import { capacityStatus, type Capacity } from "@/features/capacity/api";
+import { capacityAlerts } from "@/features/capacity/view";
+import { BIN_LABEL, listWeighins, type BinStatus, type Weighin } from "@/features/scrap/api";
 import { cn } from "@/lib/utils/cn";
 import { todaySummary } from "../today";
 import { Panel } from "./ui";
 
 /** Today at the hub: what came in, went on sale and sold, today's weigh-ins and how full each bin is. */
 export function TodayPanel({ items }: { items: readonly Item[] }) {
-  const [scrap, setScrap] = useState<{ weighins: Weighin[]; bins: BinStatus[] } | null>(null);
+  const [scrap, setScrap] = useState<{
+    weighins: Weighin[];
+    bins: BinStatus[];
+    cap: Capacity | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!SHARED_DATABASE) return;
     let live = true;
-    Promise.all([listWeighins(), binStatus()])
-      .then(([weighins, bins]) => live && setScrap({ weighins, bins }))
-      .catch(() => live && setScrap({ weighins: [], bins: [] }));
+    Promise.all([listWeighins(), capacityStatus()])
+      .then(
+        ([weighins, cap]) =>
+          live &&
+          setScrap({ weighins, cap, bins: cap.bins.map((b) => ({ ...b, kg: Number(b.kg) })) }),
+      )
+      .catch(() => live && setScrap({ weighins: [], bins: [], cap: null }));
     return () => {
       live = false;
     };
@@ -57,6 +61,18 @@ export function TodayPanel({ items }: { items: readonly Item[] }) {
           </div>
         ))}
       </dl>
+      {scrap?.cap && capacityAlerts(scrap.cap).length > 0 && (
+        <ul className="mt-4 space-y-1 rounded-lg bg-warning-bg p-3 text-sm text-warning">
+          {capacityAlerts(scrap.cap).map((a) => (
+            <li key={a}>{a}</li>
+          ))}
+          <li>
+            <Link href="/hub/capacity" className="font-semibold underline">
+              Open capacity
+            </Link>
+          </li>
+        </ul>
+      )}
       {s.bins.length > 0 && (
         <ul className="mt-5 grid gap-2 sm:grid-cols-2" aria-label="Scrap bins">
           {s.bins.map((b) => (

@@ -565,3 +565,23 @@ test.describe("route and repairs (real logins)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Repairs" })).toBeVisible();
   });
 });
+
+test.describe("capacity and records (real logins)", () => {
+  test("the demo admin sees bins, racks with the simulated slot count, the battery cabinet and a handover record", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/capacity");
+    await expect(page.getByRole("heading", { level: 1, name: "Capacity" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Scrap bins" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/of 120 slots in use/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Battery cabinet" })).toBeVisible();
+    await page.goto("/hub/lots");
+    await expect(page.getByRole("button", { name: "Handover record (PDF)" }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+});
