@@ -1,19 +1,10 @@
-import {
-  BatteryWarning,
-  Building2,
-  Check,
-  Home,
-  Scale,
-  Store,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { BatteryWarning, Building2, Check, Scale, Store, X, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { BUSINESS_RULES } from "@/config/business-rules";
-import { LOCATIONS } from "@/config/locations";
+import { LOCATIONS, ROUTE_DAYS } from "@/config/locations";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import { WhatsAppButton } from "@/features/sell/components/WhatsAppButton";
 import { getSiteSettings } from "@/features/settings/server";
@@ -21,32 +12,31 @@ import { getSiteSettings } from "@/features/settings/server";
 export const metadata: Metadata = {
   title: "What we accept",
   description:
-    "The used and broken electronics ReLoop takes in Jammu, what we don't take, and how batteries and dead items go to the authorised recycler.",
+    "What shops, retailers and institutions in Jammu can sell to ReLoop, what we don't take, and how batteries and dead items go to VRRG Group by weight.",
 };
 
 const R = BUSINESS_RULES;
 
-const who = (
-  hubOpens: string,
-): { icon: LucideIcon; title: string; body: string; href?: string; cta?: string }[] => [
+const who = (): {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  href?: string;
+  cta?: string;
+}[] => [
   {
     icon: Store,
-    title: "Repair shops and retailers",
-    body: `We collect from partner shops on our ${LOCATIONS.route.days.join(" and ")} route through the markets and pay on pickup.`,
+    title: "Repair shops, retailers and exchange stores",
+    body: `We collect from partner shops on our ${ROUTE_DAYS.join(" and ")} routes through the markets, weigh scrap in front of you and pay by UPI on the spot.`,
     href: "/sell/shops",
     cta: "Sell as a shop",
   },
   {
     icon: Building2,
-    title: "Colleges, schools and offices",
-    body: "Book a pickup for bulk lots. Dead items go straight to the recycler, with your institution named on the weight receipt.",
+    title: "Colleges, schools, banks and offices",
+    body: "Book a lot pickup. We sort on your premises, buy the working and repairable equipment, and arrange for dead e-waste to go straight to VRRG Group on their weight receipt in your institution's name.",
     href: "/sell/institutions",
     cta: "Book an institution pickup",
-  },
-  {
-    icon: Home,
-    title: "Households",
-    body: `Drop-off only, at the hub once it opens in ${hubOpens}. We don't collect single items from homes.`,
   },
 ];
 
@@ -59,12 +49,12 @@ export default async function WhatWeAcceptPage() {
       <div className="max-w-3xl">
         <Eyebrow>What we accept</Eyebrow>
         <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
-          Working, broken or dead: if it&apos;s electronics, we can probably take it.
+          What shops and institutions can sell us.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">
-          Every item is tagged and graded A to D at our Jammu hub. What works is resold, what can be
-          fixed is repaired, good parts are reused, and only what is truly dead goes to the
-          authorised recycler.{" "}
+          Scrap is weighed and paid by the kilo at the rate card. Working devices are tagged, tested
+          and graded A to D at our Jammu hub: what works is resold, what can be fixed is repaired,
+          good parts are tested and reused, and what is dead goes to VRRG Group by weight.{" "}
           <Link className="font-semibold text-brand-600 underline" href="/how-it-works">
             How grading works
           </Link>
@@ -104,7 +94,14 @@ export default async function WhatWeAcceptPage() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-sm text-muted">Not sure about an item? Ask us on WhatsApp first.</p>
+        <p className="mt-4 text-sm text-muted">
+          We buy from shops, retailers and institutions only, not from homes. Anyone can buy from
+          us. Not sure about an item? Ask us on WhatsApp first.{" "}
+          <Link className="font-semibold text-brand-600 underline" href="/rate-card">
+            See the rate card
+          </Link>
+          .
+        </p>
       </section>
 
       <section
@@ -116,9 +113,9 @@ export default async function WhatWeAcceptPage() {
             Batteries and dead items
           </h2>
           <p className="mt-3 leading-relaxed text-muted">
-            Nothing we take in goes to informal scrap dealers. Dead and hazardous items are graded{" "}
-            <GradeBadge grade="D" size="sm" className="align-middle" /> and handed only to{" "}
-            {LOCATIONS.recycler.name}, the authorised recycler.{" "}
+            Scrap does not go to informal dealers. Dead devices are graded{" "}
+            <GradeBadge grade="D" size="sm" className="align-middle" /> and, with the scrap, handed
+            to {LOCATIONS.recycler.name}, our dismantling partner, by weight.{" "}
             <Link className="font-semibold text-brand-600 underline" href="/where-scrap-goes">
               Where scrap goes
             </Link>
@@ -129,23 +126,25 @@ export default async function WhatWeAcceptPage() {
           <li className="flex gap-3">
             <BatteryWarning className="mt-0.5 size-5 shrink-0 text-grade-d" aria-hidden="true" />
             <span>
-              <strong>Batteries</strong> are kept apart in a closed metal cabinet with sand and
-              handed to the recycler every week, whatever the quantity.
+              <strong>Batteries</strong> (lithium phone, laptop and tablet cells) are kept apart in
+              a closed metal cabinet with sand and handed to VRRG Group every week, whatever the
+              quantity. A swollen cell that is not leaking goes in a fire-safe bag to the cabinet; a
+              leaking one is refused.
             </span>
           </li>
           <li className="flex gap-3">
             <Scale className="mt-0.5 size-5 shrink-0 text-grade-d" aria-hidden="true" />
             <span>
-              <strong>Dead items</strong> are bagged by category and weighed, then collected at{" "}
-              {R.scrapHandover.kgTrigger} kg or every {R.scrapHandover.daysTrigger} days, with a
-              weight receipt for every handover.
+              <strong>Scrap</strong> is weighed by category into four bins (screens, boards, other
+              and dead devices) and handed over when a bin reaches {R.bins.handoverKg} kg or{" "}
+              {R.bins.handoverDays} days pass, with a weight receipt for every handover.
             </span>
           </li>
           <li className="flex gap-3">
             <Check className="mt-0.5 size-5 shrink-0 text-grade-a" aria-hidden="true" />
             <span>
-              <strong>Your data</strong> is wiped before anything is listed: phones are reset and
-              overwritten, and hard drives are wiped, or drilled if the wipe fails.
+              <strong>Data</strong> is wiped, or the storage chip destroyed, before anything is
+              stripped or sold, and it is logged against the tag. Boards and drives are covered.
             </span>
           </li>
         </ul>
@@ -153,10 +152,10 @@ export default async function WhatWeAcceptPage() {
 
       <section aria-labelledby="who-heading" className="mt-12">
         <h2 id="who-heading" className="text-2xl font-bold">
-          Who can sell to us
+          Who sells to us
         </h2>
-        <ul className="mt-5 grid gap-4 md:grid-cols-3" role="list">
-          {who(site.hubOpens).map(({ icon: Icon, title, body, href, cta }) => (
+        <ul className="mt-5 grid gap-4 md:grid-cols-2" role="list">
+          {who().map(({ icon: Icon, title, body, href, cta }) => (
             <li key={title} className="rounded-card border border-line bg-surface p-6 shadow-soft">
               <Icon className="size-6 text-brand-600" aria-hidden="true" />
               <h3 className="mt-3 text-lg font-semibold">{title}</h3>

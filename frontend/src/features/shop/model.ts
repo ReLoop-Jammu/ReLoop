@@ -1,12 +1,6 @@
 import { z } from "zod";
 import { BUSINESS_RULES } from "@/config/business-rules";
-import {
-  CATEGORIES,
-  shipsAcrossIndia,
-  type Category,
-  type Item,
-  type PartType,
-} from "@/features/inventory/model";
+import { CATEGORIES, type Category, type Item, type PartType } from "@/features/inventory/model";
 
 /**
  * What the public shop may show about an item. Built from a hub Item by
@@ -32,7 +26,6 @@ export type ShopItem = {
   checks: string[];
   dataWiped: boolean;
   warrantyDays: number | null;
-  shipsIndia: boolean;
   listedAt: string;
   /** The ReLoop Checked report: what the hub inspection found (absent for samples). */
   report?: ShopReport;
@@ -85,7 +78,6 @@ export const shopSnapshotSchema = z.object({
         checks: z.array(z.string().max(60)),
         dataWiped: z.boolean(),
         warrantyDays: z.number().int().positive().nullable(),
-        shipsIndia: z.boolean(),
         listedAt: z.iso.datetime(),
         report: z
           .object({
@@ -154,7 +146,6 @@ export function toShopItem(item: Item): ShopItem | null {
         },
       }),
     warrantyDays: warranty ? BUSINESS_RULES.warrantyDays : null,
-    shipsIndia: shipsAcrossIndia(item),
     listedAt: item.listedAt,
   };
 }

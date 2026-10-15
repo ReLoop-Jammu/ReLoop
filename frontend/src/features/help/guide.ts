@@ -1,4 +1,4 @@
-import { LOCATIONS } from "@/config/locations";
+import { ROUTE_DAYS } from "@/config/locations";
 import { SITE } from "@/lib/site";
 import guide from "./guide.json";
 
@@ -9,8 +9,8 @@ const DAYS_HI: Record<string, string> = { Tuesday: "मंगलवार", Frid
 
 /** Values the guide's {placeholders} stand for, from the site config. */
 export const GUIDE_VALUES: Record<string, string> = {
-  days: LOCATIONS.route.days.join(" and "),
-  days_hi: LOCATIONS.route.days.map((d) => DAYS_HI[d] ?? d).join(" और "),
+  days: ROUTE_DAYS.join(" and "),
+  days_hi: ROUTE_DAYS.map((d) => DAYS_HI[d] ?? d).join(" और "),
   whatsapp: SITE.supportPhone ?? "see the contact page",
   hours: SITE.hours ?? "",
   hours_hi: `नवंबर 2026 से सोम–शनि, सुबह 10 से शाम 6 बजे तक। तब तक हम एक कामकाजी दिन के अंदर WhatsApp पर जवाब देते हैं।`,

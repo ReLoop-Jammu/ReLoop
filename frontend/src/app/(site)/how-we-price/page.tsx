@@ -54,11 +54,13 @@ export default async function HowWePricePage() {
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold text-ink">4. Unsold stock gets cheaper</h2>
+            <h2 className="text-xl font-semibold text-ink">4. Unsold stock</h2>
             <p className="mt-2">
-              Anything unsold {BUSINESS_RULES.priceCut.afterDays} days after listing is cut by{" "}
-              {BUSINESS_RULES.priceCut.share * 100}% automatically, once. Each item page shows its
-              own price history.
+              A part that is unsold {BUSINESS_RULES.partPriceCut.afterDays} days after listing is
+              cut by {BUSINESS_RULES.partPriceCut.share * 100}% automatically, once. A grade A or B
+              device that is unsold {BUSINESS_RULES.deviceToC.afterDays} days after listing is not
+              cut: it becomes grade C and is stripped for parts, which are tested and sold as tested
+              parts. Each item page shows its own price history.
             </p>
           </section>
         </div>

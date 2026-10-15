@@ -7,20 +7,30 @@ const inJammu = ({ lat, lng }: { lat: number; lng: number }) =>
 
 describe("locations data", () => {
   it("places everything in Jammu", () => {
-    const { hub, route, recycler } = LOCATIONS;
-    for (const p of [hub, recycler, ...route.stops, ...LOCATIONS.partnerShops]) {
+    const { hub, routes, recycler } = LOCATIONS;
+    for (const p of [hub, recycler, ...routes.flatMap((r) => r.stops), ...LOCATIONS.partnerShops]) {
       expect(inJammu(p), p.name).toBe(true);
     }
   });
 
-  it("runs the route on Tuesday and Friday, in time order, from and back to the hub", () => {
-    const { days, stops } = LOCATIONS.route;
-    expect(days).toEqual(["Tuesday", "Friday"]);
-    const times = stops.map((s) => s.time);
-    expect(times.every((t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))).toBe(true);
-    expect([...times].sort()).toEqual(times);
-    expect(stops[0].name).toBe(LOCATIONS.hub.name);
-    expect(stops.at(-1)?.name).toBe(LOCATIONS.hub.name);
+  it("puts the hub in Gandhi Nagar and names VRRG Group as the dismantling partner", () => {
+    expect(LOCATIONS.hub.description).toMatch(/Gandhi Nagar, between Bahu Plaza and Gole Market/);
+    expect(LOCATIONS.recycler.name).toBe("VRRG Group, Gangyal");
+  });
+
+  it("runs Tuesday through the Gandhi Nagar cluster and Friday through the old city, from and back to the hub", () => {
+    const [tue, fri] = LOCATIONS.routes;
+    expect([tue.day, fri.day]).toEqual(["Tuesday", "Friday"]);
+    expect(tue.markets).toEqual(["Bahu Plaza", "Gole Market"]);
+    expect(fri.markets).toEqual(["Raghunath Bazaar", "Residency Road"]);
+    for (const { stops } of LOCATIONS.routes) {
+      const times = stops.map((s) => s.time);
+      expect(times.every((t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))).toBe(true);
+      expect([...times].sort()).toEqual(times);
+      expect(stops[0].name).toBe(LOCATIONS.hub.name);
+      expect(stops.at(-1)?.name).toBe(LOCATIONS.hub.name);
+    }
+    expect(LOCATIONS.nextMarkets).toEqual(["Janipur", "Trikuta Nagar", "Talab Tillo"]);
   });
 
   it("shows partner shops only once they agreed", () => {

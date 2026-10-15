@@ -162,8 +162,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
                 <strong className="text-ink">
                   {formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} delivery
                 </strong>{" "}
-                anywhere in Jammu
-                {item.shipsIndia && <> · ships across India at the buyer&apos;s cost</>}
+                in Jammu city, or collect from the hub
               </span>
             </li>
           </ul>
@@ -172,7 +171,6 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             itemId={item.id}
             title={item.title}
             pricePaise={item.pricePaise}
-            shipsIndia={item.shipsIndia}
             sample={item.sample}
           />
 

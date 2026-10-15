@@ -1,7 +1,8 @@
 /*
- * Inventory domain model, following the Business Plan: ReLoop buys items,
- * tags each one (RL-JMU-0001), grades it A–D at the hub, then resells,
- * repairs, strips for parts or hands it to an authorised recycler.
+ * Inventory domain model, following Business Plan v2: ReLoop buys devices and
+ * parts, tags each one (RL-JMU-0001), grades devices A–D at the hub, then
+ * resells, repairs or strips them for parts. Scrap is weighed by category and
+ * handed to the dismantling partner, VRRG Group, Gangyal.
  * Money is integer paise; dates are ISO strings.
  */
 
@@ -32,14 +33,14 @@ export const GRADE_INFO: Record<
     short: "Tested part",
     outcome: "Stripped for parts",
     description:
-      "Not worth repairing as a whole, so its good parts are removed, tested and sold separately.",
+      "Not worth repairing as a whole, so its good parts are removed, tested and sold separately as tested parts.",
   },
   D: {
     label: "Grade D",
-    short: "Recycled",
-    outcome: "Sent to an authorised recycler",
+    short: "Dead, by weight",
+    outcome: "Handed to VRRG Group by weight",
     description:
-      "Dead or hazardous. Bagged, weighed and handed to an authorised recycler. Never sold.",
+      "Dead or hazardous: not resold for use. Its storage is wiped or destroyed, then it goes into a scrap bin and is handed to VRRG Group, our dismantling partner, by weight.",
   },
 };
 
@@ -48,14 +49,24 @@ export const CATEGORIES = [
   { value: "laptop", label: "Laptops", single: "Laptop" },
   { value: "desktop", label: "Desktops", single: "Desktop" },
   { value: "monitor", label: "Monitors", single: "Monitor" },
-  { value: "tv", label: "TVs", single: "TV" },
-  { value: "printer", label: "Printers", single: "Printer" },
-  { value: "ups", label: "UPS units", single: "UPS" },
-  { value: "small_appliance", label: "Small appliances", single: "Small appliance" },
   { value: "accessory", label: "Accessories", single: "Accessory" },
   { value: "part", label: "Parts", single: "Part" },
+  // No longer taken (Business Plan v2). Old rows keep their labels; new rows can't use them.
+  { value: "tv", label: "TVs", single: "TV", retired: true },
+  { value: "printer", label: "Printers", single: "Printer", retired: true },
+  { value: "ups", label: "UPS units", single: "UPS", retired: true },
+  { value: "small_appliance", label: "Small appliances", single: "Small appliance", retired: true },
 ] as const;
 export type Category = (typeof CATEGORIES)[number]["value"];
+/** The categories ReLoop takes now: what forms, filters and settings offer. */
+export const ACTIVE_CATEGORIES = CATEGORIES.filter(
+  (c) => !("retired" in c && c.retired),
+) as readonly (typeof CATEGORIES)[number][];
+export const RETIRED_CATEGORY_VALUES = CATEGORIES.filter((c) => "retired" in c && c.retired).map(
+  (c) => c.value,
+) as readonly Category[];
+export const isRetiredCategory = (value: string): boolean =>
+  (RETIRED_CATEGORY_VALUES as readonly string[]).includes(value);
 
 export const PART_TYPES = [
   { value: "screen", label: "Screen" },
@@ -64,19 +75,27 @@ export const PART_TYPES = [
   { value: "storage", label: "Storage drive" },
   { value: "battery", label: "Battery" },
   { value: "charger", label: "Charger / power supply" },
-  { value: "motor", label: "Motor" },
-  { value: "other", label: "Other part" },
+  { value: "motor", label: "Phone or laptop motor" },
+  { value: "camera", label: "Camera" },
+  { value: "charging_port", label: "Charging port" },
+  { value: "other", label: "Other phone or laptop part" },
 ] as const;
 export type PartType = (typeof PART_TYPES)[number]["value"];
 
 export const SOURCE_TYPES = [
   { value: "repair_shop", label: "Repair shop" },
-  { value: "retailer", label: "Electronics retailer" },
+  { value: "retailer", label: "Retailer or exchange store" },
   { value: "institution", label: "Institution" },
-  { value: "household", label: "Household" },
+  { value: "partner_listing", label: "Listed by a partner shop" },
   { value: "stripped", label: "Stripped from a C item" },
+  // No longer used (Business Plan v2): old rows keep the label.
+  { value: "household", label: "Household (no longer taken)", retired: true },
 ] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number]["value"];
+/** Sources staff can pick at intake. */
+export const INTAKE_SOURCE_TYPES = SOURCE_TYPES.filter(
+  (s) => s.value === "repair_shop" || s.value === "retailer" || s.value === "institution",
+);
 
 export const STATUSES = [
   { value: "received", label: "Received", stage: "intake" },
@@ -87,13 +106,14 @@ export const STATUSES = [
   { value: "reserved", label: "Reserved", stage: "selling" },
   { value: "sold", label: "Sold", stage: "done" },
   { value: "returned", label: "Returned by the buyer", stage: "work" },
-  { value: "in_scrap_cage", label: "In scrap cage", stage: "recycling" },
-  { value: "handed_over", label: "Handed to recycler", stage: "done" },
+  { value: "in_scrap_cage", label: "In the D devices bin", stage: "recycling" },
+  { value: "handed_over", label: "Handed to VRRG Group", stage: "done" },
   { value: "stripped", label: "Stripped (parts removed)", stage: "done" },
 ] as const;
 export type ItemStatus = (typeof STATUSES)[number]["value"];
 
 export type BuyMode = "cash" | "free";
+/** "ship_india" is kept only so old sales still display; nothing is shipped outside Jammu. */
 export type Fulfilment = "pickup" | "delivery_jammu" | "ship_india";
 export type WipeMethod = "reset_overwrite" | "drive_wipe" | "drilled";
 
@@ -151,12 +171,25 @@ export type Item = {
   /** Kept off the public shop and every public page, whatever the status. */
   hidden?: boolean;
   returnedAt?: string;
+  /** When the seller confirmed they own the device (or have it signed over). */
+  ownershipConfirmedAt?: string;
+  /** A locked device is only ever C or D, never resold whole. */
+  lockedDevice?: boolean;
+  /** Set on a part a partner shop listed on the Parts Exchange (commission applies). */
+  listedByPartnerId?: string;
+  commissionPct?: number;
+  /** The weigh-in whose to-test bag this part came from. */
+  weighinId?: string;
   events: ItemEvent[];
 };
 
 export type Partner = {
   id: string;
   type: "repair_shop" | "retailer";
+  /** "Exchange store" for a retailer that mainly takes trade-ins. */
+  label?: string;
+  /** The partner's shop-owner account, if it has one (needed to list parts). */
+  shopOwnerId?: string;
   name: string;
   owner: string;
   phone: string;
@@ -184,8 +217,10 @@ export type Handover = {
   date: string;
   recycler: string;
   onBehalfOf?: string;
-  /** Kilograms per item category, plus "unweighed" for weight on the receipt not matched to items. */
+  /** Kilograms per bin (screens, boards, other, d_devices); old rows use item categories ("before bins"). */
   kgByCategory: Record<string, number>;
+  kind?: "hub" | "institution_lot";
+  bins?: string[];
   batteryKg: number;
   itemIds: string[];
   receiptNo: string;
@@ -208,7 +243,14 @@ export type RepairJob = {
 /** Requests sent through the public "Sell to us" forms. */
 export type Submission = {
   id: string;
-  kind: "shop_partner" | "institution_pickup" | "household_dropoff" | "reservation" | "enquiry";
+  /** "household_dropoff" and "consignment" are old requests only; new ones are refused. */
+  kind:
+    | "shop_partner"
+    | "institution_pickup"
+    | "household_dropoff"
+    | "consignment"
+    | "reservation"
+    | "enquiry";
   createdAt: string;
   fields: Record<string, string>;
   /** Reservations and enquiries are about one item. */
@@ -229,17 +271,18 @@ export function isSellable(grade: Grade | null): grade is "A" | "B" | "C" {
   return grade === "A" || grade === "B" || grade === "C";
 }
 
-/** Only laptops and boards are worth shipping across India (buyer pays). */
-export function shipsAcrossIndia(item: Pick<Item, "category" | "partType">): boolean {
-  return item.category === "laptop" || (item.category === "part" && item.partType === "board");
-}
-
-/** Phones, laptops, desktops and drives must be wiped before listing. */
-export function needsDataWipe(item: Pick<Item, "category" | "partType">): boolean {
+/**
+ * Phones, laptops, desktops, drives and boards (except a monitor's) are wiped, or
+ * their storage destroyed, before they are stripped or sold.
+ */
+export function needsDataWipe(
+  item: Pick<Item, "category" | "partType"> & { parentCategory?: Category },
+): boolean {
   return (
     item.category === "phone" ||
     item.category === "laptop" ||
     item.category === "desktop" ||
-    (item.category === "part" && item.partType === "storage")
+    (item.category === "part" && item.partType === "storage") ||
+    (item.category === "part" && item.partType === "board" && item.parentCategory !== "monitor")
   );
 }

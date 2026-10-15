@@ -11,7 +11,6 @@
       "checks": ["Powers on", "Display", "Keyboard", "Battery health", "Ports", "Wi-Fi"],
       "dataWiped": true,
       "warrantyDays": 30,
-      "shipsIndia": true,
       "listedAt": "2026-10-20T10:00:00.000Z",
       "sample": true
     },
@@ -25,7 +24,6 @@
       "checks": ["Powers on", "Display", "Touch", "Cameras", "Battery health", "Charging"],
       "dataWiped": true,
       "warrantyDays": 30,
-      "shipsIndia": false,
       "listedAt": "2026-10-19T10:00:00.000Z",
       "sample": true
     },
@@ -39,7 +37,6 @@
       "checks": ["Powers on", "Display", "No dead pixels", "Inputs"],
       "dataWiped": false,
       "warrantyDays": 30,
-      "shipsIndia": false,
       "listedAt": "2026-10-18T10:00:00.000Z",
       "sample": true
     },
@@ -53,7 +50,6 @@
       "checks": ["Powers on", "Display", "Keyboard", "Battery health", "Ports"],
       "dataWiped": true,
       "warrantyDays": 30,
-      "shipsIndia": true,
       "listedAt": "2026-10-17T10:00:00.000Z",
       "sample": true
     },
@@ -67,7 +63,6 @@
       "checks": ["Powers on", "Display", "Touch", "Cameras", "Charging"],
       "dataWiped": true,
       "warrantyDays": 30,
-      "shipsIndia": false,
       "listedAt": "2026-10-16T10:00:00.000Z",
       "sample": true,
       "wasPaise": 675000
@@ -82,7 +77,6 @@
       "checks": ["All keys", "Cable"],
       "dataWiped": false,
       "warrantyDays": 30,
-      "shipsIndia": false,
       "listedAt": "2026-10-15T10:00:00.000Z",
       "sample": true
     },
@@ -96,7 +90,6 @@
       "checks": ["Powers on", "Test print", "Paper feed"],
       "dataWiped": false,
       "warrantyDays": 30,
-      "shipsIndia": false,
       "listedAt": "2026-10-14T10:00:00.000Z",
       "sample": true
     },
@@ -110,7 +103,6 @@
       "checks": ["Memory test"],
       "dataWiped": false,
       "warrantyDays": null,
-      "shipsIndia": false,
       "listedAt": "2026-10-13T10:00:00.000Z",
       "sample": true,
       "partType": "ram"
@@ -125,7 +117,6 @@
       "checks": ["Health check", "Secure wipe"],
       "dataWiped": true,
       "warrantyDays": null,
-      "shipsIndia": false,
       "listedAt": "2026-10-12T10:00:00.000Z",
       "sample": true,
       "partType": "storage"
@@ -140,7 +131,6 @@
       "checks": ["No dead pixels", "Backlight"],
       "dataWiped": false,
       "warrantyDays": null,
-      "shipsIndia": false,
       "listedAt": "2026-10-11T10:00:00.000Z",
       "sample": true,
       "partType": "screen"
@@ -155,7 +145,6 @@
       "checks": ["Boots to BIOS"],
       "dataWiped": false,
       "warrantyDays": null,
-      "shipsIndia": true,
       "listedAt": "2026-10-10T10:00:00.000Z",
       "sample": true,
       "partType": "board"
@@ -170,7 +159,6 @@
       "checks": ["Output under load"],
       "dataWiped": false,
       "warrantyDays": null,
-      "shipsIndia": false,
       "listedAt": "2026-10-09T10:00:00.000Z",
       "sample": true,
       "partType": "charger"

@@ -5,7 +5,7 @@ import { inspectionFromRow } from "@/features/inventory/inspection";
 import { cache } from "react";
 import snapshot from "@/data/shop-snapshot.json";
 import { allPages } from "@/lib/pages";
-import { shipsAcrossIndia, type Item } from "@/features/inventory/model";
+import type { Item } from "@/features/inventory/model";
 import {
   itemSaving,
   SHOP_PAGE_SIZE,
@@ -177,8 +177,6 @@ export function listingToShopItem(
     checks: [],
     dataWiped: false,
     warrantyDays: null,
-    // Only laptops and boards ship outside Jammu (business plan; /warranty).
-    shipsIndia: shipsAcrossIndia({ category, partType: undefined }),
     listedAt: listing.created_at,
     sample: listing.is_sample === true,
   };

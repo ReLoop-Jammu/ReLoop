@@ -19,6 +19,8 @@ export type Field = {
   required?: boolean;
   options?: readonly string[];
   placeholder?: string;
+  /** Earliest date, for date fields (YYYY-MM-DD). */
+  min?: string;
   hint?: string;
   autoComplete?: string;
   full?: boolean;
@@ -150,6 +152,7 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
                 {...common}
                 type={f.type ?? "text"}
                 placeholder={f.placeholder}
+                min={f.min}
                 autoComplete={f.autoComplete}
                 maxLength={120}
                 inputMode={f.type === "tel" ? "tel" : undefined}

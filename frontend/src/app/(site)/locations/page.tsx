@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { LOCATIONS, visiblePartnerShops, type PartnerShop } from "@/config/locations";
+import { LOCATIONS, visiblePartnerShops } from "@/config/locations";
 import { getSiteSettings } from "@/features/settings/server";
 import { LocationsMap } from "@/features/locations/LocationsMap";
 import { mapPartnerShops } from "@/features/locations/partners";
@@ -15,33 +15,15 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Map & locations",
   description:
-    "Where ReLoop works in Jammu: the hub area in the old-city market belt, partner drop-off shops, the Tuesday and Friday pickup route, and the authorised recycler.",
+    "Where ReLoop works in Jammu: the hub in Gandhi Nagar, partner shops on our route, the Tuesday and Friday pickup routes and VRRG Group, our dismantling partner.",
   alternates: { canonical: "/locations" },
 };
 
 export default async function LocationsPage() {
-  const { hub, route, recycler } = LOCATIONS;
+  const { hub, routes, recycler } = LOCATIONS;
   const site = await getSiteSettings();
-  // On the map: drop-off shops the admins list in the settings (those with a
-  // position), plus verified partner shops that agreed to be on the map.
-  const dropoff: PartnerShop[] = site.dropoffShops
-    .filter((d) => typeof d.lat === "number" && typeof d.lng === "number")
-    .map((d) => ({
-      name: d.name,
-      market: d.market,
-      lat: d.lat as number,
-      lng: d.lng as number,
-      description: d.description ?? "",
-      approximate: true,
-      agreedToBeShown: true,
-    }));
-  const shops = [...visiblePartnerShops(), ...dropoff, ...(await mapPartnerShops())];
-  // The list under the map also names drop-off shops saved without a position.
-  const listed: { name: string; market: string; description?: string }[] = [
-    ...shops,
-    ...site.dropoffShops.filter((d) => typeof d.lat !== "number" || typeof d.lng !== "number"),
-  ];
-  const stops = route.stops;
+  // On the map: verified partner shops that agreed to be on the map.
+  const shops = [...visiblePartnerShops(), ...(await mapPartnerShops())];
 
   return (
     <Container className="py-12 sm:py-20">
@@ -49,7 +31,7 @@ export default async function LocationsPage() {
         as="h1"
         eyebrow={<Eyebrow>Map & locations</Eyebrow>}
         title="Where ReLoop works in Jammu"
-        description="One hub in the old city, a twice-weekly pickup route through the repair markets, and one authorised recycler. Locations are approximate until the hub opens."
+        description={`One hub in Gandhi Nagar, two weekly pickup routes through the repair markets, and one dismantling partner. The hub opens in ${site.hubOpens}; locations are approximate until then.`}
       />
 
       {/* The map's tiles are the page's largest paint: connect to the tile server early. */}
@@ -59,16 +41,21 @@ export default async function LocationsPage() {
         Shaded areas are approximate. Map data © OpenStreetMap contributors.
       </p>
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-2">
+      <p className="mt-6 max-w-3xl rounded-card border border-line bg-sunken p-4 text-ink-soft">
+        We buy from shops, retailers and institutions only, not from homes. Anyone can buy from us.
+      </p>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section
           aria-labelledby="hub-heading"
           className="rounded-card border border-line bg-surface p-6"
         >
           <MapPin className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="hub-heading" className="mt-3 text-xl font-bold">
-            The hub
+            Hub (buyer pickups)
           </h2>
-          <p className="mt-2 leading-relaxed text-ink-soft">{hub.description}</p>
+          <p className="mt-2 leading-relaxed text-ink-soft">{site.hubAddress ?? hub.description}</p>
+          <p className="mt-2 text-sm text-muted">Opening {site.hubOpens}.</p>
         </section>
 
         <section
@@ -77,16 +64,15 @@ export default async function LocationsPage() {
         >
           <Store className="size-6 text-brand-600" aria-hidden="true" />
           <h2 id="shops-heading" className="mt-3 text-xl font-bold">
-            Partner drop-off shops
+            Partner shops on our route
           </h2>
-          {listed.length === 0 ? (
+          {shops.length === 0 ? (
             <p className="mt-2 leading-relaxed text-ink-soft">{LOCATIONS.partnerShopsEmptyText}</p>
           ) : (
             <ul className="mt-2 space-y-2">
-              {listed.map((s) => (
+              {shops.map((s) => (
                 <li key={`${s.name}-${s.market}`}>
                   <strong>{s.name}</strong>, {s.market}
-                  {s.description && <>. {s.description}</>}
                 </li>
               ))}
             </ul>
@@ -102,31 +88,40 @@ export default async function LocationsPage() {
           </p>
         </section>
 
-        <section
-          aria-labelledby="route-heading"
-          className="rounded-card border border-line bg-surface p-6 lg:col-span-2"
-        >
-          <Truck className="size-6 text-brand-600" aria-hidden="true" />
-          <h2 id="route-heading" className="mt-3 text-xl font-bold">
-            Pickup route: every {route.days.join(" and ")}
-          </h2>
-          <p className="mt-1 text-sm font-medium text-muted">{route.status}</p>
-          <ol className="mt-4 grid gap-3 sm:grid-cols-5">
-            {stops.map((stop, i) => (
-              <li key={`${stop.time}-${stop.name}`} className="rounded-xl bg-sunken p-3">
-                <p className="flex items-center gap-1 text-sm font-semibold">
-                  <Clock className="size-4" aria-hidden="true" />
-                  <time>{stop.time}</time>
-                </p>
-                <p className="mt-1 font-semibold">
-                  {i > 0 && i < stops.length - 1 ? `${i}. ` : ""}
-                  {stop.name}
-                </p>
-                <p className="text-sm text-muted">{stop.note}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        {routes.map((route) => (
+          <section
+            key={route.day}
+            aria-labelledby={`route-${route.day}`}
+            className="rounded-card border border-line bg-surface p-6 lg:col-span-2"
+          >
+            <Truck className="size-6 text-brand-600" aria-hidden="true" />
+            <h2 id={`route-${route.day}`} className="mt-3 text-xl font-bold">
+              {route.day}: {route.name}
+            </h2>
+            <p className="mt-1 text-sm font-medium text-muted">
+              {route.markets.join(" and ")} · {route.status}
+            </p>
+            <ol className="mt-4 grid gap-3 sm:grid-cols-4">
+              {route.stops.map((stop, i) => (
+                <li key={`${stop.time}-${stop.name}`} className="rounded-xl bg-sunken p-3">
+                  <p className="flex items-center gap-1 text-sm font-semibold">
+                    <Clock className="size-4" aria-hidden="true" />
+                    <time>{stop.time}</time>
+                  </p>
+                  <p className="mt-1 font-semibold">
+                    {i > 0 && i < route.stops.length - 1 ? `${i}. ` : ""}
+                    {stop.name}
+                  </p>
+                  <p className="text-sm text-muted">{stop.note}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+        <p className="text-sm text-muted lg:col-span-2">
+          After the pilot we add more Jammu markets, not other cities:{" "}
+          {LOCATIONS.nextMarkets.join(", ")}.
+        </p>
 
         <section
           aria-labelledby="recycler-heading"

@@ -4,7 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
-import { CATEGORIES } from "@/features/inventory/model";
+import { ACTIVE_CATEGORIES } from "@/features/inventory/model";
 import { SHARED_DATABASE } from "@/features/inventory/store";
 import {
   loadSettings,
@@ -12,7 +12,7 @@ import {
   saveSetting,
   type SettingRow,
 } from "@/features/settings/admin";
-import { DEFAULT_SETTINGS, type AcceptItem, type DropoffShop } from "@/features/settings/defaults";
+import { DEFAULT_SETTINGS, type AcceptItem } from "@/features/settings/defaults";
 import { RequireRole } from "./RequireRole";
 import { Field, Input, PageTitle, Panel } from "./ui";
 
@@ -56,10 +56,12 @@ function Settings() {
       ) : (
         <div className="grid gap-6">
           <ContactSection rows={rows} onSaved={reload} />
-          <DropoffSection rows={rows} onSaved={reload} />
+          <RateCardSection rows={rows} onSaved={reload} />
+          <RouteSection rows={rows} onSaved={reload} />
           <AcceptSection rows={rows} onSaved={reload} />
           <CategorySection rows={rows} onSaved={reload} />
           <NumbersSection rows={rows} onSaved={reload} />
+          <StaffPlanSection rows={rows} onSaved={reload} />
         </div>
       )}
     </>
@@ -246,62 +248,6 @@ function RowsEditor<T extends Record<string, string>>({
   );
 }
 
-function DropoffSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
-  type Row = { name: string; market: string; lat: string; lng: string; description: string };
-  const stored = (rows["dropoff.shops"]?.value as DropoffShop[] | undefined) ?? [];
-  const [list, setList] = useState<Row[]>(
-    stored.map((d) => ({
-      name: d.name,
-      market: d.market,
-      lat: d.lat?.toString() ?? "",
-      lng: d.lng?.toString() ?? "",
-      description: d.description ?? "",
-    })),
-  );
-  return (
-    <Section
-      title="Drop-off shops"
-      description="Shops (not partner accounts) that accept drop-offs for ReLoop, shown on /locations. Each one is listed there; give a position in Jammu to put it on the map as well."
-      onSaved={onSaved}
-      save={() => {
-        const out: DropoffShop[] = [];
-        for (const r of list) {
-          if (!r.name.trim() || !r.market.trim())
-            return "Every drop-off shop needs a name and a market.";
-          const lat = r.lat ? Number(r.lat) : undefined;
-          const lng = r.lng ? Number(r.lng) : undefined;
-          if (
-            (lat !== undefined || lng !== undefined) &&
-            !(lat! > 32.6 && lat! < 32.85 && lng! > 74.75 && lng! < 75)
-          )
-            return `${r.name}: the position must be in Jammu (latitude about 32.7, longitude about 74.86).`;
-          out.push({
-            name: r.name.trim(),
-            market: r.market.trim(),
-            ...(lat !== undefined && { lat, lng }),
-            ...(r.description.trim() && { description: r.description.trim() }),
-          });
-        }
-        return [["dropoff.shops", out]];
-      }}
-    >
-      <RowsEditor
-        rows={list}
-        setRows={setList}
-        blank={{ name: "", market: "", lat: "", lng: "", description: "" }}
-        addLabel="Add a drop-off shop"
-        columns={[
-          { key: "name", label: "Name" },
-          { key: "market", label: "Market" },
-          { key: "lat", label: "Latitude" },
-          { key: "lng", label: "Longitude" },
-          { key: "description", label: "Note", wide: true },
-        ]}
-      />
-    </Section>
-  );
-}
-
 function AcceptSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
   const take = (rows["accept.take"]?.value as AcceptItem[] | undefined)?.length
     ? (rows["accept.take"].value as AcceptItem[])
@@ -360,7 +306,7 @@ function CategorySection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
   };
   const [values, setValues] = useState(
     Object.fromEntries(
-      CATEGORIES.map((c) => [
+      ACTIVE_CATEGORIES.map((c) => [
         c.value,
         { label: info[c.value]?.label ?? "", weight: String(kg[c.value] ?? "") },
       ]),
@@ -369,12 +315,12 @@ function CategorySection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
   return (
     <Section
       title="Categories"
-      description="Display names and the estimated weight per item, used for the kilograms kept out of landfill when an item has no measured weight (always shown as estimated). New categories need a code change."
+      description="Display names and the estimated weight per item, used for kilograms when a tagged device has no measured weight (always shown as estimated). New categories need a code change."
       onSaved={onSaved}
       save={() => {
         const weights: Record<string, number> = {};
         const labels: Record<string, { label: string }> = {};
-        for (const c of CATEGORIES) {
+        for (const c of ACTIVE_CATEGORIES) {
           const v = values[c.value];
           const w = Number(v.weight);
           if (!(w > 0 && w < 200)) return `${c.label}: enter a weight between 0 and 200 kg.`;
@@ -388,7 +334,7 @@ function CategorySection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
       }}
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        {CATEGORIES.map((c) => (
+        {ACTIVE_CATEGORIES.map((c) => (
           <div key={c.value} className="grid grid-cols-[1fr_7rem] gap-2">
             <Field label={`${c.label}: display name`} hint={`Built-in: ${c.label}`}>
               <Input
@@ -418,20 +364,139 @@ function CategorySection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
   );
 }
 
+const rupees = (paise: unknown) => (typeof paise === "number" ? String(paise / 100) : "");
+const toPaise = (v: string) => Math.round(Number(v) * 100);
+
+function RateCardSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
+  const D = DEFAULT_SETTINGS;
+  const pick = (k: string, d: number) =>
+    typeof rows[k]?.value === "number" ? (rows[k].value as number) : d;
+  const [v, setV] = useState({
+    screens: rupees(pick("rate_card.screens_paise", D.rateScreensPaise)),
+    batteries: rupees(pick("rate_card.batteries_paise", D.rateBatteriesPaise)),
+    boards: rupees(pick("rate_card.boards_paise", D.rateBoardsPaise)),
+    other: rupees(pick("rate_card.other_paise", D.rateOtherPaise)),
+    asOf: str(rows, "rate_card.as_of") || D.rateCardAsOf,
+    commission: String(pick("rate_card.commission_pct", D.commissionPct)),
+    lotFee: rupees(pick("institution.lot_fee_paise", D.lotFeePaise)),
+  });
+  const set = (k: keyof typeof v) => (e: { target: { value: string } }) =>
+    setV({ ...v, [k]: e.target.value });
+  return (
+    <Section
+      title="Rate card and published terms"
+      description="The per-kg rate card, the Parts Exchange commission and the institution lot fee are published terms: the Rate card page and the shop pages show them. Every weigh-in keeps a snapshot of the rates used, so a change never touches earlier receipts."
+      onSaved={onSaved}
+      save={() => {
+        const out: [string, unknown][] = [];
+        for (const [k, key, label] of [
+          ["screens", "rate_card.screens_paise", "Screens and displays"],
+          ["batteries", "rate_card.batteries_paise", "Batteries"],
+          ["boards", "rate_card.boards_paise", "Dead motherboards"],
+          ["other", "rate_card.other_paise", "Everything else"],
+        ] as const) {
+          const r = Number(v[k]);
+          if (!(r >= 0 && r <= 5000)) return `${label}: enter rupees per kg between 0 and 5,000.`;
+          out.push([key, toPaise(v[k])]);
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v.asOf)) return "Enter the rate card date as YYYY-MM-DD.";
+        const c = Number(v.commission);
+        if (!(c >= 0 && c <= 30)) return "The commission is a percentage between 0 and 30.";
+        const fee = Number(v.lotFee);
+        if (!(fee >= 0 && fee <= 100000)) return "The lot fee is between ₹0 and ₹1,00,000.";
+        out.push(["rate_card.as_of", v.asOf], ["rate_card.commission_pct", c]);
+        out.push(["institution.lot_fee_paise", toPaise(v.lotFee)]);
+        return out;
+      }}
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Field label="Screens and displays (₹ per kg)">
+          <Input inputMode="decimal" value={v.screens} onChange={set("screens")} />
+        </Field>
+        <Field label="Batteries (₹ per kg)">
+          <Input inputMode="decimal" value={v.batteries} onChange={set("batteries")} />
+        </Field>
+        <Field label="Dead motherboards (₹ per kg)">
+          <Input inputMode="decimal" value={v.boards} onChange={set("boards")} />
+        </Field>
+        <Field label="Everything else (₹ per kg)">
+          <Input inputMode="decimal" value={v.other} onChange={set("other")} />
+        </Field>
+        <Field label="Rate card date" hint="Shown as “as of” on the Rate card page">
+          <Input value={v.asOf} onChange={set("asOf")} />
+        </Field>
+        <Field label="Parts Exchange commission (%)">
+          <Input inputMode="decimal" value={v.commission} onChange={set("commission")} />
+        </Field>
+        <Field label="Institution lot fee (₹)">
+          <Input inputMode="decimal" value={v.lotFee} onChange={set("lotFee")} />
+        </Field>
+      </div>
+    </Section>
+  );
+}
+
+type MarketRow = { market: string; day: string; starts: string };
+
+function RouteSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
+  const stored =
+    (rows["route.markets"]?.value as DefaultsMarkets | undefined) ?? DEFAULT_SETTINGS.routeMarkets;
+  const [list, setList] = useState<MarketRow[]>(
+    Object.entries(stored).map(([market, m]) => ({
+      market,
+      day: m.day,
+      starts: m.starts_on ?? "",
+    })),
+  );
+  return (
+    <Section
+      title="Route days by market"
+      description="Tuesday: the Gandhi Nagar cluster. Friday: the old city. A market that is not listed, or has not started yet, shows “next route day to be confirmed” and is flagged to staff."
+      onSaved={onSaved}
+      save={() => {
+        const out: DefaultsMarkets = {};
+        for (const r of list) {
+          const name = r.market.trim();
+          if (!name) return "Every row needs a market name.";
+          if (r.day !== "tue" && r.day !== "fri") return `${name}: the day is tue or fri.`;
+          if (r.starts && !/^\d{4}-\d{2}-\d{2}$/.test(r.starts))
+            return `${name}: the start date is YYYY-MM-DD.`;
+          out[name] = { day: r.day, ...(r.starts && { starts_on: r.starts }) };
+        }
+        return [["route.markets", out]];
+      }}
+    >
+      <RowsEditor
+        rows={list}
+        setRows={setList}
+        blank={{ market: "", day: "tue", starts: "" }}
+        addLabel="Add a market"
+        columns={[
+          { key: "market", label: "Market" },
+          { key: "day", label: "Day (tue or fri)" },
+          { key: "starts", label: "Starts on (YYYY-MM-DD)" },
+        ]}
+      />
+    </Section>
+  );
+}
+
+type DefaultsMarkets = typeof DEFAULT_SETTINGS.routeMarkets;
+
 function NumbersSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
   const num = (k: string, d: number) =>
     typeof rows[k]?.value === "number" ? (rows[k].value as number) : d;
   const handling = (rows["pricing.handling_paise"]?.value as Record<string, number>) ?? {
-    A: 10000,
-    B: 10000,
-    C: 6000,
+    A: 0,
+    B: 0,
+    C: 0,
     D: 0,
   };
+  const slots = rows["capacity.device_rack_slots"]?.value;
   const [v, setV] = useState({
     factor: String(num("pricing.grade_b_factor", 0.75)),
     fresh: String(num("pricing.reference_fresh_days", 180)),
-    margin: String(num("pricing.target_margin_pct", 40)),
-    racks: String(num("capacity.racks", 300)),
+    slots: typeof slots === "number" ? String(slots) : "",
     A: String((handling.A ?? 0) / 100),
     B: String((handling.B ?? 0) / 100),
     C: String((handling.C ?? 0) / 100),
@@ -442,19 +507,21 @@ function NumbersSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) 
   return (
     <Section
       title="Pricing and capacity"
-      description="The grade-B factor and the reference-price window are public (they explain the price bands). The margin target, handling costs and rack capacity are for staff only."
+      description="The grade-B factor and the reference-price window are public (they explain the price bands). Handling and the device rack slots are for staff only. Leave the rack slots empty until the hub lead has counted them: no capacity percentage or alert is shown until then. Handling defaults to ₹0; the B repair cost is the actual repair fee."
       onSaved={onSaved}
       save={() => {
         const factor = Number(v.factor),
-          fresh = Number(v.fresh),
-          margin = Number(v.margin),
-          racks = Number(v.racks);
+          fresh = Number(v.fresh);
         if (!(factor > 0 && factor <= 1))
           return "The grade-B factor is between 0 and 1 (e.g. 0.75).";
         if (!(fresh >= 7 && fresh <= 730))
           return "Reference prices stay current for 7 to 730 days.";
-        if (!(margin >= 0 && margin < 100)) return "The margin target is a percentage below 100.";
-        if (!(racks >= 10 && racks <= 5000)) return "Rack capacity is between 10 and 5,000 items.";
+        let rackSlots: number | null = null;
+        if (v.slots.trim()) {
+          rackSlots = Number(v.slots);
+          if (!(rackSlots >= 10 && rackSlots <= 5000))
+            return "Device rack slots are between 10 and 5,000.";
+        }
         const h: Record<string, number> = {};
         for (const g of ["A", "B", "C", "D"] as const) {
           const r = Number(v[g]);
@@ -465,28 +532,147 @@ function NumbersSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) 
         return [
           ["pricing.grade_b_factor", factor],
           ["pricing.reference_fresh_days", Math.round(fresh)],
-          ["pricing.target_margin_pct", margin],
           ["pricing.handling_paise", h],
-          ["capacity.racks", Math.round(racks)],
+          ["capacity.device_rack_slots", rackSlots === null ? null : Math.round(rackSlots)],
         ];
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Grade-B price factor" hint="B band = factor × A band (plan: 0.75)">
+        <Field label="Grade-B price factor" hint="B band = factor × A band (0.75)">
           <Input inputMode="decimal" value={v.factor} onChange={set("factor")} />
         </Field>
         <Field label="Reference prices current for (days)">
           <Input inputMode="numeric" value={v.fresh} onChange={set("fresh")} />
         </Field>
-        <Field label="Target margin (% of sale price)">
-          <Input inputMode="decimal" value={v.margin} onChange={set("margin")} />
-        </Field>
-        <Field label="Rack capacity (items)" hint="Plan: about 300">
-          <Input inputMode="numeric" value={v.racks} onChange={set("racks")} />
+        <Field label="Device rack slots" hint="Empty = not counted yet">
+          <Input inputMode="numeric" value={v.slots} onChange={set("slots")} />
         </Field>
         {(["A", "B", "C", "D"] as const).map((g) => (
           <Field key={g} label={`Handling cost, grade ${g} (₹)`}>
             <Input inputMode="decimal" value={v[g]} onChange={set(g)} />
+          </Field>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+const STAFF_NUMBERS: [key: string, label: string, hint: string][] = [
+  [
+    "finance.scrap_spread_paise_per_kg",
+    "Scrap spread (₹ per kg)",
+    "Plan benchmark. Staff-only; empty = not set.",
+  ],
+  [
+    "finance.device_unit_paise",
+    "Per-device figure (₹)",
+    "Plan benchmark. Staff-only; empty = not set.",
+  ],
+  [
+    "finance.parts_target_monthly_paise",
+    "Tested parts sold a month, target (₹)",
+    "Parts Exchange included. Staff-only.",
+  ],
+  ["finance.fixed_costs_monthly_paise", "Fixed costs a month (₹)", "Staff-only."],
+  ["finance.setup_costs_paise", "Set-up costs (₹)", "Staff-only."],
+];
+const VRRG_BINS = ["screens", "boards", "other", "d_devices", "batteries"] as const;
+const CUTOFFS: [key: string, label: string, hint: string][] = [
+  [
+    "ownership.required_from",
+    "Ownership tick required from",
+    "A device bought on or after this date needs the seller's ownership tick. Empty = not enforced yet.",
+  ],
+  [
+    "wipe.strip_required_from",
+    "Wipe before stripping required from",
+    "Devices received on or after this date are wiped (or their storage destroyed) before they are stripped.",
+  ],
+  [
+    "stock.grace_until",
+    "Stock rules start after",
+    "Nothing is cut or stripped before this date: the grace for stock already past a threshold.",
+  ],
+];
+
+/** Staff-only figures: plan benchmarks, VRRG rates and the launch cutoffs. Never public. */
+function StaffPlanSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) {
+  const [nums, setNums] = useState<Record<string, string>>(
+    Object.fromEntries(
+      STAFF_NUMBERS.map(([k]) => [
+        k,
+        typeof rows[k]?.value === "number" ? rupees(rows[k].value) : "",
+      ]),
+    ),
+  );
+  const vr = (rows["vrg.rates_paise"]?.value as Record<string, number> | undefined) ?? {};
+  const [rates, setRates] = useState<Record<string, string>>(
+    Object.fromEntries(VRRG_BINS.map((b) => [b, rupees(vr[b])])),
+  );
+  const [dates, setDates] = useState<Record<string, string>>(
+    Object.fromEntries(CUTOFFS.map(([k]) => [k, str(rows, k)])),
+  );
+  return (
+    <Section
+      title="Staff-only plan figures and launch dates"
+      description="These never appear on the public site or in any public view. They start empty: enter them from the private business plan. VRRG rates are what the dismantling partner pays per kg, by bin."
+      onSaved={onSaved}
+      save={() => {
+        const out: [string, unknown][] = [];
+        for (const [k, label] of STAFF_NUMBERS) {
+          const t = nums[k].trim();
+          if (!t) {
+            out.push([k, null]);
+            continue;
+          }
+          const n = Number(t);
+          if (!(n >= 0 && n <= 100_000_000)) return `${label}: enter a rupee amount.`;
+          out.push([k, toPaise(t)]);
+        }
+        const r: Record<string, number> = {};
+        for (const b of VRRG_BINS) {
+          const t = rates[b].trim();
+          if (!t) continue;
+          const n = Number(t);
+          if (!(n >= 0 && n <= 100_000)) return `VRRG rate for ${b}: enter rupees per kg.`;
+          r[b] = toPaise(t);
+        }
+        out.push(["vrg.rates_paise", r]);
+        for (const [k, label] of CUTOFFS) {
+          const t = dates[k].trim();
+          if (t && !/^\d{4}-\d{2}-\d{2}$/.test(t))
+            return `${label}: use YYYY-MM-DD, or leave empty.`;
+          out.push([k, t || null]);
+        }
+        return out;
+      }}
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {STAFF_NUMBERS.map(([k, label, hint]) => (
+          <Field key={k} label={label} hint={hint}>
+            <Input
+              inputMode="decimal"
+              value={nums[k]}
+              onChange={(e) => setNums({ ...nums, [k]: e.target.value })}
+            />
+          </Field>
+        ))}
+        {VRRG_BINS.map((b) => (
+          <Field key={b} label={`VRRG rate: ${b} (₹ per kg)`}>
+            <Input
+              inputMode="decimal"
+              value={rates[b]}
+              onChange={(e) => setRates({ ...rates, [b]: e.target.value })}
+            />
+          </Field>
+        ))}
+        {CUTOFFS.map(([k, label, hint]) => (
+          <Field key={k} label={label} hint={hint}>
+            <Input
+              value={dates[k]}
+              placeholder="YYYY-MM-DD"
+              onChange={(e) => setDates({ ...dates, [k]: e.target.value })}
+            />
           </Field>
         ))}
       </div>
