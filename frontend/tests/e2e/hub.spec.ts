@@ -355,3 +355,26 @@ test.describe("ReLoop Checked", () => {
     await expect(page.getByText(/Sample, not inspected/)).toBeVisible();
   });
 });
+
+test.describe("hub shell and daily panel", () => {
+  test("the overview shows today's counts, and / jumps to the search box", async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto("/hub");
+    const today = page.getByRole("heading", { name: "Today at the hub" });
+    await expect(today).toBeVisible();
+    await expect(page.getByText("Items received", { exact: true })).toBeVisible();
+    await expect(page.getByText("Sold today", { exact: true })).toBeVisible();
+    test.skip(isMobile, "keyboard shortcuts are for the hub laptop");
+    await page.locator("main").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press("/");
+    await expect(page.getByRole("searchbox", { name: "Search the hub" })).toBeFocused();
+  });
+
+  test("the skip link is the first thing a keyboard reaches", async ({ page }) => {
+    await page.goto("/hub");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+  });
+});
