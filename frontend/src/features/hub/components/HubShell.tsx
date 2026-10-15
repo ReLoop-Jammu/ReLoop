@@ -30,6 +30,12 @@ export function HubShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas lg:flex-row">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lift"
+      >
+        Skip to content
+      </a>
       <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5 lg:py-6">
           <Link href="/hub" className="flex items-center gap-2 font-display text-lg font-bold">
@@ -137,6 +143,18 @@ function HubMenu({ pathname }: { pathname: string }) {
 
 /** Find an item by its RL-JMU tag, a shop or (admins) an account. */
 function HubSearch() {
+  // "/" jumps to the search box, unless the person is already typing somewhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
+      e.preventDefault();
+      document.getElementById("hub-search")?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   return (
     <Form
       action="/hub/search"
@@ -153,7 +171,7 @@ function HubSearch() {
           id="hub-search"
           name="q"
           type="search"
-          placeholder="RL-JMU tag, shop or person"
+          placeholder="RL-JMU tag, shop or person (press /)"
           className="min-h-10 w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
         />
       </div>

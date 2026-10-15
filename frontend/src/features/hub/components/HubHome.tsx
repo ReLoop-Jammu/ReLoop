@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils/cn";
 import { useHubBadges } from "../badges";
 import type { HubBadges } from "../tools";
 import { useHubData } from "../useHubData";
+import { TodayPanel } from "./TodayPanel";
 import { PageTitle, Panel } from "./ui";
 
 export type Todo = {
@@ -268,6 +269,10 @@ export function HubHome() {
           </div>
         }
       />
+
+      <div className="mb-6">
+        <TodayPanel items={items} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Requests and submissions">
