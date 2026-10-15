@@ -40,7 +40,7 @@ export function WarrantyPage() {
     <>
       <PageTitle
         title="Warranty claims"
-        description={`Grade A and B devices have a ${BUSINESS_RULES.warrantyDays}-day warranty from the sale, for faults present at sale (not physical or liquid damage, misuse or third-party repairs). ReLoop chooses the remedy: repair first, then replacement, then refund. Closed claims are deleted 12 months after closing.`}
+        description={`Grade A and B devices have a ${BUSINESS_RULES.warrantyDays}-day warranty from the sale, for faults present at sale (not physical or liquid damage, misuse or third-party repairs). ReLoop chooses the remedy: repair first, then replacement, then refund. Tested parts have a 7-day return window instead; a refunded part return reverses the shop's share. Closed claims are deleted 12 months after closing.`}
       />
       {SHARED_DATABASE ? (
         <Claims />
@@ -129,7 +129,8 @@ function ClaimRow({ claim: c, onChanged }: { claim: HubClaim; onChanged: () => v
           <Link className="font-mono text-brand-600 underline" href={`/hub/items/${c.item_id}`}>
             {c.item_id}
           </Link>{" "}
-          · {CLAIM_LABEL[c.status] ?? c.status}
+          · {c.kind === "part_return" ? "Part return (7 days) · " : ""}
+          {CLAIM_LABEL[c.status] ?? c.status}
         </h3>
         <span className="text-xs text-muted">
           {new Date(c.created_at).toLocaleDateString("en-IN")} ·{" "}

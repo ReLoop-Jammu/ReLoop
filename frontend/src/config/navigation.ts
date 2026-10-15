@@ -19,8 +19,8 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/warranty",
-        label: "Warranty & delivery",
-        description: "30 days on grade A and B devices",
+        label: "Warranty & returns",
+        description: "30 days on devices, 7 days on parts",
       },
       {
         href: "/account/saved",
