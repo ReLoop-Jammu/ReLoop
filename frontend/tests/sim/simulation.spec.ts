@@ -605,3 +605,16 @@ test.describe("staff pricing (real logins)", () => {
     expect(text).not.toMatch(/margin|COGS|we paid|buy price/i);
   });
 });
+
+test.describe("partners (real logins)", () => {
+  test("the demo shop owner sees their partnership numbers, with estimates labelled", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-shop@reloop.demo", "/account");
+    await expect(page.getByRole("heading", { name: "Your partnership" })).toBeVisible();
+    await expect(page.getByText("Loading your numbers…")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByText("Paid to you")).toBeVisible();
+  });
+});

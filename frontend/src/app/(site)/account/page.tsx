@@ -23,6 +23,7 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { MySubmissions } from "@/features/account/MySubmissions";
+import { MyPartnership } from "@/features/account/MyPartnership";
 import { MyWeighins } from "@/features/account/MyWeighins";
 import { useNotifications } from "@/features/account/notifications-store";
 import { useHubBadges } from "@/features/hub/badges";
@@ -238,6 +239,10 @@ function ShopOwner({ access }: { access: Access }) {
             <HelpCircle className="size-4" aria-hidden="true" /> Help, in English and Hindi
           </ButtonLink>
         </div>
+      </div>
+      <div className="mb-6 rounded-card border border-line bg-surface p-6">
+        <h2 className="text-xl font-bold">Your partnership</h2>
+        <MyPartnership />
       </div>
       {/* Every shop owner sees what they sent before, verified or not. */}
       <div className="rounded-card border border-line bg-surface p-6">

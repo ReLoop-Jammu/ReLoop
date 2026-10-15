@@ -73,3 +73,32 @@ test.describe("impact and network (no database: the pilot-starting state)", () =
     await expect(page).toHaveURL(/\/network$/);
   });
 });
+
+test.describe("partners", () => {
+  test("the partner directory is linked from the sell menu and says shops are joining", async ({
+    page,
+  }) => {
+    await page.goto("/partners");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Jammu shops in the ReLoop loop",
+    );
+    await expect(page.getByRole("status")).toContainText("Partner shops are joining");
+    await expect(page.getByRole("link", { name: "Become a partner shop" })).toHaveAttribute(
+      "href",
+      "/sell/shops",
+    );
+  });
+
+  test("the window badge reads Tested parts from ReLoop, with its QR code", async ({ page }) => {
+    await page.goto("/print/partner-badge");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tested parts from ReLoop");
+    await expect(
+      page.getByRole("img", {
+        name: "QR code linking to https://re-loop-ochre.vercel.app/go/partner-badge",
+      }),
+    ).toBeVisible();
+    const res = await page.request.get("/go/partner-badge", { maxRedirects: 0 });
+    expect(res.status()).toBeGreaterThanOrEqual(300);
+    expect(res.headers().location).toContain("/locations");
+  });
+});

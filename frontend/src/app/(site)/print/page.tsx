@@ -6,7 +6,8 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
   title: "Printable outreach",
-  description: "A4 counter card for partner shops and a buyer and campus flyer, ready to print.",
+  description:
+    "A4 counter card for partner shops, a buyer and campus flyer and an A5 partner window badge, ready to print.",
   robots: { index: false, follow: false },
 };
 
@@ -23,6 +24,12 @@ const SHEETS = [
     pdf: "/print/awareness-flyer.pdf",
     page: "/print/awareness-flyer",
   },
+  {
+    title: "ReLoop Partner window badge (A5)",
+    body: 'For a partner shop\'s window: "Tested parts from ReLoop", with a QR code to the hub and the routes.',
+    pdf: "/print/partner-badge.pdf",
+    page: "/print/partner-badge",
+  },
 ];
 
 export default function PrintIndexPage() {
@@ -32,8 +39,8 @@ export default function PrintIndexPage() {
         <Eyebrow>Printable outreach</Eyebrow>
         <h1 className="mt-4 text-4xl font-bold">Posters and flyers</h1>
         <p className="mt-4 text-lg text-muted">
-          A4, one page each, in colour. Print the PDF at 100% (no &ldquo;fit to page&rdquo;) so the
-          QR code stays sharp. The QR code opens our locations page.
+          One page each, in colour (the badge is A5). Print the PDF at 100% (no &ldquo;fit to
+          page&rdquo;) so the QR code stays sharp. The QR code opens our locations page.
         </p>
       </div>
       <ul className="mt-10 grid gap-4 md:grid-cols-2" role="list">
