@@ -39,9 +39,31 @@ on conflict (name) do nothing;
 
 alter table public.items
   add column if not exists buyer_area text references public.buyer_areas (name) on update cascade on delete set null;
--- Staff set it when they mark an item sold; visitors never read it (no column
--- grant to anon, and sold items are not in any public policy).
-grant update (buyer_area) on public.items to authenticated;
+-- Staff set it through set_item_buyer_area() after marking an item sold; visitors
+-- never read it (no column grant to anon, and sold items are in no public policy).
+create or replace function public.set_item_buyer_area(p_id text, p_area text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_staff() then
+    raise exception 'Only hub staff can record the buyer area';
+  end if;
+  if not exists (select 1 from public.items where id = p_id and status::text = 'sold') then
+    raise exception 'Only a sold item has a buyer area';
+  end if;
+  if p_area is not null and not exists (select 1 from public.buyer_areas where name = p_area) then
+    raise exception 'Unknown buyer area';
+  end if;
+  update public.items set buyer_area = p_area where id = p_id;
+  insert into public.item_events (item_id, type, note)
+  values (p_id, 'edited', 'Buyer area: ' || coalesce(p_area, 'cleared'));
+end;
+$$;
+revoke execute on function public.set_item_buyer_area(text, text) from public, anon;
+grant execute on function public.set_item_buyer_area(text, text) to authenticated;
 
 -- The area belongs to a sale: it is cleared when the item is no longer sold.
 create or replace function public.clear_buyer_area()

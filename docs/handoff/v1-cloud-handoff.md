@@ -247,6 +247,12 @@ Every money value below is **absent from the repository**. The code reads it fro
 6. **Vercel environment:** no new variables for 15b. Confirm `vercel.json` still pins `bom1`. The `reloop-stock-rules` cron job is unchanged (the new stock rules run inside it).
 7. **Printables:** open `frontend/public/print/counter-card.pdf` and `awareness-flyer.pdf` and check them visually; the rate-card QR points at `/go/rate-card`.
 
+### 7b. Added by batch 16 (impact and network), in run order
+
+1. Apply migration `20261107000001_impact_network.sql` to the simulation project, then production (after a backup), and re-seed the simulation (the seed now sets a buyer area on sold items). Then run `supabase-fixes/live-checks-v3.sql` (checks 31 and 32 must be true) with the earlier sets.
+2. Staff review the `buyer_areas` list (it is a starting set of Jammu localities; admins can add or rename rows) before the first sale is recorded with an area.
+3. Look at `/impact` and `/network` on the simulation build: the Sankeys, the monthly bars and the Leaflet map need the data to be present.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).

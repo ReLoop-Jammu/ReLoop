@@ -12,9 +12,11 @@ select check_name, ok
         and not exists (select 1 from information_schema.columns
                          where table_schema = 'public' and table_name in ('impact_flows', 'network_flows')
                            and column_name ~ '(name|phone|paise|price|id$|address|owner)')),
-    (32, 'Buyer area: staff set it at sale, visitors cannot read it, and only admins change the list',
+    (32, 'Buyer area: staff set it after a sale (function only), visitors cannot read it, and only admins change the list',
         not has_column_privilege('anon', 'public.items', 'buyer_area', 'SELECT')
-        and has_column_privilege('authenticated', 'public.items', 'buyer_area', 'UPDATE')
+        and not has_column_privilege('authenticated', 'public.items', 'buyer_area', 'UPDATE')
+        and has_function_privilege('authenticated', 'public.set_item_buyer_area(text, text)', 'EXECUTE')
+        and not has_function_privilege('anon', 'public.set_item_buyer_area(text, text)', 'EXECUTE')
         and exists (select 1 from pg_trigger where tgrelid = 'public.items'::regclass and tgname = 'items_clear_buyer_area')
         and has_table_privilege('anon', 'public.buyer_areas', 'SELECT')
         and not has_table_privilege('anon', 'public.buyer_areas', 'INSERT'))

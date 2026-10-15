@@ -203,6 +203,7 @@ test.describe("site", () => {
       "/rate-card",
       "/warranty",
       "/impact",
+      "/network",
       "/contact",
       "/hub",
       "/hub/intake",

@@ -45,3 +45,31 @@ test.describe("Business Plan v2 pages", () => {
     await expect(page.locator("main article [data-grade]")).toHaveCount(0);
   });
 });
+
+test.describe("impact and network (no database: the pilot-starting state)", () => {
+  test("the impact page frames Jammu and says the pilot is starting instead of inventing numbers", async ({
+    page,
+  }) => {
+    await page.goto("/impact");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("kept in Jammu");
+    await expect(page.getByRole("status")).toContainText("The pilot is starting");
+    await expect(page.getByRole("heading", { name: "What we hold ourselves to" })).toBeVisible();
+    await expect(page.getByText(/kitchen drawer|homes/i)).toHaveCount(0);
+  });
+
+  test("the network page explains its privacy rules and links the locations", async ({ page }) => {
+    await page.goto("/network");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Where it comes from, where it goes",
+    );
+    await expect(page.getByText(/fewer than three active partner shops/)).toBeVisible();
+    await expect(page.getByRole("status")).toContainText("The pilot is starting");
+  });
+
+  test("the home page sketches the loop and links to the network", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("img", { name: /A sketch of the loop/ })).toBeVisible();
+    await page.getByRole("link", { name: "See the network" }).click();
+    await expect(page).toHaveURL(/\/network$/);
+  });
+});

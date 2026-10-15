@@ -166,7 +166,24 @@ describe("buyer areas and access", () => {
          values ('repair_shop', 'monitor', 'cash', 'A', 'sold', now(), 100, 'Gandhi Nagar') returning id`,
       )
     ).rows[0].id;
-    await q(staff, "update public.items set buyer_area = 'Trikuta Nagar' where id = $1", [id]);
+    await q(staff, "select public.set_item_buyer_area($1, 'Trikuta Nagar')", [id]);
+    assert.equal(
+      (await db.query("select buyer_area from public.items where id = $1", [id])).rows[0]
+        .buyer_area,
+      "Trikuta Nagar",
+    );
+    await assert.rejects(
+      q(buyer, "select public.set_item_buyer_area($1, 'Gandhi Nagar')", [id]),
+      /Only hub staff/,
+    );
+    await assert.rejects(
+      q(staff, "select public.set_item_buyer_area($1, 'Atlantis')", [id]),
+      /Unknown buyer area/,
+    );
+    await assert.rejects(
+      q(staff, "update public.items set buyer_area = 'Gandhi Nagar' where id = $1", [id]),
+      /permission denied/,
+    );
     await db.query(
       "update public.items set status = 'graded', sold_at = null, sold_paise = null where id = $1",
       [id],

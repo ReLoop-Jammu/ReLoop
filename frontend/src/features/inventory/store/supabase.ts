@@ -109,6 +109,7 @@ type ItemRow = {
   listed_by_partner_id?: string | null;
   commission_pct?: number | null;
   weighin_id?: string | null;
+  buyer_area?: string | null;
   item_events?: { at: string; type: string; note: string }[];
 };
 
@@ -190,6 +191,7 @@ export function rowToItem(r: ItemRow): Item {
         ? undefined
         : Number(r.commission_pct),
     weighinId: opt(r.weighin_id),
+    buyerArea: opt(r.buyer_area),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) Object.assign(item, { [k]: v });
   return item;
@@ -375,6 +377,14 @@ export async function saveItem(item: Item): Promise<Item> {
 }
 
 /** Corrects brand, model and description; the reason goes into the history. */
+/** Records where a sold item went (a locality from the buyer-areas list). */
+export async function setBuyerArea(id: string, area: string | null): Promise<void> {
+  await rest("rpc/set_item_buyer_area", {
+    method: "POST",
+    body: JSON.stringify({ p_id: id, p_area: area }),
+  });
+}
+
 export async function editItemDetails(
   id: string,
   d: { brand: string; model: string; description: string },

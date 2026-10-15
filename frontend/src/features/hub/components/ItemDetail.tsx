@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BUSINESS_RULES } from "@/config/business-rules";
+import { BUYER_AREAS } from "@/config/buyer-areas";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import {
   GRADES,
@@ -26,6 +27,7 @@ import {
   saveRepairJob,
   setItemStatus,
   SHARED_DATABASE,
+  setBuyerArea,
 } from "@/features/inventory/store";
 import type { Partner } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
@@ -436,6 +438,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
   );
   const [sold, setSold] = useState(paiseToRupeeInput(item.currentPaise));
   const [fulfilment, setFulfilment] = useState<Fulfilment>("pickup");
+  const [area, setArea] = useState("");
   const [repair, setRepair] = useState({ partnerId: "", fault: item.faults, fee: "" });
   const [kg, setKg] = useState(item.weightKg ? String(item.weightKg) : "");
   const [parts, setParts] = useState<{ partType: PartType; title: string; price: string }[]>([]);
@@ -735,7 +738,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
             {item.priceCutAt && ` (cut from ${formatPrice(item.listPaise)})`} since{" "}
             {item.listedAt && new Date(item.listedAt).toLocaleDateString("en-IN")}.
           </p>
-          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
             <Input
               aria-label="Sold for (₹)"
               inputMode="decimal"
@@ -750,14 +753,29 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
               <option value="pickup">Hub pickup</option>
               <option value="delivery_jammu">Jammu city delivery (₹50)</option>
             </Select>
+            <Select
+              aria-label="Buyer's area"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+            >
+              <option value="">Buyer&apos;s area (optional)</option>
+              {BUYER_AREAS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </Select>
             <Button
               size="sm"
               onClick={() =>
-                void go(
-                  "sold",
-                  `Sold for ${formatPrice(rupeesToPaiseOrNull(sold) ?? 0)} (${fulfilment.replace("_", " ")})`,
-                  { currentPaise: rupeesToPaiseOrNull(sold) ?? item.currentPaise, fulfilment },
-                )
+                void (async () => {
+                  await go(
+                    "sold",
+                    `Sold for ${formatPrice(rupeesToPaiseOrNull(sold) ?? 0)} (${fulfilment.replace("_", " ")})`,
+                    { currentPaise: rupeesToPaiseOrNull(sold) ?? item.currentPaise, fulfilment },
+                  );
+                  if (area) await setBuyerArea(item.id, area);
+                })()
               }
             >
               Mark sold
