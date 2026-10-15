@@ -78,6 +78,11 @@ export default async function PrivacyPage() {
             To keep records of where items came from, how much scrap each shop handed over, and
             where scrap went (the weight ledger is kept as an e-waste record).
           </li>
+          <li>
+            To show, in totals only, which parts of Jammu our stock goes to: when you buy, staff may
+            note your locality (never your address), and an area is shown only once three or more
+            items have gone there.
+          </li>
           <li>To answer your questions and keep the service secure.</li>
         </ul>
       </section>
