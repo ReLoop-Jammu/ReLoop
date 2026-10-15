@@ -4,6 +4,15 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 **Earlier stages (A–E, 2026-10-13) are all done:** health check, analytics, the database baseline and fixes, the map page and QR code (`/locations`, `/go/drive`), and the hub on Supabase with staff login and KPIs. The reports are in `docs/health-check-2026-10-13.md` and `docs/live-check-2026-10-13.md`. Rounds 1–4 are summarised below.
 
+## RESUME POINT (cloud session, updated after every commit)
+
+- **Branch:** `release/v1` (from `feat/business-plan-v2` at bb40f7d). All work is on it or on branches merged into it. Never merge to `main`. Pushes go to `origin` (ReLoop-Jammu/ReLoop); a local post-commit hook pushes and a background job snapshots to `autosave/cloud`.
+- **No CI runner here:** CI is the same commands run locally (`npm run check`, then `CI=true npm run test:e2e`) before any merge into `release/v1`. `.github/workflows/ci.yml` also runs on pushes to `release/v1`.
+- **Done:** 15b migration 1 written (`20261106000001_v2_scope_and_places.sql`: blocks on removed values, settings keys, route markets, `next_route_day(date, market)`, hub address). Untested so far.
+- **Half-done:** nothing else.
+- **Next step:** run `npm run test -w backend`, fix tests broken by migration 1 (printer in `backend/supabase/seed.sql`, `next_route_day`), add `backend/tests/v2-scope.test.mjs`, then migration 2 (scrap weigh-ins, bins, payouts, partners link, ownership).
+- **Commit style:** commitlint rejects `WIP:`; use `chore(wip): ...` for work in progress. WIP is never merged into `release/v1`.
+
 ## v1.0.0 (approved 2026-10-14)
 
 The plan file is the reference; every question uses its default. Keychain entries `reloop-live-db` and `reloop-supabase-token` were added at the start and are deleted at the end.
