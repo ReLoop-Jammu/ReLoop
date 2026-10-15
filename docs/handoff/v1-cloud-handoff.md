@@ -276,6 +276,12 @@ Every money value below is **absent from the repository**. The code reads it fro
 2. Before switching a shop into the public directory (`/hub/partners`, admin), get the shop's agreement; the consent date is recorded when the box is ticked. The partner terms and the privacy page should mention the directory before the first shop is listed.
 3. Print `frontend/public/print/partner-badge.pdf` (A5) once and check the QR code opens `/go/partner-badge` and lands on `/locations`.
 
+### 7g. Added by batch 24 (transparency), in run order
+
+1. Apply migration `20261107000006_transparency.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 37 must be true).
+2. Before naming any institution on `/ledger`, record its agreement (`institutions.named_publicly` and `named_consent_at`); by default lots stay "Institution lot".
+3. On the simulation build, open `/reports`, one month, its PDF and CSV, `/ledger`, `/data` and the home page's "Lately in the loop" feed.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).

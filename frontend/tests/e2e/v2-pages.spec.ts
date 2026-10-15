@@ -102,3 +102,49 @@ test.describe("partners", () => {
     expect(res.headers().location).toContain("/locations");
   });
 });
+
+test.describe("transparency", () => {
+  test("the ledger, reports and open data pages say the pilot is starting, without inventing rows", async ({
+    page,
+  }) => {
+    await page.goto("/ledger");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Handover ledger");
+    await expect(page.getByRole("status")).toContainText("No handover yet");
+    await page.goto("/reports");
+    await expect(page.getByRole("status")).toContainText("The pilot is starting");
+    await page.goto("/data");
+    for (const f of ["ledger.csv", "monthly.csv", "impact-flows.csv", "network-flows.csv"])
+      await expect(page.getByRole("link", { name: f })).toHaveAttribute("href", `/data/${f}`);
+  });
+
+  test("the open-data CSVs download with their dictionary's columns and no private ones", async ({
+    request,
+  }) => {
+    const res = await request.get("/data/ledger.csv");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/csv");
+    const header = (await res.text()).split(/\r?\n/)[0];
+    expect(header).toBe(
+      "date,source,institution,screens_kg,boards_kg,other_kg,d_devices_kg,batteries_kg,before_bins_kg,total_kg,receipt_ref",
+    );
+    expect(header).not.toMatch(/paise|rate|phone|note/);
+    expect((await request.get("/data/secrets.csv")).status()).toBe(404);
+  });
+
+  test("a month without a report is a 404, and so is a malformed one", async ({ request }) => {
+    expect((await request.get("/reports/2026-11")).status()).toBe(404);
+    expect((await request.get("/reports/2026-13")).status()).toBe(404);
+    expect((await request.get("/reports/2026-11/report.pdf")).status()).toBe(404);
+  });
+
+  test("the transparency menu links the new pages", async ({ page }) => {
+    await page.goto("/");
+    const footer = page.getByRole("contentinfo");
+    for (const [name, href] of [
+      ["Handover ledger", "/ledger"],
+      ["Monthly reports", "/reports"],
+      ["Open data", "/data"],
+    ])
+      await expect(footer.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
+  });
+});

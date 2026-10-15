@@ -618,3 +618,23 @@ test.describe("partners (real logins)", () => {
     await expect(page.getByText("Paid to you")).toBeVisible();
   });
 });
+
+test.describe("transparency (simulated data)", () => {
+  test("reports are numbered as simulated months, the ledger has rows and the CSV downloads", async ({
+    page,
+    request,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/reports");
+    await expect(page.getByText("Simulated month 1")).toBeVisible();
+    await page.getByText("Simulated month 1").click();
+    await expect(page.getByRole("heading", { level: 1, name: "Simulated month 1" })).toBeVisible();
+    await page.goto("/ledger");
+    await expect(page.getByRole("table", { name: "Handovers to VRRG Group" })).toBeVisible();
+    const csv = await (await request.get("/data/monthly.csv")).text();
+    expect(csv.split(/\r?\n/).length).toBeGreaterThan(3);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Lately in the loop" })).toBeVisible();
+  });
+});

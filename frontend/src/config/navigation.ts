@@ -81,6 +81,17 @@ export const NAV_GROUPS: NavGroup[] = [
         description: "Where scrap comes from and where it goes",
       },
       {
+        href: "/ledger",
+        label: "Handover ledger",
+        description: "Every handover to VRRG Group, in kg",
+      },
+      {
+        href: "/reports",
+        label: "Monthly reports",
+        description: "Each month of the pilot in numbers",
+      },
+      { href: "/data", label: "Open data", description: "The public figures as CSV files" },
+      {
         href: "/where-scrap-goes",
         label: "Where scrap goes",
         description: "VRRG Group, our dismantling partner, and our rules",
