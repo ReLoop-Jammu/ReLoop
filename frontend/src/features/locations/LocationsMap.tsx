@@ -37,7 +37,7 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      const { hub, route, recycler } = LOCATIONS;
+      const { hub, routes, recycler } = LOCATIONS;
       L.circle([hub.lat, hub.lng], {
         radius: hub.areaRadiusM,
         color: BRAND,
@@ -46,27 +46,29 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
         .bindTooltip(`${hub.name} (approximate area)`)
         .addTo(map);
 
-      const stops = route.stops.slice(0, -1);
-      L.polyline(
-        route.stops.map((s) => [s.lat, s.lng]),
-        { color: ROUTE, weight: 4, dashArray: "8 6" },
-      )
-        .bindTooltip(`Pickup route, ${route.days.join(" and ")}`)
-        .addTo(map);
-      stops.forEach((stop, i) => {
-        if (i === 0) return;
-        L.marker([stop.lat, stop.lng], {
-          icon: L.divIcon({
-            className: "",
-            html: `<span style="display:grid;place-items:center;width:26px;height:26px;border-radius:9999px;background:${ROUTE};color:white;font:600 13px system-ui;border:2px solid white">${i}</span>`,
-            iconSize: [26, 26],
-          }),
-          // Labels only: at city zoom the stops overlap, and every stop is
-          // listed with its time below the map.
-          interactive: false,
-          keyboard: false,
-        }).addTo(map!);
-      });
+      for (const route of routes) {
+        const stops = route.stops.slice(0, -1);
+        L.polyline(
+          route.stops.map((s) => [s.lat, s.lng]),
+          { color: ROUTE, weight: 4, dashArray: "8 6" },
+        )
+          .bindTooltip(`${route.day} route: ${route.name}`)
+          .addTo(map);
+        stops.forEach((stop, i) => {
+          if (i === 0) return;
+          L.marker([stop.lat, stop.lng], {
+            icon: L.divIcon({
+              className: "",
+              html: `<span style="display:grid;place-items:center;width:26px;height:26px;border-radius:9999px;background:${ROUTE};color:white;font:600 13px system-ui;border:2px solid white">${route.day[0]}${i}</span>`,
+              iconSize: [26, 26],
+            }),
+            // Labels only: at city zoom the stops overlap, and every stop is
+            // listed with its time below the map.
+            interactive: false,
+            keyboard: false,
+          }).addTo(map!);
+        });
+      }
 
       for (const shop of partnerShops) {
         L.circleMarker([shop.lat, shop.lng], {
@@ -90,7 +92,7 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
         L.latLngBounds([
           [hub.lat, hub.lng],
           [recycler.lat, recycler.lng],
-          ...route.stops.map((s) => [s.lat, s.lng] as [number, number]),
+          ...routes.flatMap((r) => r.stops.map((s) => [s.lat, s.lng] as [number, number])),
         ]),
         { padding: [30, 30] },
       );
@@ -105,7 +107,7 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
     <div
       ref={container}
       role="region"
-      aria-label="Map of the ReLoop hub area, pickup route and recycler"
+      aria-label="Map of the ReLoop hub area, pickup routes and dismantling partner"
       className="h-[22rem] w-full overflow-hidden rounded-2xl border border-line bg-sunken sm:h-[28rem]"
     />
   );

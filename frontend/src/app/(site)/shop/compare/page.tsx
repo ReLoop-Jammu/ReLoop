@@ -55,7 +55,7 @@ const ROWS: { label: string; value: (i: ShopItem) => string }[] = [
     label: "Warranty",
     value: (i) => (i.warrantyDays ? `${i.warrantyDays} days` : "None (sold as tested)"),
   },
-  { label: "Ships outside Jammu", value: (i) => (i.shipsIndia ? "Yes" : "No: Jammu only") },
+  { label: "Delivery", value: () => "Jammu city only, or collect from the hub" },
 ];
 
 export default async function ComparePage({ searchParams }: PageProps<"/shop/compare">) {

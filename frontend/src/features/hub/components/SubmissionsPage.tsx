@@ -4,7 +4,12 @@ import { Download } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { CATEGORIES, PART_TYPES, type Category, type PartType } from "@/features/inventory/model";
+import {
+  ACTIVE_CATEGORIES,
+  PART_TYPES,
+  type Category,
+  type PartType,
+} from "@/features/inventory/model";
 import { SHARED_DATABASE } from "@/features/inventory/store";
 import { formatPrice } from "@/lib/utils/money";
 import { downloadReceipt } from "@/features/account/api";
@@ -110,6 +115,7 @@ function SubmissionRow({
   const [partType, setPartType] = useState<PartType>(guess.partType ?? "other");
   const [unit, setUnit] = useState(row.offer_price === null ? "" : String(row.offer_price));
   const [tags, setTags] = useState<string[]>([]);
+  const [owns, setOwns] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -252,7 +258,7 @@ function SubmissionRow({
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
               >
-                {CATEGORIES.map((c) => (
+                {ACTIVE_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.single}
                   </option>
@@ -286,12 +292,26 @@ function SubmissionRow({
                 onChange={(e) => setUnit(e.target.value)}
               />
             </label>
+            <label className="flex items-start gap-2 text-xs">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4"
+                checked={owns}
+                onChange={(e) => setOwns(e.target.checked)}
+              />
+              <span>
+                The shop confirms it owns these devices or has them signed over. Recorded with you
+                as the staff member present.
+              </span>
+            </label>
             <Button
               size="sm"
-              disabled={busy || unit === ""}
+              disabled={busy || unit === "" || !owns}
               onClick={() =>
                 void act(async () =>
-                  setTags(await convertSubmission(row.id, category, partType, Number(unit) * 100)),
+                  setTags(
+                    await convertSubmission(row.id, category, partType, Number(unit) * 100, owns),
+                  ),
                 )
               }
             >

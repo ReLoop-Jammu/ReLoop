@@ -1,25 +1,32 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("map & locations", () => {
-  test("shows the hub area, the Tuesday/Friday route, shops and the recycler", async ({ page }) => {
+  test("shows the hub in Gandhi Nagar, both routes, shops and the dismantling partner", async ({
+    page,
+  }) => {
     await page.goto("/locations");
     await expect(
       page.getByRole("heading", { level: 1, name: "Where ReLoop works in Jammu" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Old-city market belt, between Raghunath Bazaar and Residency Road"),
+      page.getByText("Gandhi Nagar, between Bahu Plaza and Gole Market").first(),
     ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Hub (buyer pickups)" })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Pickup route: every Tuesday and Friday" }),
+      page.getByRole("heading", { name: "Tuesday: Gandhi Nagar cluster" }),
     ).toBeVisible();
-    await expect(page.getByText("Planned from November 2026")).toBeVisible();
-    const route = page.getByRole("region", { name: "Pickup route: every Tuesday and Friday" });
-    await expect(route.getByRole("listitem")).toHaveCount(5);
+    await expect(page.getByRole("heading", { name: "Friday: Old city" })).toBeVisible();
+    await expect(page.getByText("Bahu Plaza and Gole Market · From November 2026")).toBeVisible();
+    const route = page.getByRole("region", { name: "Tuesday: Gandhi Nagar cluster" });
+    await expect(route.getByRole("listitem")).toHaveCount(4);
     await expect(route.getByText("10:30")).toBeVisible();
     await expect(
-      page.getByText("Partner drop-off shops will be listed here as they join."),
+      page.getByText("Partner shops on our route will be listed here as they join."),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "VRG Groups, Gangyal" })).toBeVisible();
+    await expect(
+      page.getByText("We buy from shops, retailers and institutions only, not from homes."),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "VRRG Group, Gangyal" })).toBeVisible();
   });
 
   test("the map loads", async ({ page }) => {
@@ -85,8 +92,8 @@ test.describe("printable outreach", () => {
   test("/print links both A4 PDFs, and they download", async ({ page, request }) => {
     await page.goto("/print");
     for (const [name, file] of [
-      ["Partner-shop poster (PDF)", "/print/partner-poster.pdf"],
-      ["Awareness-drive flyer (PDF)", "/print/awareness-flyer.pdf"],
+      ["Shopkeeper counter card (PDF)", "/print/counter-card.pdf"],
+      ["Buyer and campus flyer (PDF)", "/print/awareness-flyer.pdf"],
     ]) {
       await expect(page.getByRole("link", { name })).toHaveAttribute("href", file);
       const res = await request.get(file);
@@ -96,13 +103,13 @@ test.describe("printable outreach", () => {
   });
 
   test("the sheets show the QR code and WhatsApp number, and aren't indexed", async ({ page }) => {
-    for (const path of ["/print/partner-poster", "/print/awareness-flyer", "/print"]) {
+    for (const path of ["/print/counter-card", "/print/awareness-flyer", "/print"]) {
       await page.goto(path);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
       if (path === "/print") continue;
       await expect(
         page.getByRole("img", {
-          name: "QR code linking to https://re-loop-ochre.vercel.app/go/drive",
+          name: `QR code linking to https://re-loop-ochre.vercel.app/go/${path.endsWith("counter-card") ? "rate-card" : "drive"}`,
         }),
       ).toBeVisible();
       await expect(page.getByText("+91 98712 76179")).toBeVisible();

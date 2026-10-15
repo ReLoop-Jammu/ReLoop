@@ -87,7 +87,7 @@ select check_name, ok
         not has_column_privilege('anon', 'public.items', 'shop_submission_id', 'SELECT')),
     (20, 'Converting a submission into hub items is not possible for visitors',
         not has_function_privilege('anon',
-          'public.convert_submission(bigint, public.item_category, public.part_type, bigint)', 'EXECUTE')),
+          'public.convert_submission(bigint, public.item_category, public.part_type, bigint, boolean)', 'EXECUTE')),
     (21, 'Partner map: the public view shows only name, market and an (approximate) position',
         (select array_agg(column_name::text order by ordinal_position) from information_schema.columns
           where table_schema = 'public' and table_name = 'map_partner_shops')

@@ -3,7 +3,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LIVE_PROJECT_REF, SIM_PROJECT_REF, assertEnvironment } from "@/lib/environment";
-import { DEMO_ACCOUNTS, DEMO_PASSWORD, GRADE_MIX, ITEMS_PER_MONTH } from "./simulation";
+import {
+  DEMO_ACCOUNTS,
+  DEMO_PASSWORD,
+  GRADE_MIX,
+  ITEMS_PER_MONTH,
+  PARTNER_SHOPS_BY_MONTH,
+  SCRAP_KG_BY_MONTH,
+} from "./simulation";
 
 const backend = readFileSync(join(__dirname, "../../../backend/sim/config.mjs"), "utf8");
 
@@ -17,6 +24,8 @@ describe("simulation config", () => {
     expect(backend).toContain(
       `A: ${GRADE_MIX.A}, B: ${GRADE_MIX.B}, C: ${GRADE_MIX.C}, D: ${GRADE_MIX.D}`,
     );
+    expect(backend).toContain(`SCRAP_KG_BY_MONTH = [${SCRAP_KG_BY_MONTH.join(", ")}]`);
+    expect(backend).toContain(`PARTNER_SHOPS_BY_MONTH = [${PARTNER_SHOPS_BY_MONTH.join(", ")}]`);
   });
 
   const live = `https://${LIVE_PROJECT_REF}.supabase.co`;

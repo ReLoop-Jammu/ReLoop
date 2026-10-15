@@ -5,22 +5,22 @@ const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: PackageOpen,
     title: "Collect",
-    body: "From repair shops and retailers on a weekly route, and booked institution pickups.",
+    body: "From repair shops, retailers and exchange stores on a weekly route, and booked institution lots. Scrap is weighed in front of the shop.",
   },
   {
     icon: ScanSearch,
     title: "Grade",
-    body: "Every item is tagged, tested and graded A to D at our Jammu hub. Phones, laptops and drives are data-wiped.",
+    body: "Every device is tagged, tested and graded A to D at our Jammu hub. Phones, laptops, boards and drives are wiped or their storage destroyed.",
   },
   {
     icon: ShoppingBag,
     title: "Resell",
-    body: "Working items are resold, fixable ones are repaired by partner shops, and good parts are stripped and sold.",
+    body: "Working devices are resold, fixable ones repaired by partner shops, and good parts stripped, tested and sold as tested parts.",
   },
   {
     icon: Recycle,
-    title: "Recycle",
-    body: "Only what is truly dead or hazardous goes to an authorised recycler, weighed, with a receipt.",
+    title: "Hand over",
+    body: "Dead scrap is sorted into bins and handed to VRRG Group, our dismantling partner, by weight, on a receipt.",
   },
 ];
 

@@ -8,6 +8,19 @@ export type Receipt = {
   quantity: number | null;
   shop_name: string;
   purchased_at: string | null;
+  /** lot, scrap (a weigh-in), tested_parts, part_sale or lot_equipment. */
+  line?: string;
+  /** What a weigh-in or tested-parts receipt itemises: kg, rate and amount per category. */
+  lines?: ReceiptLine[] | null;
+  /** The seller's declaration, on a weigh-in receipt. */
+  declaration?: string | null;
+};
+
+export type ReceiptLine = {
+  label: string;
+  kg?: number | string;
+  rate_paise?: number | string;
+  amount_paise: number | string;
 };
 
 export const isReceiptNo = (s: string) => /^RL-PAY-\d{4}-\d{4,}$/.test(s);
@@ -36,6 +49,12 @@ export function receiptLines(r: Receipt): [string, string][] {
       "For",
       `${r.item_name ?? "Items"}${r.quantity && r.quantity > 1 ? ` (${r.quantity} items)` : ""}`,
     ],
+    ...(r.lines ?? []).map((l): [string, string] => [
+      l.label,
+      l.kg !== undefined && l.rate_paise !== undefined
+        ? `${Number(l.kg).toFixed(1)} kg at ${inr(Number(l.rate_paise))} = ${inr(Number(l.amount_paise))}`
+        : inr(Number(l.amount_paise)),
+    ]),
     ...(r.purchased_at ? ([["Bought on", longDate(r.purchased_at)]] as [string, string][]) : []),
     ["Amount", inr(Number(r.amount_paise))],
     ["Paid by", methodLabel(r.method)],

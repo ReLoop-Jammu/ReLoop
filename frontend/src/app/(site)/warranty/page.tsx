@@ -1,4 +1,4 @@
-import { MapPin, Package, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
+import { MapPin, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactDetail } from "@/components/legal/LegalPage";
@@ -9,8 +9,8 @@ import { getSiteSettings } from "@/features/settings/server";
 import { formatPrice } from "@/lib/utils/money";
 
 export const metadata: Metadata = {
-  title: "Warranty & delivery",
-  description: `${BUSINESS_RULES.warrantyDays}-day warranty on grade A and B devices. Free hub pickup or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} delivery in Jammu.`,
+  title: "Warranty, returns & delivery",
+  description: `${BUSINESS_RULES.warrantyDays}-day warranty on grade A and B devices, a ${BUSINESS_RULES.partReturnDays}-day return on parts, and free hub pickup or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} delivery in Jammu city.`,
 };
 
 const OPTIONS: { icon: LucideIcon; title: string; price: string; body: string }[] = [
@@ -22,15 +22,9 @@ const OPTIONS: { icon: LucideIcon; title: string; price: string; body: string }[
   },
   {
     icon: Truck,
-    title: "Delivery in Jammu",
+    title: "Delivery in Jammu city",
     price: formatPrice(BUSINESS_RULES.jammuDeliveryPaise),
-    body: "Delivered to your door anywhere in Jammu.",
-  },
-  {
-    icon: Package,
-    title: "Shipping across India",
-    price: "Paid by buyer",
-    body: "Available for laptops and boards only. Shipping is paid by the buyer.",
+    body: "Delivered to your door in Jammu city (the Jammu Municipal Corporation area). We deliver in Jammu only.",
   },
 ];
 
@@ -39,7 +33,7 @@ export default async function WarrantyPage() {
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
-        <Eyebrow>Warranty & delivery</Eyebrow>
+        <Eyebrow>Warranty, returns & delivery</Eyebrow>
         <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
           Bought from ReLoop, backed by ReLoop.
         </h1>
@@ -61,8 +55,8 @@ export default async function WarrantyPage() {
             we&apos;ll check it at the hub.
           </p>
           <p className="mt-3 leading-relaxed text-ink-soft">
-            Grade C parts are tested before sale but are sold as parts: please check compatibility
-            with your device first.
+            Parts are not graded. Each one is a tested part with a {BUSINESS_RULES.partReturnDays}
+            -day return instead of the warranty (below).
           </p>
           <h3 className="mt-6 font-semibold text-ink">What the warranty covers</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed text-ink-soft">
@@ -80,6 +74,19 @@ export default async function WarrantyPage() {
             </li>
             <li>We don&apos;t take returns because you changed your mind.</li>
           </ul>
+        </div>
+        <div className="rounded-panel border border-line bg-surface p-7 shadow-soft sm:p-9 lg:col-span-2">
+          <h2 className="text-xl font-semibold">
+            {BUSINESS_RULES.partReturnDays}-day return on tested parts
+          </h2>
+          <p className="mt-3 leading-relaxed text-ink-soft">
+            Within {BUSINESS_RULES.partReturnDays} days of the sale you can return a part if it is
+            faulty, doesn&apos;t work when fitted, or doesn&apos;t fit the stated model, as long as
+            it is undamaged (no burns, tag sticker intact). ReLoop checks it, then refunds it or
+            swaps it. ReLoop handles every return, including parts a partner shop listed. We
+            don&apos;t take returns because you changed your mind. Contact us with the part&apos;s
+            ID (it starts with RL-JMU).
+          </p>
         </div>
         <div className="rounded-panel border border-line bg-sunken p-7 sm:p-9">
           <h2 className="text-xl font-semibold">Making a claim</h2>
@@ -104,7 +111,7 @@ export default async function WarrantyPage() {
         <h2 id="delivery-heading" className="text-3xl font-bold sm:text-4xl">
           Getting your item
         </h2>
-        <ul className="mt-8 grid gap-4 md:grid-cols-3" role="list">
+        <ul className="mt-8 grid gap-4 md:grid-cols-2" role="list">
           {OPTIONS.map(({ icon: Icon, title, price, body }) => (
             <li key={title} className="rounded-card border border-line bg-surface p-6 shadow-soft">
               <span className="grid size-11 place-items-center rounded-2xl bg-brand-50 text-brand-600">

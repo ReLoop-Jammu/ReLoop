@@ -10,9 +10,9 @@ function watch(page: Page) {
   const problems: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error" || msg.type() === "warning")
-      problems.push(`console.${msg.type()}: ${msg.text()}`);
+      problems.push(`console.${msg.type()}: ${msg.text()} (on ${page.url()})`);
   });
-  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message}`));
+  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message} (on ${page.url()})`));
   page.on("requestfailed", (req) => {
     const url = new URL(req.url());
     // Ignore requests the test itself cancels by navigating away, and third-party beacons.
@@ -43,7 +43,8 @@ const PAGES = [
   "/what-we-accept",
   "/help",
   "/print",
-  "/print/partner-poster",
+  "/print/counter-card",
+  "/rate-card",
   "/print/awareness-flyer",
   "/warranty",
   "/impact",
@@ -72,6 +73,9 @@ const PAGES = [
   "/hub/items",
   "/hub/partners",
   "/hub/handovers",
+  "/hub/weighins",
+  "/hub/exchange",
+  "/hub/lots",
   "/hub/data",
   "/hub/shops",
   "/hub/users",
@@ -115,6 +119,7 @@ test("main interactions run without console errors", async ({ page }) => {
   await page.getByLabel("Brand").fill("Nokia");
   await page.getByLabel("Grade (if tested now)").selectOption("A");
   await page.getByLabel("We paid (₹)").fill("500");
+  await page.getByLabel(/Ownership/).check();
   await page.getByRole("button", { name: "Save and assign tag" }).click();
   await page.getByRole("link", { name: "Open item" }).click();
   await page.getByRole("button", { name: "Mark wiped" }).click();

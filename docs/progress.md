@@ -7,10 +7,10 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 ## RESUME POINT (cloud session, updated after every commit)
 
 - **Branch:** `release/v1` (from `feat/business-plan-v2` at bb40f7d). All work is on it or on branches merged into it. Never merge to `main`. Pushes go to `origin` (ReLoop-Jammu/ReLoop); a local post-commit hook pushes and a background job snapshots to `autosave/cloud`.
-- **No CI runner here:** CI is the same commands run locally (`npm run check`, then `CI=true npm run test:e2e`) before any merge into `release/v1`. `.github/workflows/ci.yml` also runs on pushes to `release/v1`.
-- **Done:** 15b migration 1 written (`20261106000001_v2_scope_and_places.sql`: blocks on removed values, settings keys, route markets, `next_route_day(date, market)`, hub address). Untested so far.
-- **Half-done:** nothing else.
-- **Next step:** run `npm run test -w backend`, fix tests broken by migration 1 (printer in `backend/supabase/seed.sql`, `next_route_day`), add `backend/tests/v2-scope.test.mjs`, then migration 2 (scrap weigh-ins, bins, payouts, partners link, ownership).
+- **No CI runner here:** CI is the same commands run locally (`npm run check`, then `CI=true PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test` from `frontend/`) before any merge into `release/v1`. `.github/workflows/ci.yml` also runs on pushes to `release/v1`. In this sandbox the console spec fails only on `ERR_TUNNEL_CONNECTION_FAILED` for third-party loads; that is sandbox-only.
+- **Done (batch 15b, merged into `release/v1`):** database and seed (migrations `20261106000001` to `...06`, PGlite tests, live checks 20 to 30 in `supabase-fixes/live-checks-v2.sql`), and the frontend: business rules, settings, accept lists, copy sweep, rate card, hub weigh-ins / bins / exchange / lots / KPIs, part-return claims, intake to-test-bag link, help guide EN+HI, print, staff guide, platform section, ADR 0005, e2e (`v2-pages.spec.ts`) and simulation journeys (not runnable here). `npm run check` 213 backend + 205 frontend tests green; e2e 294 passed.
+- **Half-done:** nothing.
+- **Next step:** batch 16 (impact-network) per `docs/handoff/v1-cloud-handoff.md` section 3, on a new branch `feat/16-impact-network` off `release/v1`. Add any local-only step to handoff section 7a as you go.
 - **Commit style:** commitlint rejects `WIP:`; use `chore(wip): ...` for work in progress. WIP is never merged into `release/v1`.
 
 ## v1.0.0 (approved 2026-10-14)

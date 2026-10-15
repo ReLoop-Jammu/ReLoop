@@ -31,6 +31,7 @@ function describe(f: ShopFilters): string[] {
   return [
     f.q && `“${f.q}”`,
     f.grade && `grade ${f.grade}`,
+    f.kind === "parts" && "tested parts",
     f.category && categoryLabel(f.category, true),
     f.brand,
     f.min !== undefined && `from ${formatPrice(f.min * 100)}`,
@@ -52,9 +53,17 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
       <SectionHeading
         as="h1"
         title={
-          filters.category ? `Used ${categoryLabel(filters.category, true).toLowerCase()}` : "Shop"
+          filters.kind === "parts"
+            ? "Jammu Parts Exchange"
+            : filters.category
+              ? `Used ${categoryLabel(filters.category, true).toLowerCase()}`
+              : "Shop"
         }
-        description="Every item is tagged, tested and graded at our Jammu hub. Pick up free from the hub or get it delivered in Jammu for ₹50."
+        description={
+          filters.kind === "parts"
+            ? "Tested parts for Jammu's technicians: boards, screens, cameras, charging ports, batteries, RAM and SSDs, with a 7-day return. Collect from the hub or get them delivered in Jammu city for ₹50."
+            : "Every device is tagged, tested and graded at our Jammu hub. Pick up free from the hub or get it delivered in Jammu city for ₹50. Tested parts are on the Parts Exchange."
+        }
       />
       {sample && <SampleStockNotice />}
       <GradeChips filters={filters} />

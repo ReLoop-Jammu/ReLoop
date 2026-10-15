@@ -26,12 +26,12 @@ export const STAGE_LABEL: Record<string, { title: string; detail: string }> = {
     detail: "Its working parts were removed to be reused.",
   },
   to_recycling: {
-    title: "To the scrap cage",
-    detail: "Not worth repairing: set aside for the recycler.",
+    title: "To the D devices bin",
+    detail: "Not worth repairing: set aside to be handed to VRRG Group by weight.",
   },
   recycled: {
-    title: "Handed to the recycler",
-    detail: "Collected by our authorised recycler partner, by weight.",
+    title: "Handed to VRRG Group",
+    detail: "Handed to our dismantling partner, VRRG Group, by weight.",
   },
 };
 
@@ -55,9 +55,9 @@ export function whereNow(rows: readonly PassportRow[]): string {
     case "sold":
       return "With its new owner";
     case "recycled":
-      return "Recycled";
+      return "Handed to VRRG Group";
     case "to_recycling":
-      return "Waiting for the recycler";
+      return "Waiting to be handed to VRRG Group";
     case "stripped_for_parts":
       return "Its parts are being reused";
     case "sent_for_repair":

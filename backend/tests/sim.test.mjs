@@ -1,40 +1,152 @@
 import assert from "node:assert/strict";
 import { before, describe, test } from "node:test";
-import { buildSeed } from "../sim/seed.mjs";
-import { DEMO_ACCOUNTS, ITEMS_PER_MONTH } from "../sim/config.mjs";
+import { buildSeed, loadLocalInputs } from "../sim/seed.mjs";
+import {
+  DEMO_ACCOUNTS,
+  ITEMS_PER_MONTH,
+  PARTNER_SHOPS_BY_MONTH,
+  SCRAP_KG_BY_MONTH,
+} from "../sim/config.mjs";
 import { createTestDb, createUser } from "./db.mjs";
 
 const TODAY = new Date("2026-10-14T12:00:00Z");
+// Hermetic: always the committed placeholders, never a local-inputs.json.
+const PLACEHOLDERS = loadLocalInputs({ placeholdersOnly: true });
 
 describe("simulation seed (backend/sim/seed.mjs)", () => {
   let db;
   let seed;
   before(async () => {
-    seed = buildSeed({ today: TODAY, auth: "plain" });
+    seed = buildSeed({ today: TODAY, auth: "plain", localInputs: PLACEHOLDERS });
     db = await createTestDb({ seed: false });
     await db.exec(seed.sql);
   });
 
-  test("follows the business plan's ramp, source mix and grade split", async () => {
-    const intake = await db.query(
-      "select count(*)::int as n from public.items where source_type <> 'stripped'",
+  test("follows Business Plan v2: 40 shops, the kg ramp, the device ramp and the grade split", async () => {
+    const devices = await db.query(
+      "select count(*)::int as n from public.items where category <> 'part'",
     );
     const planned = ITEMS_PER_MONTH.reduce((a, b) => a + b, 0);
-    assert.ok(Math.abs(intake.rows[0].n - planned) <= planned * 0.02, `about ${planned} items`);
+    assert.ok(Math.abs(devices.rows[0].n - planned) <= planned * 0.03, `about ${planned} devices`);
     const { rows } = await db.query(
       `select grade::text, count(*)::float / sum(count(*)) over () as share
-         from public.items where source_type <> 'stripped' and grade is not null group by 1`,
+         from public.items where category <> 'part' and grade is not null group by 1`,
     );
     const share = Object.fromEntries(rows.map((r) => [r.grade, r.share]));
-    // A and D as planned; C also gets the B devices that couldn't be fixed.
-    assert.ok(Math.abs(share.A - 0.15) < 0.04, `A ${share.A}`);
-    assert.ok(Math.abs(share.D - 0.3) < 0.05, `D ${share.D}`);
-    assert.ok(share.B + share.C > 0.5 && share.B + share.C < 0.6);
-    const reuse = await db.query(
-      "select items_reused, active_partner_shops from public.impact_totals",
+    // Unsold and unfixable devices move to C, so C ends above its planned share.
+    assert.ok(share.A > 0.05 && share.A < 0.22, `A ${share.A}`);
+    assert.ok(Math.abs(share.D - 0.2) < 0.07, `D ${share.D}`);
+    assert.ok(share.C > 0.4, `C ${share.C}`);
+    const kpi = (await db.query("select * from public.public_kpis")).rows[0];
+    assert.equal(
+      Number(kpi.partner_repair_shops) + Number(kpi.partner_retailers),
+      PARTNER_SHOPS_BY_MONTH.at(-1),
     );
-    assert.ok(Number(reuse.rows[0].items_reused) / intake.rows[0].n >= 0.65, "reuse target met");
-    assert.equal(Number(reuse.rows[0].active_partner_shops), 23);
+    assert.equal(Number(kpi.partner_retailers), 5);
+    const kg = await db.query(
+      "select sum(screens_kg + boards_kg + batteries_kg + other_kg) as kg from public.scrap_weighins",
+    );
+    const plannedKg = SCRAP_KG_BY_MONTH.reduce((a, b) => a + b, 0);
+    assert.ok(
+      Math.abs(Number(kg.rows[0].kg) - plannedKg) <= 8,
+      `about ${plannedKg} kg: ${kg.rows[0].kg}`,
+    );
+    assert.ok(Number(kpi.parts_sold) > 0 && Number(kpi.devices_resold) > 0);
+  });
+
+  test("the first two months run Tuesdays only; Fridays, retailers and institution lots start in month 3", async () => {
+    const dow = await db.query(
+      `select extract(dow from weighed_at at time zone 'UTC')::int as d, count(*)::int as n,
+              min(weighed_at) as first from public.scrap_weighins group by 1 order by 1`,
+    );
+    assert.deepEqual(
+      dow.rows.map((r) => r.d),
+      [2, 5],
+    );
+    const cutoff = new Date(TODAY.getTime() - 120 * 864e5);
+    assert.ok(
+      new Date(dow.rows.find((r) => r.d === 5).first) > cutoff,
+      "no Friday weigh-in before month 3",
+    );
+    const lot = await db.query(
+      "select min(lot_date) as first, count(*)::int as n from public.institution_lots",
+    );
+    assert.ok(lot.rows[0].n >= 3 && new Date(lot.rows[0].first) > cutoff);
+    const fees = await db.query(
+      "select bool_and(fee_paise = 300000) as ok, bool_and(fee_receipt_no ~ '^RL-FEE-[0-9]{4}-[0-9]{4}$') as numbered from public.institution_lots",
+    );
+    assert.deepEqual(fees.rows[0], { ok: true, numbered: true });
+  });
+
+  test("every weigh-in is priced by the public rate card and has a numbered, tokenised receipt", async () => {
+    const bad = await db.query(
+      `select count(*)::int as n from public.scrap_weighins w
+        where w.amount_paise <> round(w.screens_kg * 17000 + w.boards_kg * 13000 + w.batteries_kg * 80000 + w.other_kg * 500)`,
+    );
+    assert.equal(bad.rows[0].n, 0);
+    const r = await db.query(
+      `select count(*)::int as n, bool_and(receipt_token ~ '^[0-9a-f]{32}$') as tokens,
+              count(distinct receipt_no)::int as distinct_n, count(*)::int as total
+         from public.payouts`,
+    );
+    assert.equal(r.rows[0].tokens, true);
+    assert.equal(r.rows[0].distinct_n, r.rows[0].total);
+    const unsent = await db.query(
+      "select count(*)::int as n from public.payouts where whatsapp_sent_at is not null",
+    );
+    assert.equal(unsent.rows[0].n, 0, "the simulation marks receipts not sent");
+  });
+
+  test("the bins add up: ledger lines belong to a handover or are still waiting, and VRRG rates stay empty", async () => {
+    const open = await db.query(
+      "select bin, round(sum(kg), 1) as kg from public.scrap_ledger where handover_id is null group by 1",
+    );
+    for (const r of open.rows)
+      assert.ok(Number(r.kg) < (r.bin === "batteries" ? 40 : 160), `${r.bin} ${r.kg}`);
+    const h = await db.query(
+      `select count(*)::int as n, count(*) filter (where rates_paise is not null)::int as with_rates,
+              bool_and(recycler = 'VRRG Group, Gangyal') as named
+         from public.handovers`,
+    );
+    assert.ok(h.rows[0].n >= 6);
+    assert.equal(h.rows[0].with_rates, 0, "plan prices are a local-only input");
+    assert.equal(h.rows[0].named, true);
+    const kinds = await db.query(
+      "select kind, count(*)::int as n from public.handovers group by 1 order by 1",
+    );
+    assert.deepEqual(
+      kinds.rows.map((k) => k.kind),
+      ["hub", "institution_lot"],
+    );
+    const orphan = await db.query(
+      "select count(*)::int as n from public.scrap_ledger l where l.item_id is not null and not exists (select 1 from public.items i where i.id = l.item_id)",
+    );
+    assert.equal(orphan.rows[0].n, 0);
+  });
+
+  test("the Parts Exchange has approved, sold, waiting and rejected listings; shops are paid after day 7", async () => {
+    const l = await db.query(
+      "select status, count(*)::int as n from public.part_listings group by 1",
+    );
+    const by = Object.fromEntries(l.rows.map((r) => [r.status, r.n]));
+    assert.ok(by.approved >= 3, JSON.stringify(by));
+    assert.ok((by.submitted ?? 0) + (by.at_hub ?? 0) >= 1, JSON.stringify(by));
+    assert.ok(by.rejected >= 1, JSON.stringify(by));
+    const sales = await db.query(
+      `select count(*)::int as n, count(*) filter (where status = 'paid')::int as paid,
+              bool_and(commission_paise + shop_share_paise = sold_paise) as adds_up
+         from public.exchange_sales`,
+    );
+    assert.ok(sales.rows[0].n >= 1 && sales.rows[0].adds_up);
+    const early = await db.query(
+      `select count(*)::int as n from public.payouts p join public.exchange_sales s on s.id = p.exchange_sale_id
+        where p.paid_at < s.payout_due_on`,
+    );
+    assert.equal(early.rows[0].n, 0);
+    const named = await db.query(
+      "select count(*)::int as n from public.parts_exchange_listings where listed_by_name is not null",
+    );
+    assert.ok(named.rows[0].n >= 1);
   });
 
   test("every item respects the hub's rules, and new tags continue after the seed", async () => {
@@ -77,7 +189,7 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
 
   test("can run again, giving the same data", async () => {
     const before_ = await db.query("select count(*)::int as n, max(id) as last from public.items");
-    await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);
+    await db.exec(buildSeed({ today: TODAY, auth: "plain", localInputs: PLACEHOLDERS }).sql);
     const after = await db.query("select count(*)::int as n, max(id) as last from public.items");
     assert.deepEqual(after.rows, before_.rows);
   });
@@ -94,11 +206,11 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
       "select u.id from auth.users u where u.email = 'demo-staff@reloop.demo'",
     );
     await db.query(
-      `insert into public.items (source_type, category, grade, buy_mode, created_by)
-       values ('household', 'accessory', 'A', 'cash', $1)`,
+      `insert into public.items (source_type, category, grade, buy_mode, created_by, ownership_confirmed_at)
+       values ('retailer', 'accessory', 'A', 'cash', $1, now())`,
       [staff.rows[0].id],
     );
-    await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);
+    await db.exec(buildSeed({ today: TODAY, auth: "plain", localInputs: PLACEHOLDERS }).sql);
     const visitors = await db.query(
       "select count(*)::int as n from auth.users where email not like '%@reloop.demo'",
     );
@@ -235,7 +347,7 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
 describe("simulation demo logins", () => {
   test("can't have their role, admin status, password-reset flag, name or shop changed, or be deleted", async () => {
     const db = await createTestDb({ seed: false });
-    await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);
+    await db.exec(buildSeed({ today: TODAY, auth: "plain", localInputs: PLACEHOLDERS }).sql);
     const staff = await db.query(
       "select id from auth.users where email = 'demo-staff@reloop.demo'",
     );
@@ -287,6 +399,6 @@ describe("simulation demo logins", () => {
     const visitor = await createUser(db, "Visitor", { staff: true });
     await db.query("delete from public.staff where user_id = $1", [visitor]);
     // And the seed itself can run again.
-    await db.exec(buildSeed({ today: TODAY, auth: "plain" }).sql);
+    await db.exec(buildSeed({ today: TODAY, auth: "plain", localInputs: PLACEHOLDERS }).sql);
   });
 });

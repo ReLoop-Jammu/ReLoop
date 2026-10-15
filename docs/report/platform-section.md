@@ -95,6 +95,15 @@ Every link in the loop was tested on the live system with temporary test account
 | Outreach clicks                    | `/go/<link>`                            | `link_visits`                                                        | Works                                             | 5 links counted once each, previews skipped (PR #35) |
 | Partner map                        | `/locations`                            | `map_partner_shops` view                                             | Works; needs recorded consent                     | Live test 5/5 (PR #30)                               |
 
+### Business Plan v2 additions
+
+- **Scrap by weight.** Counter weigh-ins at the public rate card feed a kilo ledger with five bins (screens, boards, batteries, other, D devices). Each bin is handed over to VRRG Group on its own receipt. Receipts have a private link (`/receipt/<token>`, kept out of search engines).
+- **Parts Exchange.** Partner shops list tested parts; staff receive, test and approve them; ReLoop sells them and keeps a 12% commission; buyers have a 7-day return window. Tested parts carry no grade.
+- **Institution lots.** A flat lot fee per institution lot, with equipment itemised on the receipt.
+- **Stock rules.** Listed parts are cut by 25% once on day 30; A and B devices that have not sold by day 45 move to grade C for stripping.
+- **Ownership and wipe.** Intake records the seller's ownership tick; a device must be wiped before it is stripped. The date from which both are enforced is a staff setting (empty until launch).
+- **Money stays private.** Targets, costs and margins are staff-only settings (`finance.*`, `vrg.*`) and are not in the repository or on the public site.
+
 ## 3. Security
 
 ### Who can see what

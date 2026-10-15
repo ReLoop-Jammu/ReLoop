@@ -9,7 +9,7 @@ import { WasteHotspots } from "./WasteHotspots";
 export const metadata: Metadata = {
   title: "Our impact",
   description:
-    "Why ReLoop starts in Jammu: giving used electronics another useful life through reuse, repair, refurbishment and responsible recovery.",
+    "Why ReLoop works in Jammu: giving used electronics another useful life through reuse, repair and tested parts, and handing scrap to VRRG Group by weight.",
 };
 
 const STATS = [
@@ -24,28 +24,29 @@ const STATS = [
     body: "National estimate for the following financial year in the same parliamentary reply.",
   },
   {
-    label: "ReLoop's starting point",
-    value: "Jammu → India",
-    body: "Collect and assess locally, then connect suitable inventory with buyers and responsible downstream routes.",
+    label: "ReLoop's focus",
+    value: "Jammu's own loop",
+    body: "Collect from Jammu's repair shops, test locally, resell to Jammu's technicians and students, and keep scrap in a local, receipted chain.",
   },
 ];
 
+/** An illustrative story, not a real shop or a real figure. */
 const STORY = [
   {
-    title: "Used for years",
-    body: "The laptop handles classes, browsing and assignments. Over time, its battery weakens and it starts feeling slow.",
+    title: "A phone is brought in",
+    body: "A repair shop in a Jammu market receives a phone with a dead board. The customer takes a replacement; the old phone stays in the shop.",
   },
   {
-    title: "Left in a drawer",
-    body: "A newer machine arrives. The old laptop sits unused because its owner is unsure whether it is worth repairing or selling.",
+    title: "Weighed and paid",
+    body: "On the weekly pickup day ReLoop weighs the shop's leftovers in front of the owner and pays by UPI at the rate card. The board goes in the to-test bag.",
   },
   {
-    title: "Assessed by ReLoop",
-    body: "Condition, parts, battery, data-handling needs and repair potential are checked. It is then classified for the most suitable next route.",
+    title: "Tested at the hub",
+    body: "At the hub the board is tagged, tested and wiped. A part that works is listed on the Parts Exchange; one that does not goes into a scrap bin.",
   },
   {
     title: "Another useful life",
-    body: "If repairable, it can be refurbished and used again. If not, suitable components or materials can move through responsible recovery channels.",
+    body: "A technician in Jammu buys the tested part. What is dead is handed to VRRG Group by weight, on a weight receipt.",
   },
 ];
 
@@ -58,12 +59,12 @@ const ROUTES = [
   {
     icon: Sparkles,
     title: "Refurbish & reuse",
-    body: "Clean, test and accurately describe suitable equipment so another buyer can use it for its next chapter.",
+    body: "Clean, test and accurately describe suitable devices so another buyer can use them for their next chapter.",
   },
   {
     icon: Recycle,
-    title: "Responsible recovery",
-    body: "When reuse or repair is no longer suitable, direct end-of-life material to appropriate authorised recycling and recovery channels.",
+    title: "Handed over by weight",
+    body: "When reuse or repair is no longer suitable, scrap and batteries go to VRRG Group, our dismantling partner, on a weight receipt.",
   },
 ];
 
@@ -72,7 +73,7 @@ const GOALS = [
   "Bring condition, quantity, category and location into one managed inventory process.",
   "Help buyers find tested used devices and parts, with an honest grade on every item.",
   "Keep reuse and repair opportunities separate from genuine end-of-life material.",
-  "Make sure only what is truly dead reaches the recycler, through an authorised channel with a receipt.",
+  "Make sure only what is truly dead reaches VRRG Group, by weight, with a receipt.",
 ];
 
 const SOURCES = [
@@ -228,7 +229,7 @@ export default function ImpactPage() {
             <div>
               <Eyebrow tone="dark">Why Jammu</Eyebrow>
               <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
-                Start local, connect nationally.
+                Start local, in Jammu.
               </h2>
               <p className="mt-4 leading-relaxed text-white/70">
                 A managed route for used electronics: local collection, clearer inventory

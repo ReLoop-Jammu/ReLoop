@@ -332,7 +332,8 @@ export async function siteFetch(path: string, init: RequestInit = {}) {
   return fetch(path, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      // A file upload sets its own multipart type.
+      ...(init.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       Authorization: `Bearer ${session.access_token}`,
       ...(init.headers ?? {}),
     },

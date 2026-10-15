@@ -492,8 +492,9 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
             List online
           </Button>
           <p className="text-xs text-muted">
-            Unsold after {BUSINESS_RULES.priceCut.afterDays} days: price cut 20% automatically.
-            After {BUSINESS_RULES.downgradeToC.afterDays} days: downgraded to C.
+            A part unsold after {BUSINESS_RULES.partPriceCut.afterDays} days is cut
+            {BUSINESS_RULES.partPriceCut.share * 100}%, once. A grade A or B device unsold after{" "}
+            {BUSINESS_RULES.deviceToC.afterDays} days becomes C and is stripped.
           </p>
         </div>
       )}
@@ -679,12 +680,12 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
                     {
                       at: at(),
                       type: "stripped",
-                      note: `${kept} part(s) removed; shell to scrap cage`,
+                      note: `${kept} part(s) removed; shell to the D devices bin`,
                     },
                   ],
                 });
                 setParts([]);
-                setMsg("Parts tagged. Shell moved to the scrap cage.");
+                setMsg("Parts tagged. Shell moved to the D devices bin.");
                 await reload();
               }}
             >
@@ -707,20 +708,21 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
           <Button
             size="sm"
             onClick={() =>
-              void go("in_scrap_cage", `Into scrap cage${kg ? ` (${kg} kg)` : ""}`, {
+              void go("in_scrap_cage", `Into the D devices bin${kg ? ` (${kg} kg)` : ""}`, {
                 weightKg: kg ? Number(kg) : undefined,
               })
             }
           >
-            Move to scrap cage
+            Move to the D devices bin
           </Button>
         </div>
       )}
       {status === "in_scrap_cage" && (
         <p className="text-sm">
-          In the scrap cage{item.weightKg ? ` (${item.weightKg} kg)` : ""}. Record the pickup under{" "}
+          In the D devices bin{item.weightKg ? ` (${item.weightKg} kg)` : ""}. Record the pickup
+          under{" "}
           <Link href="/hub/handovers" className="text-brand-600 underline">
-            Recycler handovers
+            Handovers to VRRG Group
           </Link>
           .
         </p>
@@ -746,8 +748,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
               onChange={(e) => setFulfilment(e.target.value as Fulfilment)}
             >
               <option value="pickup">Hub pickup</option>
-              <option value="delivery_jammu">Jammu delivery (₹50)</option>
-              <option value="ship_india">Shipped (buyer paid)</option>
+              <option value="delivery_jammu">Jammu city delivery (₹50)</option>
             </Select>
             <Button
               size="sm"

@@ -490,3 +490,42 @@ test.describe("saved items (real logins)", () => {
     await expect(page.getByRole("listitem").filter({ hasText: id })).toHaveCount(0);
   });
 });
+
+test.describe("scrap ledger, Parts Exchange and lots (real logins)", () => {
+  test.setTimeout(90_000);
+
+  test("the demo rate card is public and the demo admin sees weigh-ins, bins, exchange and lots", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/rate-card");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "What we pay per kilo" }),
+    ).toBeVisible();
+
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/weighins");
+    await expect(page.getByRole("heading", { level: 1, name: "Weigh-ins" })).toBeVisible();
+    await expect(page.getByText(/kg/).first()).toBeVisible({ timeout: 15_000 });
+
+    await page.goto("/hub/exchange");
+    await expect(page.getByRole("heading", { level: 1, name: "Parts Exchange" })).toBeVisible();
+
+    await page.goto("/hub/lots");
+    await expect(page.getByRole("heading", { level: 1, name: "Institution lots" })).toBeVisible();
+
+    await page.goto("/hub/handovers");
+    await expect(page.getByText(/bin/i).first()).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("the demo shop owner sees their parts and weigh-ins on their account", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-shop@reloop.demo", "/account/parts");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await page.goto("/account");
+    await expect(page.getByText(/weigh-in|Weigh-in/).first()).toBeVisible({ timeout: 15_000 });
+  });
+});

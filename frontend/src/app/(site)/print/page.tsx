@@ -6,20 +6,20 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
   title: "Printable outreach",
-  description: "A4 poster for partner shops and a flyer for awareness drives, ready to print.",
+  description: "A4 counter card for partner shops and a buyer and campus flyer, ready to print.",
   robots: { index: false, follow: false },
 };
 
 const SHEETS = [
   {
-    title: "Partner-shop poster",
-    body: "“ReLoop partner: drop old electronics here”, with the QR code and our WhatsApp number. For the counter or the shop window.",
-    pdf: "/print/partner-poster.pdf",
-    page: "/print/partner-poster",
+    title: "Shopkeeper counter card",
+    body: "The rate card per kilo with its date, the weekly pickup days, what we don't take, and a QR code to the live rate card. For the shop counter.",
+    pdf: "/print/counter-card.pdf",
+    page: "/print/counter-card",
   },
   {
-    title: "Awareness-drive flyer",
-    body: "Why e-waste matters (national figures with sources), how ReLoop works in three steps, and the QR code. For college and colony drives.",
+    title: "Buyer and campus flyer",
+    body: "Tested phones, laptops and parts for buyers, technicians, colleges and offices, with national e-waste figures and their sources, and the QR code. For campus drives.",
     pdf: "/print/awareness-flyer.pdf",
     page: "/print/awareness-flyer",
   },

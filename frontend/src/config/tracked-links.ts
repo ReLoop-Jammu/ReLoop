@@ -61,6 +61,14 @@ export const TRACKED_LINKS: readonly TrackedLink[] = [
     campaign: DRIVE_LINK.campaign,
     landing: "/locations",
   },
+  {
+    slug: "rate-card",
+    use: "Printed rate card and shopkeeper counter card (QR code)",
+    source: "qr",
+    medium: "print",
+    campaign: "rate-card-print",
+    landing: "/rate-card",
+  },
 ];
 
 export const findTrackedLink = (slug: string) => TRACKED_LINKS.find((l) => l.slug === slug);

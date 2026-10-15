@@ -1,6 +1,6 @@
 # ReLoop
 
-E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades and resells at one hub (only laptops and boards ship outside Jammu).
+E-waste / used-electronics business for the Jammu pilot, built to **Business Plan v2**: a fixed weekly pickup through Jammu's repair markets that pays a posted rate per kilo. ReLoop weighs, sorts and tags at one hub in Gandhi Nagar, resells devices and tested parts locally, and hands all scrap to VRRG Group, Gangyal. Nothing is sold or shipped outside Jammu; nothing is bought from households.
 
 ## Read first, and follow
 
@@ -15,12 +15,12 @@ E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades 
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state (2026-10-14, after round 4)
+## Current state (2026-10-15, release/v1 in progress; the sections below describe `main` plus Business Plan v2)
 
 Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
 - **The Business Plan is the source of truth** (ADR 0004).
-  - ReLoop buys stock outright (purchase-only: no consignment, no self-listing), grades it A–D at one Jammu hub and resells it.
+  - ReLoop buys devices outright (purchase-only: no consignment, no self-listing), grades them A–D at one Jammu hub and resells them. Shops list tested parts on the Parts Exchange on a 12% commission (ADR 0005). Scrap is paid by weight at the public rate card and kept in a kg ledger (four bins and a battery cabinet).
   - Numbers come only from `frontend/src/config/business-rules.ts`, summarised in `docs/business-rules.md`.
 - **Stack:** Next.js 16 on Vercel, with a **live Supabase project (Postgres 17) connected through the Vercel Marketplace integration**.
   - **Region:** the database is in AWS `ap-south-1` (Mumbai). `frontend/vercel.json` pins server functions to `bom1` (Mumbai) as well; they ran in `iad1` (US East) until that is deployed.
@@ -58,7 +58,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - Admins count as staff (`is_staff()`).
   - Without the Supabase variables (local dev, CI) it falls back to the device-only store.
   - Tags come from the database (next real item `RL-JMU-0006`).
-  - The day-45/75 rules run daily at 06:00 IST (`pg_cron`) and are idempotent.
+  - The stock rules (a part unsold for 30 days is cut 25% once; an A or B device unsold for 45 days becomes C and is stripped) run daily at 06:00 IST (`pg_cron`) and are idempotent.
   - Visitors read only shop-facing item columns; checked by `supabase-fixes/live-checks-extra.sql`, run alongside the 13 checks.
 - **Database:**
   - Live tables: `admin_users`, `categories`, `enquiries`, `institution_submissions`, `listings`, `orders`, `processing_records`, `profiles`, `shop_owners`, `shop_submissions`. All have RLS on.
@@ -90,7 +90,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
 
 - Run `npm run check` and `npm run test:e2e` from the repo root before calling work done.
 - Every DB change is a new file in `backend/supabase/migrations/` with a test in `backend/tests/`.
-- Never put unsupported claims on the public site (authorisations, certifications, India-wide shipping, internal financials); the e2e copy test enforces this.
+- Never put unsupported claims on the public site (authorisations, certifications, shipping outside Jammu, internal financials); the e2e copy test enforces this. **Never commit the business plan's money figures** (P&L, costs, margins, per-device buy prices, VRRG rates): they are staff-only settings (`finance.*`, `vrg.*`) filled in locally. Only the public rate card per kg, the 12% commission and the lot fee are in the repo.
 - Build one roadmap phase at a time, on its own branch. The user reviews each phase before merging and before the next one starts.
 - Never commit secrets or `.env` files. Commit locally, and push only when the user asks.
 - At the end of every task, update docs/progress.md.

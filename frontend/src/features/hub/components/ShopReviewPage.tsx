@@ -9,7 +9,7 @@ import {
   type ShopOwner,
   type VerificationStatus,
 } from "../shop-reviews";
-import { LOCATIONS } from "@/config/locations";
+import { ROUTE_MARKET_STOPS } from "@/config/locations";
 import { RequireRole } from "./RequireRole";
 import { hubInput, PageTitle, Panel } from "./ui";
 
@@ -160,7 +160,7 @@ function Detail({ label, value }: { label: string; value: string | null }) {
 }
 
 /** The pickup-route markets, as approximate positions for the map. */
-const MARKETS = LOCATIONS.route.stops.filter((s) => s.name !== LOCATIONS.hub.name);
+const MARKETS = ROUTE_MARKET_STOPS;
 const today = () => new Date().toISOString().slice(0, 10);
 
 function MapControls({ shop, onSaved }: { shop: ShopOwner; onSaved: (s: ShopOwner) => void }) {

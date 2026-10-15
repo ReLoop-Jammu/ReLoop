@@ -126,6 +126,7 @@ export function convertSubmission(
   category: Category,
   partType: PartType | null,
   unitPricePaise: number,
+  ownerConfirmed = false,
 ): Promise<string[]> {
   return rest<string[]>("rpc/convert_submission", {
     method: "POST",
@@ -134,6 +135,7 @@ export function convertSubmission(
       p_category: category,
       p_part_type: category === "part" ? partType : null,
       p_unit_price_paise: Math.round(unitPricePaise),
+      p_owner_confirmed: ownerConfirmed,
     }),
   });
 }

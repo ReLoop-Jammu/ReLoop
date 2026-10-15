@@ -10,20 +10,23 @@ export function daysBetween(fromIso: string, now: Date): number {
 }
 
 /**
- * The plan's unsold-stock rules, as a pure function so they can be tested:
- * day 45 after listing → price cut 20% (once); day 75 → downgraded to C and
- * sent for stripping. Returns only the items that changed.
+ * Business Plan v2's unsold-stock rules, as a pure function so they can be
+ * tested. Both count from the listing date and never repeat:
+ * - a ReLoop-owned part unsold for 30 days gets one 25% cut (rounded to ₹10);
+ * - an A or B device unsold for 45 days becomes C and is stripped for parts.
+ * A part listed by a partner shop is not cut (the shop is reminded instead) and
+ * a reserved item is skipped. Returns only the items that changed.
  */
 export function applyStockRules(items: readonly Item[], now: Date): Item[] {
   const at = now.toISOString();
   const changed: Item[] = [];
   for (const item of items) {
-    if (item.status !== "listed" || !item.listedAt) continue;
+    if (item.status !== "listed" || !item.listedAt || item.hidden) continue;
     const days = daysBetween(item.listedAt, now);
     if (
-      days >= BUSINESS_RULES.downgradeToC.afterDays &&
-      item.grade !== "C" &&
-      item.category !== "part"
+      item.category !== "part" &&
+      days >= BUSINESS_RULES.deviceToC.afterDays &&
+      (item.grade === "A" || item.grade === "B")
     ) {
       changed.push({
         ...item,
@@ -34,11 +37,17 @@ export function applyStockRules(items: readonly Item[], now: Date): Item[] {
           {
             at,
             type: "auto_downgrade",
-            note: `Unsold for ${days} days: downgraded to C for parts`,
+            note: `Unsold for ${days} days: moved to C to be stripped for parts`,
           },
         ],
       });
-    } else if (days >= BUSINESS_RULES.priceCut.afterDays && !item.priceCutAt && item.currentPaise) {
+    } else if (
+      item.category === "part" &&
+      !item.listedByPartnerId &&
+      days >= BUSINESS_RULES.partPriceCut.afterDays &&
+      !item.priceCutAt &&
+      item.currentPaise
+    ) {
       const next = cutPrice(item.currentPaise);
       changed.push({
         ...item,
@@ -46,7 +55,11 @@ export function applyStockRules(items: readonly Item[], now: Date): Item[] {
         priceCutAt: at,
         events: [
           ...item.events,
-          { at, type: "auto_price_cut", note: `Unsold for ${days} days: price cut 20%` },
+          {
+            at,
+            type: "auto_price_cut",
+            note: `Unsold for ${days} days: price cut ${BUSINESS_RULES.partPriceCut.share * 100}%`,
+          },
         ],
       });
     }
@@ -55,7 +68,7 @@ export function applyStockRules(items: readonly Item[], now: Date): Item[] {
 }
 
 export type Alert = {
-  key: "ungraded" | "unlisted" | "scrap_cage" | "batteries" | "price_cut_soon";
+  key: "ungraded" | "unlisted" | "scrap_cage" | "batteries" | "price_cut_soon" | "consider_scrap";
   level: "warn" | "act";
   message: string;
   itemIds?: string[];
@@ -79,14 +92,14 @@ export function hubAlerts(
     alerts.push({
       key: "ungraded",
       level: "act",
-      message: `${ungraded.length} item(s) not graded within 24 hours`,
+      message: `${ungraded.length} item(s) not tested within 24 hours`,
       itemIds: ungraded.map((i) => i.id),
     });
 
   const unlisted = items.filter(
     (i) =>
       i.status === "graded" &&
-      (i.grade === "A" || i.grade === "B") &&
+      (i.category === "part" || i.grade === "A" || i.grade === "B") &&
       i.gradedAt &&
       t - new Date(i.gradedAt).getTime() > BUSINESS_RULES.listWithinHours * HOUR,
   );
@@ -94,7 +107,7 @@ export function hubAlerts(
     alerts.push({
       key: "unlisted",
       level: "act",
-      message: `${unlisted.length} A/B item(s) not listed within 48 hours`,
+      message: `${unlisted.length} part(s) or A/B device(s) not listed within 48 hours`,
       itemIds: unlisted.map((i) => i.id),
     });
 
@@ -104,13 +117,13 @@ export function hubAlerts(
   const daysSinceHandover = lastHandover ? daysBetween(lastHandover.date, now) : Infinity;
   if (
     cage.length &&
-    (cageKg >= BUSINESS_RULES.scrapHandover.kgTrigger ||
-      daysSinceHandover >= BUSINESS_RULES.scrapHandover.daysTrigger)
+    (cageKg >= BUSINESS_RULES.bins.handoverKg ||
+      daysSinceHandover >= BUSINESS_RULES.bins.handoverDays)
   ) {
     alerts.push({
       key: "scrap_cage",
       level: "act",
-      message: `Scrap cage holds ${cageKg.toFixed(1)} kg${Number.isFinite(daysSinceHandover) ? `, ${daysSinceHandover} days since last handover` : ""}: book a recycler pickup`,
+      message: `The D devices bin holds ${cageKg.toFixed(1)} kg${Number.isFinite(daysSinceHandover) ? `, ${daysSinceHandover} days since last handover` : ""}: hand it to VRRG Group`,
       itemIds: cage.map((i) => i.id),
     });
   }
@@ -121,7 +134,7 @@ export function hubAlerts(
     .sort((a, b) => b.date.localeCompare(a.date))[0];
   if (
     batteries.length &&
-    (!lastBattery || daysBetween(lastBattery.date, now) >= BUSINESS_RULES.batteryHandoverDays)
+    (!lastBattery || daysBetween(lastBattery.date, now) >= BUSINESS_RULES.bins.batteryHandoverDays)
   ) {
     alerts.push({
       key: "batteries",
@@ -134,25 +147,42 @@ export function hubAlerts(
   const dueForCut = items.filter(
     (i) =>
       i.status === "listed" &&
+      i.category === "part" &&
+      !i.listedByPartnerId &&
       i.listedAt &&
       !i.priceCutAt &&
-      daysBetween(i.listedAt, now) >= BUSINESS_RULES.priceCut.afterDays - 7,
+      daysBetween(i.listedAt, now) >= BUSINESS_RULES.partPriceCut.afterDays - 7,
   );
   if (dueForCut.length)
     alerts.push({
       key: "price_cut_soon",
       level: "warn",
-      message: `${dueForCut.length} listing(s) reach the 45-day price cut within a week: feature them on Instagram`,
+      message: `${dueForCut.length} part(s) reach the ${BUSINESS_RULES.partPriceCut.afterDays}-day price cut within a week: feature them on Instagram`,
       itemIds: dueForCut.map((i) => i.id),
+    });
+
+  const staleParts = items.filter(
+    (i) =>
+      i.status === "listed" &&
+      i.category === "part" &&
+      i.listedAt &&
+      daysBetween(i.listedAt, now) >= BUSINESS_RULES.partScrapAlertDays,
+  );
+  if (staleParts.length)
+    alerts.push({
+      key: "consider_scrap",
+      level: "warn",
+      message: `${staleParts.length} part(s) unsold for ${BUSINESS_RULES.partScrapAlertDays} days: consider scrap`,
+      itemIds: staleParts.map((i) => i.id),
     });
 
   return alerts;
 }
 
 /**
- * Listed items the daily stock rules will reach within `withinDays`: the
- * day-45 price cut and the day-75 downgrade to C. Lets staff promote or
- * re-price them first. Mirrors applyStockRules' conditions.
+ * Listed items the daily stock rules will reach within `withinDays`: the day-30
+ * price cut on a part and the day-45 move of an A/B device to C. Lets staff
+ * promote or re-price them first. Mirrors applyStockRules' conditions.
  */
 export function stockRulesDue(
   items: readonly Item[],
@@ -162,18 +192,25 @@ export function stockRulesDue(
   const priceCut: string[] = [];
   const downgrade: string[] = [];
   for (const item of items) {
-    if (item.status !== "listed" || !item.listedAt) continue;
+    if (item.status !== "listed" || !item.listedAt || item.hidden) continue;
     const days = daysBetween(item.listedAt, now);
-    const toDowngrade = BUSINESS_RULES.downgradeToC.afterDays - days;
-    const toCut = BUSINESS_RULES.priceCut.afterDays - days;
+    const toDowngrade = BUSINESS_RULES.deviceToC.afterDays - days;
+    const toCut = BUSINESS_RULES.partPriceCut.afterDays - days;
     if (
+      item.category !== "part" &&
+      (item.grade === "A" || item.grade === "B") &&
       toDowngrade > 0 &&
-      toDowngrade <= withinDays &&
-      item.grade !== "C" &&
-      item.category !== "part"
+      toDowngrade <= withinDays
     )
       downgrade.push(item.id);
-    else if (toCut > 0 && toCut <= withinDays && !item.priceCutAt && item.currentPaise)
+    else if (
+      item.category === "part" &&
+      !item.listedByPartnerId &&
+      toCut > 0 &&
+      toCut <= withinDays &&
+      !item.priceCutAt &&
+      item.currentPaise
+    )
       priceCut.push(item.id);
   }
   return { priceCut, downgrade };

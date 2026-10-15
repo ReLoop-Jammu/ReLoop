@@ -4,7 +4,6 @@ import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { NAV_GROUPS } from "@/config/navigation";
-import { LOCATIONS } from "@/config/locations";
 import { getSiteSettings } from "@/features/settings/server";
 import { IS_SIMULATION } from "@/lib/environment";
 import { AccountMenu } from "./AccountMenu";
@@ -18,7 +17,7 @@ export async function Header() {
     <>
       <div className="bg-brand-950 text-sm text-white/80">
         <Container className="flex min-h-9 items-center justify-between gap-4 py-1.5">
-          <p>Jammu pilot: pickups every {LOCATIONS.route.days.join(" and ")} from partner shops</p>
+          <p>Jammu pilot · weekly pickups from partner shops</p>
           {site.supportPhone && site.whatsapp && !IS_SIMULATION && (
             <a
               href={`https://wa.me/${site.whatsapp}`}
@@ -57,7 +56,7 @@ export async function Header() {
             </div>
             <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
               <Plus className="size-4" aria-hidden="true" />
-              Sell to us
+              For shops & institutions
             </ButtonLink>
             <div className="lg:hidden">
               <MobileNav />

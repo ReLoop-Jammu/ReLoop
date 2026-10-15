@@ -4,7 +4,7 @@
 import { spawn } from "node:child_process";
 import { chromium } from "@playwright/test";
 
-const SHEETS = ["partner-poster", "awareness-flyer"];
+const SHEETS = ["counter-card", "awareness-flyer"];
 const PORT = 3310;
 const base = `http://localhost:${PORT}`;
 
@@ -22,7 +22,12 @@ try {
     if (i > 60) throw new Error("next start didn't come up; run npm run build first");
     await new Promise((r) => setTimeout(r, 500));
   }
-  const browser = await chromium.launch();
+  // PLAYWRIGHT_CHROMIUM_PATH points at a browser already on the machine (cloud sessions).
+  const browser = await chromium.launch({
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH && {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+    }),
+  });
   const page = await browser.newPage();
   for (const name of SHEETS) {
     await page.goto(`${base}/print/${name}`, { waitUntil: "networkidle" });

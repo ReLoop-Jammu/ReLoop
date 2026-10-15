@@ -12,6 +12,8 @@ export const DEMO_ACCOUNTS = [
   { key: "buyer", email: "demo-buyer@reloop.demo", name: "Demo Buyer", role: "buyer" },
 ] as const;
 
-export const ITEMS_PER_MONTH = [60, 110, 160, 200, 240, 280];
-export const SOURCE_MIX = { repair_shop: 140, retailer: 60, institution: 60, household: 20 };
-export const GRADE_MIX = { A: 0.15, B: 0.25, C: 0.3, D: 0.3 };
+export const ITEMS_PER_MONTH = [15, 25, 35, 45, 55, 60];
+export const SCRAP_KG_BY_MONTH = [92, 222, 352, 436, 474, 506];
+export const PARTNER_SHOPS_BY_MONTH = [10, 18, 26, 32, 36, 40];
+export const SOURCE_MIX = { retailer: 60, institution: 25, repair_shop: 15 };
+export const GRADE_MIX = { A: 0.15, B: 0.2, C: 0.45, D: 0.2 };

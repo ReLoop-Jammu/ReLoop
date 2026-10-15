@@ -1,6 +1,6 @@
 import { ShieldCheck, Truck } from "lucide-react";
 import Link from "next/link";
-import { GradeBadge } from "@/features/inventory/components/GradeBadge";
+import { GradeBadge, TestedPartBadge } from "@/features/inventory/components/GradeBadge";
 import { ItemVisual } from "@/features/inventory/components/ItemVisual";
 import { categoryLabel } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
@@ -20,11 +20,18 @@ export function ItemCard({ item, index = 0 }: { item: ShopItem; index?: number }
         alt={item.title}
         className="h-32 transition duration-500 group-hover:scale-[1.03] sm:h-44"
       />
-      <GradeBadge
-        grade={item.grade}
-        size="sm"
-        className="absolute top-2.5 left-2.5 shadow-soft sm:top-3 sm:left-3"
-      />
+      {item.category === "part" ? (
+        <TestedPartBadge
+          size="sm"
+          className="absolute top-2.5 left-2.5 shadow-soft sm:top-3 sm:left-3"
+        />
+      ) : (
+        <GradeBadge
+          grade={item.grade}
+          size="sm"
+          className="absolute top-2.5 left-2.5 shadow-soft sm:top-3 sm:left-3"
+        />
+      )}
       {item.wasPaise && (
         <span className="absolute top-2.5 right-2.5 rounded-full bg-ink px-2 py-0.5 text-xs font-semibold text-white sm:top-3 sm:right-3">
           Price cut

@@ -13,7 +13,7 @@ describe("ImpactCounter", () => {
       />,
     );
     expect(screen.getByText("Pilot starts November 2026")).toBeTruthy();
-    expect(screen.queryByText("items reused")).toBeNull();
+    expect(screen.queryByText("devices and parts resold")).toBeNull();
   });
 
   it("shows the three totals once there are any", () => {
@@ -25,7 +25,7 @@ describe("ImpactCounter", () => {
     );
     expect(screen.getByText("12")).toBeTruthy();
     expect(screen.getByText("47.8 kg")).toBeTruthy();
-    expect(screen.getByText("active partner shops")).toBeTruthy();
+    expect(screen.getByText("partner shops")).toBeTruthy();
     expect(screen.queryByText(/Pilot starts/)).toBeNull();
   });
 });
