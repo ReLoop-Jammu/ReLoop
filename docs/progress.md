@@ -8,9 +8,9 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 - **Branch:** `release/v1` (from `feat/business-plan-v2` at bb40f7d). All work is on it or on branches merged into it. Never merge to `main`. Pushes go to `origin` (ReLoop-Jammu/ReLoop); a local post-commit hook pushes and a background job snapshots to `autosave/cloud`.
 - **No CI runner here:** CI is the same commands run locally (`npm run check`, then `CI=true npm run test:e2e`) before any merge into `release/v1`. `.github/workflows/ci.yml` also runs on pushes to `release/v1`.
-- **Done:** 15b migration 1 written (`20261106000001_v2_scope_and_places.sql`: blocks on removed values, settings keys, route markets, `next_route_day(date, market)`, hub address). Untested so far.
-- **Half-done:** nothing else.
-- **Next step:** run `npm run test -w backend`, fix tests broken by migration 1 (printer in `backend/supabase/seed.sql`, `next_route_day`), add `backend/tests/v2-scope.test.mjs`, then migration 2 (scrap weigh-ins, bins, payouts, partners link, ownership).
+- **Done (branch `feat/15b-v2`, not yet merged into `release/v1`):** 15b database and seed. Migrations `20261106000001` to `...06` (scope blocks, settings, route markets; part types; scrap weigh-ins, bins ledger, per-bin handovers, receipts with tokens, institution lots, ownership and wipe rules; `partner_listing` source; Parts Exchange, commission sales and part returns; v2 stock rules, hub alerts, pilot KPIs, public KPIs, hub badges). PGlite tests `v2-scope`, `v2-scrap`, `v2-exchange`, `v2-kpis`; live checks 20 to 30 in `supabase-fixes/live-checks-v2.sql`. Simulation seed rebuilt for v2 (`backend/sim/seed.mjs`; plan-derived prices come from gitignored `backend/sim/local-inputs.json`, placeholders in `local-inputs.example.json`). All backend tests pass except those not yet re-run in full.
+- **Half-done:** nothing.
+- **Next step:** 15b frontend. (1) Run the full `npm run check` to find frontend breakages from removed categories and settings. (2) `business-rules.ts`, settings defaults, accept lists, locations/places, copy sweep (households, TVs, printers, UPS, shipping), rate card page, hub weigh-in / bins / exchange / KPIs screens, help guide EN+HI, print, docs, claims test, ADR 0005. Then merge `feat/15b-v2` into `release/v1` once `npm run check` and `CI=true npm run test:e2e` pass.
 - **Commit style:** commitlint rejects `WIP:`; use `chore(wip): ...` for work in progress. WIP is never merged into `release/v1`.
 
 ## v1.0.0 (approved 2026-10-14)
