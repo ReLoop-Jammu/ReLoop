@@ -112,3 +112,7 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 - **Weights come from weighed records only.** A tagged device with no measured weight shows a labelled estimate. Per-shop kg is shown to the public only in bands, and only for shops that consent.
 - **Launch switches are empty until a local session sets them:** the ownership-tick date, the wipe-before-stripping date, the stock-rules grace date, the device rack slots, the VRRG rates and every plan benchmark. See `scripts/finish-v1-local.md`.
 - **Shop part photos** go to a private bucket (5 MB, JPEG, PNG or WebP) and are copied to the public photo path only when staff approve the listing.
+
+## Bidding (not built, by decision)
+
+Buyers bidding on items, or shops bidding against each other, is written up here and not built. It conflicts with the fixed prices of the business plan: one published rate card per kilo, one grade-based list price per item, and the automatic stock rules (a part is cut by 25% once on day 30; an A or B device becomes grade C on day 45). A bid would change a price outside those rules, and would favour whoever can watch the site most. If it is ever reconsidered, it needs a new ADR.

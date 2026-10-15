@@ -282,6 +282,11 @@ Every money value below is **absent from the repository**. The code reads it fro
 2. Before naming any institution on `/ledger`, record its agreement (`institutions.named_publicly` and `named_consent_at`); by default lots stay "Institution lot".
 3. On the simulation build, open `/reports`, one month, its PDF and CSV, `/ledger`, `/data` and the home page's "Lately in the loop" feed.
 
+### 7h. Added by batch 25 (standards pages), in run order
+
+1. Apply migration `20261107000007_wipe_stats.sql` to the simulation project, then production (after a backup). Run `supabase-fixes/live-checks-v3.sql` (check 38 must be true).
+2. Read the new public pages once with the business-plan owner: `/standards` and its pages, `/compliance`, `/about`, `/faq`, `/accessibility`, and the expanded `/how-we-price`.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).
