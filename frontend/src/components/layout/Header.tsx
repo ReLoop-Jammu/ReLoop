@@ -56,7 +56,9 @@ export async function Header() {
             </div>
             <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
               <Plus className="size-4" aria-hidden="true" />
-              For shops & institutions
+              {/* Between 1024 and 1280 px the menu shares the row, so the button is shorter there. */}
+              <span className="lg:hidden xl:inline">For shops & institutions</span>
+              <span className="hidden lg:inline xl:hidden">Sell to us</span>
             </ButtonLink>
             <div className="lg:hidden">
               <MobileNav />
