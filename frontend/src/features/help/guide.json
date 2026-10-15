@@ -135,14 +135,14 @@
       "en": {
         "title": "7. The weekly pickup",
         "steps": [
-          "We collect by e-rickshaw. Tuesday: the Gandhi Nagar cluster (Bahu Plaza, Gole Market), from November 2026. Friday: the old city (Raghunath Bazaar, Residency Road), from January 2027. Your pickup date shows on {site}/account.",
+          "We collect by e-rickshaw. Tuesday: the Gandhi Nagar cluster (Bahu Plaza, Gole Market). Friday: the old city (Raghunath Bazaar, Residency Road). Start dates are on {site}/locations. Your pickup date shows on {site}/account.",
           "Keep your scrap together at your counter so the weighing is quick. The routes and stops are on {site}/locations."
         ]
       },
       "hi": {
         "title": "7. साप्ताहिक पिकअप",
         "steps": [
-          "हम ई-रिक्शा से सामान उठाते हैं। मंगलवार: गांधी नगर क्लस्टर (बहू प्लाज़ा, गोले मार्केट), नवंबर 2026 से। शुक्रवार: पुराना शहर (रघुनाथ बाज़ार, रेज़िडेंसी रोड), जनवरी 2027 से। आपके पिकअप की तारीख़ {site}/account पर दिखती है।",
+          "हम ई-रिक्शा से सामान उठाते हैं। मंगलवार: गांधी नगर क्लस्टर (बहू प्लाज़ा, गोले मार्केट)। शुक्रवार: पुराना शहर (रघुनाथ बाज़ार, रेज़िडेंसी रोड)। शुरू होने की तारीख़ {site}/locations पर है। आपके पिकअप की तारीख़ {site}/account पर दिखती है।",
           "कबाड़ अपने काउंटर पर एक साथ रखें, ताकि तौल जल्दी हो जाए। रूट और स्टॉप {site}/locations पर देखें।"
         ]
       }

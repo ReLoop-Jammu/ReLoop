@@ -3,6 +3,31 @@ import { FOOTER_EXTRA, allNavLinks } from "../../src/config/navigation";
 import { goViaMenu } from "./nav";
 import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
+/** Every public page: the menus and footer (one config) plus the sitemap and the pages linked from neither. */
+async function publicPaths(request: import("@playwright/test").APIRequestContext) {
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  const fromSitemap = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    (m) => new URL(m[1]).pathname,
+  );
+  return [
+    ...new Set([
+      "/",
+      "/register",
+      "/login",
+      "/privacy",
+      "/terms",
+      ...allNavLinks().map((l) => l.href),
+      ...FOOTER_EXTRA.flatMap((g) => g.links.map((l) => l.href)),
+      ...fromSitemap,
+    ]),
+  ].filter(
+    (p) =>
+      !/^\/(account|hub|admin)/.test(p) &&
+      !p.startsWith("/print") &&
+      !p.startsWith("/locations/qr"),
+  );
+}
+
 test.describe("public shop", () => {
   test("home explains the loop and shows graded stock", async ({ page }) => {
     await page.goto("/");
@@ -260,33 +285,27 @@ test.describe("site", () => {
       /unclaimed (customer )?devices/i,
       /\bhouseholds?\b.*\b(sell|drop[- ]?off|collect)/i,
     ];
-    // Every public page: the menus and footer (one config) plus the sitemap.
-    const sitemap = await (await request.get("/sitemap.xml")).text();
-    const fromSitemap = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
-      (m) => new URL(m[1]).pathname,
-    );
-    const paths = [
-      ...new Set([
-        "/",
-        "/register",
-        "/login",
-        "/privacy",
-        "/terms",
-        ...allNavLinks().map((l) => l.href),
-        ...FOOTER_EXTRA.flatMap((g) => g.links.map((l) => l.href)),
-        ...fromSitemap,
-      ]),
-    ].filter(
-      (p) =>
-        !/^\/(account|hub|admin)/.test(p) &&
-        !p.startsWith("/print") &&
-        !p.startsWith("/locations/qr"),
-    );
+    const paths = await publicPaths(request);
     expect(paths.length, "the page list should not be empty").toBeGreaterThan(15);
     for (const path of paths) {
       await page.goto(path);
       const text = await page.locator("body").innerText();
       for (const re of banned) expect(text, `${re} found on ${path}`).not.toMatch(re);
+    }
+  });
+});
+
+test.describe("launch wording", () => {
+  test("the hub opening date appears only on the locations and contact pages", async ({
+    page,
+    request,
+  }) => {
+    const dated = /\b(november 2026|january 2027|hub opens|opening november)\b/i;
+    for (const path of await publicPaths(request)) {
+      if (["/locations", "/contact"].includes(path)) continue;
+      await page.goto(path);
+      const text = await page.locator("body").innerText();
+      expect(text, `an opening date found on ${path}`).not.toMatch(dated);
     }
   });
 });
@@ -300,7 +319,7 @@ test.describe("contact details", () => {
       "href",
       "tel:+919871276179",
     );
-    await expect(main.getByText("Mon–Sat, 10:00–18:00 IST from November 2026")).toBeVisible();
+    await expect(main.getByText("Mon–Sat, 10:00–18:00 IST.", { exact: false })).toBeVisible();
     await expect(main.getByText(/Gandhi Nagar, between Bahu Plaza and Gole Market/)).toBeVisible();
   });
 
@@ -400,7 +419,7 @@ test.describe("impact counter", () => {
   test("shows the pilot date on the home page until there are real totals", async ({ page }) => {
     await page.goto("/");
     const impact = page.getByRole("region", { name: "Our impact so far" });
-    await expect(impact.getByText("Pilot starts November 2026")).toBeVisible();
+    await expect(impact.getByText("The Jammu pilot is running")).toBeVisible();
     await expect(impact.getByText("items reused")).toHaveCount(0);
   });
 });

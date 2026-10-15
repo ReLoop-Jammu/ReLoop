@@ -23,9 +23,7 @@ export const SITE = {
   whatsapp: "919871276179" as string | null,
   supportPhone: PUBLIC_PHONE as string | null,
   /** Opening hours, e.g. "Mon–Sat, 10:00–18:00 IST". */
-  hours:
-    "Mon–Sat, 10:00–18:00 IST from November 2026. Until then, WhatsApp replies within one working day." as
-      string | null,
+  hours: "Mon–Sat, 10:00–18:00 IST. WhatsApp replies within one working day." as string | null,
   /** Hub street address: a small ground-floor room in Gandhi Nagar, between Bahu Plaza and Gole Market. */
   hubAddress: "Gandhi Nagar, between Bahu Plaza and Gole Market. Exact address when we open." as
     string | null,

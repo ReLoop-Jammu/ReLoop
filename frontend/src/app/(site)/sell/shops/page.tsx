@@ -37,7 +37,7 @@ export default async function ShopsPage() {
             },
             {
               title: "A fixed weekly pickup day",
-              body: "Tuesday for the Gandhi Nagar cluster (Bahu Plaza, Gole Market), from November 2026. Friday for the old city (Raghunath Bazaar, Residency Road), from January 2027. Retailers: monthly, or when a bag fills.",
+              body: "Tuesday for the Gandhi Nagar cluster (Bahu Plaza, Gole Market). Friday for the old city (Raghunath Bazaar, Residency Road). The routes and their start dates are on the locations page. Retailers: monthly, or when a bag fills.",
             },
             {
               title: "Working parts paid as parts",

@@ -22,8 +22,8 @@ export function ReserveItem({ itemId, title, pricePaise, sample }: Props) {
   if (sample) {
     return (
       <p className="mt-8 rounded-card border border-line bg-sunken p-5 text-sm leading-relaxed text-ink-soft">
-        This is a sample item to show how stock will look. Real items can be reserved once the hub
-        opens.
+        This is a sample item to show how stock will look. Real items can be reserved as soon as
+        they are listed.
       </p>
     );
   }

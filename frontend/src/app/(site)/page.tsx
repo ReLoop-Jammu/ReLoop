@@ -108,7 +108,7 @@ export default async function HomePage() {
               <span className="rounded-full bg-grade-a-bg px-2 py-0.5 text-xs font-semibold text-grade-a">
                 New
               </span>
-              Hub opening in Jammu, {site.hubOpens}
+              Jammu pilot · weekly pickups from partner shops
             </span>
             <h1 className="mt-6 text-[2.6rem] leading-[1.02] font-bold sm:text-6xl lg:text-[4.25rem]">
               Collect. Grade.
@@ -158,7 +158,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <ImpactCounter totals={impact} hubOpens={site.hubOpens} />
+      <ImpactCounter totals={impact} />
 
       <section className="py-16 sm:py-20" aria-labelledby="network-heading">
         <Container className="grid items-center gap-10 lg:grid-cols-2">
@@ -201,7 +201,7 @@ export default async function HomePage() {
             title={sample ? "How our stock will look" : "Latest graded stock"}
             description={
               sample
-                ? `Sample items for now. Real stock appears here once the hub opens in ${site.hubOpens}.`
+                ? "Sample items for now. Real stock appears here as the hub tests it."
                 : "Tagged, tested and ready for pickup or delivery in Jammu."
             }
             actions={

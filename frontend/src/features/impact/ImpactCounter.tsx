@@ -2,13 +2,7 @@ import { Container } from "@/components/ui/Container";
 import { formatKg, showImpactNumbers, type ImpactTotals } from "./totals";
 
 /** Home-page impact strip: real totals, or the pilot date until there are any. */
-export function ImpactCounter({
-  totals,
-  hubOpens,
-}: {
-  totals: ImpactTotals | null;
-  hubOpens: string;
-}) {
+export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
   return (
     <section aria-labelledby="impact-heading" className="py-10 sm:py-12">
       <Container>
@@ -43,7 +37,12 @@ export function ImpactCounter({
               ))}
             </dl>
           ) : (
-            <p className="mt-3 text-2xl font-bold sm:text-3xl">Pilot starts {hubOpens}</p>
+            <>
+              <p className="mt-3 text-2xl font-bold sm:text-3xl">The Jammu pilot is running</p>
+              <p className="mt-2 text-white/70">
+                The totals appear here as the hub weighs and tags its first stock.
+              </p>
+            </>
           )}
         </div>
       </Container>
