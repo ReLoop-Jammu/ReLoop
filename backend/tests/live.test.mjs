@@ -2529,10 +2529,12 @@ describe("offers, pickups and payouts (20261030000001)", () => {
     assert.deepEqual(Object.keys(mine.rows[0]).sort(), [
       "amount_paise",
       "item_name",
+      "line",
       "method",
       "paid_at",
       "quantity",
       "receipt_no",
+      "receipt_token",
       "shop_submission_id",
     ]);
     assert.equal(Number(mine.rows[0].amount_paise), 60000, "2 × ₹300");
