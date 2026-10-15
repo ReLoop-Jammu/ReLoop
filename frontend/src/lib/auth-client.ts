@@ -231,16 +231,6 @@ export async function requestPasswordReset(email: string) {
   );
 }
 
-/** Asks Supabase to send the sign-up confirmation email again (link opens /login). */
-export async function resendConfirmation(email: string) {
-  await neutral(() =>
-    authRequest(`resend?redirect_to=${backTo("/login")}`, {
-      type: "signup",
-      email: email.trim().toLowerCase(),
-    }),
-  );
-}
-
 async function neutral(send: () => Promise<unknown>) {
   try {
     await send();

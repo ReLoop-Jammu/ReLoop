@@ -45,7 +45,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
 - **No email sending, by decision.** Password recovery is admin-only.
   - Admins reset passwords on `/hub/users` after confirming the person by phone. The server route generates a temporary password, shows it once and logs the reset in `admin_audit_log`, never the password.
   - `profiles.must_change_password` makes `is_admin()` and `is_staff()` false until the user sets a new password at `/account/change-password`.
-  - `/resend-confirmation` is unlinked (the code is kept).
+  - `/resend-confirmation` was removed in v1.0.0.
 - **The loop:**
   - shop submissions are reviewed on `/hub/submissions` (offer or reject), and `convert_submission()` turns an accepted offer into linked hub items;
   - shop owners see their offers on `/account`;

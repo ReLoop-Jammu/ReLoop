@@ -9,6 +9,15 @@ import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./sh
 function watch(page: Page) {
   const problems: string[] = [];
   page.on("console", (msg) => {
+    // A third-party resource that fails to load (map tiles behind a proxy) is not a site bug;
+    // same-site failures are still caught here and by the request listeners below.
+    const from = msg.location().url;
+    if (
+      msg.text().startsWith("Failed to load resource") &&
+      from &&
+      !from.startsWith("http://localhost")
+    )
+      return;
     if (msg.type() === "error" || msg.type() === "warning")
       problems.push(`console.${msg.type()}: ${msg.text()} (on ${page.url()})`);
   });
@@ -70,7 +79,6 @@ const PAGES = [
   "/login",
   "/forgot-password",
   "/reset-password",
-  "/resend-confirmation",
   "/hub",
   "/shop/compare?ids=RL-JMU-0001,RL-JMU-0002",
   "/shop?sort=saving&max=20000",
