@@ -2,7 +2,7 @@
 
 import { Camera, Printer, X } from "lucide-react";
 import Link from "next/link";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import {
   ACTIVE_CATEGORIES,
@@ -18,7 +18,8 @@ import {
   type PartType,
   type SourceType,
 } from "@/features/inventory/model";
-import { createItem } from "@/features/inventory/store";
+import { listWeighins, type Weighin } from "@/features/scrap/api";
+import { SHARED_DATABASE, createItem } from "@/features/inventory/store";
 import { compressImage } from "../photos";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select, hubInput, rupeesToPaiseOrNull } from "./ui";
@@ -34,6 +35,8 @@ type Draft = {
   paymentReference: string;
   category: Category;
   partType: PartType | "";
+  /** The scrap weigh-in whose to-test bag this part came from (optional). */
+  weighinId: string;
   brand: string;
   model: string;
   description: string;
@@ -61,6 +64,7 @@ const BLANK: Draft = {
   paymentReference: "",
   category: "phone",
   partType: "",
+  weighinId: "",
   brand: "",
   model: "",
   description: "",
@@ -82,6 +86,18 @@ export function IntakeForm() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<Item | null>(null);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
+
+  const [bags, setBags] = useState<Weighin[]>([]);
+  useEffect(() => {
+    if (!SHARED_DATABASE || d.category !== "part") return;
+    let live = true;
+    listWeighins()
+      .then((w) => live && setBags(w.filter((x) => x.to_test_count > 0).slice(0, 30)))
+      .catch(() => live && setBags([]));
+    return () => {
+      live = false;
+    };
+  }, [d.category]);
 
   const resalePaise = rupeesToPaiseOrNull(d.resale);
 
@@ -130,6 +146,7 @@ export function IntakeForm() {
         },
         category: d.category,
         ...(d.category === "part" && d.partType && { partType: d.partType }),
+        ...(d.category === "part" && d.weighinId && { weighinId: d.weighinId }),
         brand: d.brand.trim(),
         model: d.model.trim(),
         description: d.description.trim(),
@@ -315,6 +332,28 @@ export function IntakeForm() {
               </Field>
             ) : (
               <div />
+            )}
+            {d.category === "part" && bags.length > 0 && (
+              <Field
+                label="From a to-test bag"
+                htmlFor={`${id}-bag`}
+                hint="Optional. Links the part to the weigh-in whose bag it came from."
+                className="sm:col-span-2"
+              >
+                <Select
+                  id={`${id}-bag`}
+                  value={d.weighinId}
+                  onChange={(e) => set("weighinId", e.target.value)}
+                >
+                  <option value="">Not from a bag</option>
+                  {bags.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {new Date(w.weighed_at).toLocaleDateString("en-IN")} · {w.to_test_count} to
+                      test{w.to_test_note ? ` · ${w.to_test_note}` : ""}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
             )}
             <Field label="Brand" htmlFor={`${id}-brand`}>
               <Input
