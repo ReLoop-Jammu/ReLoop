@@ -235,6 +235,18 @@ Everything below needs Keychain secrets, the live or simulation database, or the
 9. **Regenerate printables** (`npm run print -w frontend`) is code-only, but verify the PDFs visually locally.
 10. **Final backup, then delete the Keychain entries** (item 1), then the final report.
 
+### 7a. Added by the cloud run (batch 15b), in run order
+
+Every money value below is **absent from the repository**. The code reads it from a staff-only setting or a gitignored local file, and works (with the value empty) until it is filled in.
+
+1. **Back up production** (`scripts/backup-live-data.sh`), then run the read-only queries of item 4 above.
+2. **Apply migrations `20261106000001` to `20261106000006`** to the simulation project first, then production (one transaction each, in order). Then run `supabase-fixes/live-checks-v2.sql` (checks 20 to 30) with the existing sets: 13 + 30 + 19 + 11 must all be true.
+3. **Fill in `backend/sim/local-inputs.json`** (copy from `local-inputs.example.json`; gitignored): `buy_share_of_resale`, `c_device_buy_rupees`, `tested_part_buy_rupees` and `vrrg_rates_paise` (VRRG Group's per-kg rates per bin). Re-seed the simulation: `SUPABASE_ACCESS_TOKEN=$(security find-generic-password -s reloop-supabase-token -w) node backend/sim/seed.mjs --apply`.
+4. **Staff-only money settings** (set through `/hub/settings` as admin, or `set_setting()`; never in a file): `finance.scrap_spread_paise_per_kg`, `finance.device_unit_paise`, `finance.parts_target_monthly_paise`, `finance.fixed_costs_monthly_paise`, `finance.setup_costs_paise` and `vrg.rates_paise`. The pilot KPIs show "not set" until they exist.
+5. **Launch-date settings** (empty by default, so nothing is enforced early): `ownership.required_from`, `wipe.strip_required_from`, `stock.grace_until`, and `capacity.device_rack_slots`.
+6. **Vercel environment:** no new variables for 15b. Confirm `vercel.json` still pins `bom1`. The `reloop-daily-rules` cron job is unchanged (the new stock rules run inside it).
+7. **Printables:** open `frontend/public/print/counter-card.pdf` and `awareness-flyer.pdf` and check them visually; the rate-card QR points at `/go/rate-card`.
+
 ### Open items for the final report
 
 GitHub Pages unpublish (needs repo admin rights); the empty Supabase organisation; the simulation project is in Singapore; the CPCB list spells the dismantler "VRG Groups" while ReLoop uses "VRRG Group" (per the user); the Hindi on `/help` needs a native speaker's check; Phase 2 registration is planned from month 6 (one line in `known-limitations.md`).
