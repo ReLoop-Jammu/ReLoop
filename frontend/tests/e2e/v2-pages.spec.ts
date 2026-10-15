@@ -148,3 +148,55 @@ test.describe("transparency", () => {
       await expect(footer.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   });
 });
+
+test.describe("standards pages", () => {
+  test("the standards index links every standard, and each page has its heading", async ({
+    page,
+  }) => {
+    await page.goto("/standards");
+    for (const [name, href, heading] of [
+      ["Grading", "/standards/grading", "Grading standard"],
+      ["Data wipe", "/standards/data-wipe", "Data-wipe standard"],
+      ["Rate card", "/standards/rate-card", "Rate card standard"],
+      ["Ownership", "/standards/ownership", "Ownership rule"],
+      ["Compliance and partners", "/compliance", "The rules, and who we work with"],
+    ]) {
+      await page.goto("/standards");
+      await page
+        .getByRole("main")
+        .getByRole("link", { name: new RegExp(`^${name}`) })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`${href}$`));
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
+    }
+  });
+
+  test("compliance names one dismantling partner and links the CPCB portal", async ({ page }) => {
+    await page.goto("/compliance");
+    await expect(
+      page.getByText(
+        /Our dismantling partner: VRRG Group, Gangyal, a JKPCC-authorised e-waste dismantler/,
+      ),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /CPCB E-Waste portal/ })).toHaveAttribute(
+      "href",
+      "https://www.eprewaste.cpcb.gov.in/",
+    );
+    const text = await page.locator("main").innerText();
+    expect(text).not.toMatch(/\bdismantlers\b|\brecyclers\b/);
+  });
+
+  test("about says who started ReLoop and invites help", async ({ page }) => {
+    await page.goto("/about");
+    await expect(page.getByText(/started by students of IIM Jammu/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Help us build it/ })).toBeVisible();
+  });
+
+  test("the data-wipe page shows the count state, and the FAQ opens", async ({ page }) => {
+    await page.goto("/standards/data-wipe");
+    await expect(page.getByRole("status")).toContainText(/first wipe|items wiped/);
+    await page.goto("/faq");
+    await page.getByText("Do you buy from households?").click();
+    await expect(page.getByText(/We buy from repair shops, retailers/)).toBeVisible();
+  });
+});

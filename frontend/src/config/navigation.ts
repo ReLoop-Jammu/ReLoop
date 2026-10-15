@@ -103,9 +103,29 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "About",
     links: [
       {
+        href: "/about",
+        label: "About ReLoop",
+        description: "Who we are, and how to help build the loop",
+      },
+      {
         href: "/how-it-works",
         label: "How it works",
         description: "Collect, weigh, grade, resell, hand over",
+      },
+      {
+        href: "/standards",
+        label: "Our standards",
+        description: "Grading, data wipe, pricing and more",
+      },
+      {
+        href: "/compliance",
+        label: "Compliance & partners",
+        description: "The E-Waste Rules in plain words, and VRRG Group",
+      },
+      {
+        href: "/faq",
+        label: "Questions & answers",
+        description: "Short answers to common questions",
       },
       {
         href: "/locations",
@@ -139,6 +159,7 @@ export const FOOTER_EXTRA: NavGroup[] = [
     links: [
       { href: "/privacy", label: "Privacy policy" },
       { href: "/terms", label: "Terms of use" },
+      { href: "/accessibility", label: "Accessibility" },
     ],
   },
 ];
