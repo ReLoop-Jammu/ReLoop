@@ -37,3 +37,6 @@ backup-*.sql
 
 # Business Plan v2 holds the P&L and supplier prices; the repo is public (docs/business-rules.md is the public summary).
 docs/ReLoop_Business_Plan_v2.html
+
+# Local-only simulation inputs (plan figures); never committed
+backend/sim/local-inputs.json
