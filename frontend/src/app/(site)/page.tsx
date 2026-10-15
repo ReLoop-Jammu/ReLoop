@@ -21,6 +21,7 @@ import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
 import { getImpactTotals } from "@/features/impact/queries";
+import { ActivityFeed } from "@/features/transparency/ActivityFeed";
 import { NetworkPreview } from "@/features/network/NetworkPreview";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
 import { getSiteSettings } from "@/features/settings/server";
@@ -159,6 +160,8 @@ export default async function HomePage() {
       </section>
 
       <ImpactCounter totals={impact} />
+
+      <ActivityFeed />
 
       <section className="py-16 sm:py-20" aria-labelledby="network-heading">
         <Container className="grid items-center gap-10 lg:grid-cols-2">
