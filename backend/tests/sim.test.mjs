@@ -171,6 +171,20 @@ describe("simulation seed (backend/sim/seed.mjs)", () => {
     assert.equal(counter.rows[0].last_number, max.rows[0].n, "new tags continue after the seed");
   });
 
+  test("the public flows have data: months of scrap, merged markets and buyer areas of 3 or more", async () => {
+    const imp = (await db.query("select * from public.impact_flows")).rows;
+    assert.ok(new Set(imp.map((r) => r.month.toISOString?.() ?? String(r.month))).size >= 3);
+    assert.ok(imp.some((r) => r.kind === "scrap" && Number(r.kg) > 0));
+    const net = (await db.query("select * from public.network_flows")).rows;
+    const areas = net.filter(
+      (r) => r.from_node === "ReLoop hub" && r.to_node !== "VRRG Group" && r.kind !== "scrap",
+    );
+    assert.ok(areas.length > 0, "at least one buyer area has 3 or more items");
+    assert.ok(areas.every((r) => Number(r.items) >= 3));
+    const markets = new Set(net.filter((r) => r.to_node === "ReLoop hub").map((r) => r.from_node));
+    assert.ok(markets.size >= 2);
+  });
+
   test("creates one demo login per role, all fictional", async () => {
     const { rows } = await db.query(
       "select u.email, p.role::text from auth.users u join public.profiles p on p.user_id = u.id",

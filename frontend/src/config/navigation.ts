@@ -71,6 +71,11 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { href: "/impact", label: "Our impact", description: "What the loop has kept in use" },
       {
+        href: "/network",
+        label: "The network",
+        description: "Where scrap comes from and where it goes",
+      },
+      {
         href: "/where-scrap-goes",
         label: "Where scrap goes",
         description: "VRRG Group, our dismantling partner, and our rules",

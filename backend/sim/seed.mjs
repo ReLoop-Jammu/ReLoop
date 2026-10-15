@@ -57,6 +57,19 @@ function mulberry32(seed) {
   };
 }
 let rand = mulberry32(20261014);
+// Where simulated buyers are: a handful of Jammu localities, weighted to a few (no real buyers).
+const BUYER_AREAS = [
+  "Gandhi Nagar",
+  "Gandhi Nagar",
+  "Trikuta Nagar",
+  "Trikuta Nagar",
+  "Channi Himmat",
+  "Talab Tillo",
+  "Bakshi Nagar",
+  "Rehari Colony",
+  "Collected at the hub",
+  "Collected at the hub",
+];
 const pick = (xs) => xs[Math.floor(rand() * xs.length)];
 const between = (lo, hi) => lo + rand() * (hi - lo);
 const int = (lo, hi) => Math.floor(between(lo, hi + 1));
@@ -338,6 +351,7 @@ export function buildSeed({ today = new Date(), auth = "supabase", localInputs }
     listed_at: null,
     sold_at: null,
     sold_paise: null,
+    buyer_area: null,
     fulfilment: null,
     parent_id: null,
     handover_id: null,
@@ -398,6 +412,8 @@ export function buildSeed({ today = new Date(), auth = "supabase", localInputs }
       item.status = "sold";
       item.sold_at = soldAt;
       item.sold_paise = item.current_paise;
+      item.buyer_area =
+        BUYER_AREAS[Number(String(item.id).replace(/\D/g, "")) % BUYER_AREAS.length];
       item.fulfilment = chance(0.38) ? "delivery_jammu" : "pickup";
       event(item.id, soldAt, "status:sold", `Sold for ₹${item.sold_paise / 100}`);
     } else if (chance(0.05)) {
@@ -1756,6 +1772,7 @@ update public.app_settings set value = to_jsonb(${q(isoDate(end))}::text), updat
     "listed_at",
     "sold_at",
     "sold_paise",
+    "buyer_area",
     "fulfilment",
     "parent_id",
     "handover_id",
@@ -1796,6 +1813,7 @@ update public.app_settings set value = to_jsonb(${q(isoDate(end))}::text), updat
     returnedOne.returned_at = at(new Date(returnedOne.sold_at.getTime() + 3 * DAY));
     returnedOne.sold_at = null;
     returnedOne.sold_paise = null;
+    returnedOne.buyer_area = null;
     returnedOne.fulfilment = null;
     const wasShopSale = exchangeSales.findIndex((s) => s.item_id === returnedOne.id);
     if (wasShopSale >= 0) exchangeSales.splice(wasShopSale, 1);

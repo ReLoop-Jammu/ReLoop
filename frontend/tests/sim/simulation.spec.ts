@@ -529,3 +529,23 @@ test.describe("scrap ledger, Parts Exchange and lots (real logins)", () => {
     await expect(page.getByText(/weigh-in|Weigh-in/).first()).toBeVisible({ timeout: 15_000 });
   });
 });
+
+test.describe("impact and network (simulated data)", () => {
+  test("the impact page draws the flows and the network page lists markets, areas and VRRG kg", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/impact");
+    await expect(
+      page.getByRole("img", { name: "Scrap in kilograms, from source to where it is now" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Month by month" })).toBeVisible();
+    await page.goto("/network");
+    await expect(page.getByRole("heading", { name: "From Jammu's markets" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "To VRRG Group" })).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: /Map of the flows between Jammu markets/ }),
+    ).toBeVisible();
+  });
+});

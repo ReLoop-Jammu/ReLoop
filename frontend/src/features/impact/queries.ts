@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseImpactFlows, parseNetworkFlows, type ImpactFlow, type NetworkFlow } from "./flows";
 import { parseImpactRow, type ImpactTotals } from "./totals";
 
 type KpiRow = {
@@ -43,4 +44,30 @@ export async function getImpactTotals(): Promise<ImpactTotals | null> {
   } catch {
     return null;
   }
+}
+
+async function getView(view: string, select: string): Promise<unknown> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/${view}?select=${select}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(3000),
+    });
+    return response.ok ? await response.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Monthly flows from the impact_flows view; null without Supabase or on any error. */
+export async function getImpactFlows(): Promise<ImpactFlow[] | null> {
+  const rows = await getView("impact_flows", "month,source_group,outcome,kind,category,items,kg");
+  return rows === null ? null : parseImpactFlows(rows);
+}
+
+/** All-time network flows from the network_flows view; null without Supabase or on any error. */
+export async function getNetworkFlows(): Promise<NetworkFlow[] | null> {
+  const rows = await getView("network_flows", "from_node,to_node,kind,category,items,kg");
+  return rows === null ? null : parseNetworkFlows(rows);
 }

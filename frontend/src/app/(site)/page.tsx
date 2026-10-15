@@ -20,6 +20,7 @@ import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
 import { getImpactTotals } from "@/features/impact/queries";
+import { NetworkPreview } from "@/features/network/NetworkPreview";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
 import { getSiteSettings } from "@/features/settings/server";
 import { getLatestShopItems, isSampleStock } from "@/features/shop/queries";
@@ -155,6 +156,25 @@ export default async function HomePage() {
       </section>
 
       <ImpactCounter totals={impact} hubOpens={site.hubOpens} />
+
+      <section className="py-16 sm:py-20" aria-labelledby="network-heading">
+        <Container className="grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <Eyebrow>The Jammu loop</Eyebrow>
+            <h2 id="network-heading" className="mt-3 text-3xl font-bold sm:text-4xl">
+              From the market to the hub, and to VRRG Group
+            </h2>
+            <p className="mt-4 leading-relaxed text-ink-soft">
+              Partner shops on our Tuesday and Friday routes sell their scrap by weight. The hub
+              tests what can be reused; whatever is dead goes to VRRG Group on a weight receipt.
+            </p>
+            <ButtonLink href="/network" variant="secondary" className="mt-6">
+              See the network
+            </ButtonLink>
+          </div>
+          <NetworkPreview />
+        </Container>
+      </section>
 
       {/* Grades */}
       <section className="py-16 sm:py-20" aria-labelledby="grades-heading">

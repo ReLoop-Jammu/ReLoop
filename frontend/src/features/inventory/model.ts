@@ -158,6 +158,8 @@ export type Item = {
   listedAt?: string;
   soldAt?: string;
   soldPaise?: number;
+  /** Where the buyer is (a locality from the buyer-areas list), recorded by staff after a sale. */
+  buyerArea?: string;
   fulfilment?: Fulfilment;
   parentId?: string;
   handoverId?: string;

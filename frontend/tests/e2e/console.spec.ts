@@ -48,6 +48,7 @@ const PAGES = [
   "/print/awareness-flyer",
   "/warranty",
   "/impact",
+  "/network",
   "/contact",
   "/privacy",
   "/terms",
