@@ -162,20 +162,23 @@ test.describe("accounts and requests (real logins)", () => {
     await loginAs(page, "demo-buyer@reloop.demo", "/account");
     await page.goto("/shop");
     await page.locator("main article a").first().click();
+    await page.waitForURL(/\/shop\/RL-JMU-\d+$/);
     const tag = (page.url().match(/RL-JMU-\d+/) ?? [""])[0];
     await page.getByRole("button", { name: "Ask a question" }).click();
     await page.getByLabel("Your name").fill("Demo Buyer");
     await page.getByLabel("Phone / WhatsApp").fill("9000000123");
     await page.getByLabel("Your question").fill(question);
     await page.getByRole("button", { name: "Prepare my question" }).click();
-    await expect(page.getByText("Your request is saved")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Your request is saved", { exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
     return tag;
   }
 
   test("a signed-in buyer's question appears under My requests, with a status page, and they can cancel it", async ({
     page,
   }) => {
-    const tag = await askAsBuyer(page, "Does it come with a charger? (journey test)");
+    const tag = await askAsBuyer(page, `Does it come with a charger? (journey test ${Date.now()})`);
     const statusHref = await page
       .getByRole("link", { name: "Open the status page" })
       .getAttribute("href");
@@ -188,10 +191,8 @@ test.describe("accounts and requests (real logins)", () => {
     await expect(page.getByText("9000000123")).toHaveCount(0);
 
     await page.goto("/account/requests");
-    const card = page
-      .locator("li")
-      .filter({ hasText: `Question for ${tag}` })
-      .first();
+    // This run's request: its card links to its own status page.
+    const card = page.locator("li").filter({ has: page.locator(`a[href="${statusHref}"]`) });
     await card.getByRole("button", { name: "Cancel" }).click();
     await card.getByRole("button", { name: "Yes, cancel it" }).click();
     await expect(card.getByText("Cancelled by you")).toBeVisible();
@@ -203,13 +204,12 @@ test.describe("accounts and requests (real logins)", () => {
     page,
     browser,
   }) => {
-    const tag = await askAsBuyer(page, "Can you hold it until Saturday? (journey test)");
+    // Unique per run: an earlier run may have left the same question behind.
+    const question = `Can you hold it until Saturday? (journey test ${Date.now()})`;
+    const tag = await askAsBuyer(page, question);
     const staff = await (await browser.newContext()).newPage();
     await loginAs(staff, "demo-staff@reloop.demo", "/hub/requests");
-    const row = staff
-      .locator("li")
-      .filter({ hasText: "Can you hold it until Saturday? (journey test)" })
-      .first();
+    const row = staff.locator("li").filter({ hasText: question }).first();
     await expect(row.getByText(/Sent from a ReLoop account/)).toBeVisible({ timeout: 15_000 });
     await row.getByRole("button", { name: "Cancel…" }).click();
     await row
@@ -220,11 +220,13 @@ test.describe("accounts and requests (real logins)", () => {
     await staff.context().close();
 
     await page.goto("/account/notifications");
-    await expect(page.getByText(`Your question for ${tag} was cancelled`).first()).toBeVisible({
+    // In the page, not the header bell's (closed) list.
+    const main = page.getByRole("main");
+    await expect(main.getByText(`Your question for ${tag} was cancelled`).first()).toBeVisible({
       timeout: 15_000,
     });
     await expect(
-      page.getByText("Already sold in the hub shop (journey test)").first(),
+      main.getByText("Already sold in the hub shop (journey test)").first(),
     ).toBeVisible();
     await page.goto("/account/requests");
     await expect(
@@ -486,5 +488,153 @@ test.describe("saved items (real logins)", () => {
     await expect(row.getByText("On sale")).toBeVisible();
     await row.getByRole("button", { name: /Remove/ }).click();
     await expect(page.getByRole("listitem").filter({ hasText: id })).toHaveCount(0);
+  });
+});
+
+test.describe("scrap ledger, Parts Exchange and lots (real logins)", () => {
+  test.setTimeout(90_000);
+
+  test("the demo rate card is public and the demo admin sees weigh-ins, bins, exchange and lots", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/rate-card");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "What we pay per kilo" }),
+    ).toBeVisible();
+
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/weighins");
+    await expect(page.getByRole("heading", { level: 1, name: "Weigh-ins" })).toBeVisible();
+    await expect(page.getByText(/kg/).first()).toBeVisible({ timeout: 15_000 });
+
+    await page.goto("/hub/exchange");
+    await expect(page.getByRole("heading", { level: 1, name: "Parts Exchange" })).toBeVisible();
+
+    await page.goto("/hub/lots");
+    await expect(page.getByRole("heading", { level: 1, name: "Institution lots" })).toBeVisible();
+
+    await page.goto("/hub/handovers");
+    await expect(page.getByText(/bin/i).first()).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("the demo shop owner sees their parts and weigh-ins on their account", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-shop@reloop.demo", "/account/parts");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await page.goto("/account");
+    await expect(page.getByText(/weigh-in|Weigh-in/).first()).toBeVisible({ timeout: 15_000 });
+  });
+});
+
+test.describe("impact and network (simulated data)", () => {
+  test("the impact page draws the flows and the network page lists markets, areas and VRRG kg", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/impact");
+    await expect(
+      page.getByRole("img", { name: "Scrap in kilograms, from source to where it is now" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Month by month" })).toBeVisible();
+    await page.goto("/network");
+    await expect(page.getByRole("heading", { name: "From Jammu's markets" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "To VRRG Group" })).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: /Map of the flows between Jammu markets/ }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("route and repairs (real logins)", () => {
+  test("the demo admin sees the next route days with stops, and the repair board", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/route");
+    await expect(page.getByRole("heading", { level: 1, name: "Route" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Tuesday|Friday)/ }).first()).toBeVisible();
+    await expect(page.getByText("Loading the run sheet…")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await page.goto("/hub/repairs");
+    await expect(page.getByRole("heading", { level: 1, name: "Repairs" })).toBeVisible();
+  });
+});
+
+test.describe("capacity and records (real logins)", () => {
+  test("the demo admin sees bins, racks with the simulated slot count, the battery cabinet and a handover record", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/capacity");
+    await expect(page.getByRole("heading", { level: 1, name: "Capacity" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Scrap bins" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/of 120 slots in use/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Battery cabinet" })).toBeVisible();
+    await page.goto("/hub/lots");
+    await expect(page.getByRole("button", { name: "Handover record (PDF)" }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+});
+
+test.describe("staff pricing (real logins)", () => {
+  test("the demo admin sees margins by category and grade, flags against the simulated figures, and the CSV", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-admin@reloop.demo", "/hub/pricing");
+    await expect(page.getByRole("heading", { name: "By category and grade" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("button", { name: "Download margins (CSV)" })).toBeVisible();
+  });
+
+  test("the public shop never shows a buy price or margin", async ({ page }) => {
+    await page.goto("/shop");
+    const text = await page.locator("main").innerText();
+    expect(text).not.toMatch(/margin|COGS|we paid|buy price/i);
+  });
+});
+
+test.describe("partners (real logins)", () => {
+  test("the demo shop owner sees their partnership numbers, with estimates labelled", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await loginAs(page, "demo-shop@reloop.demo", "/account");
+    await expect(page.getByRole("heading", { name: "Your partnership" })).toBeVisible();
+    await expect(page.getByText("Loading your numbers…")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByText("Paid to you")).toBeVisible();
+  });
+});
+
+test.describe("transparency (simulated data)", () => {
+  test("reports are numbered as simulated months, the ledger has rows and the CSV downloads", async ({
+    page,
+    request,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "one viewport is enough");
+    await page.goto("/reports");
+    await expect(page.getByText("Simulated month 1")).toBeVisible();
+    await page.getByText("Simulated month 1").click();
+    await expect(page.getByRole("heading", { level: 1, name: "Simulated month 1" })).toBeVisible();
+    await page.goto("/ledger");
+    await expect(page.getByRole("table", { name: "Handovers to VRRG Group" })).toBeVisible();
+    const csv = await (await request.get("/data/monthly.csv")).text();
+    expect(csv.split(/\r?\n/).length).toBeGreaterThan(3);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Lately in the loop" })).toBeVisible();
   });
 });

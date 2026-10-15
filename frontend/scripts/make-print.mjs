@@ -4,7 +4,11 @@
 import { spawn } from "node:child_process";
 import { chromium } from "@playwright/test";
 
-const SHEETS = ["partner-poster", "awareness-flyer"];
+const SHEETS = [
+  ["counter-card", "A4"],
+  ["awareness-flyer", "A4"],
+  ["partner-badge", "A5"],
+];
 const PORT = 3310;
 const base = `http://localhost:${PORT}`;
 
@@ -22,13 +26,18 @@ try {
     if (i > 60) throw new Error("next start didn't come up; run npm run build first");
     await new Promise((r) => setTimeout(r, 500));
   }
-  const browser = await chromium.launch();
+  // PLAYWRIGHT_CHROMIUM_PATH points at a browser already on the machine (cloud sessions).
+  const browser = await chromium.launch({
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH && {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+    }),
+  });
   const page = await browser.newPage();
-  for (const name of SHEETS) {
+  for (const [name, format] of SHEETS) {
     await page.goto(`${base}/print/${name}`, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
     const path = new URL(`../public/print/${name}.pdf`, import.meta.url).pathname;
-    await page.pdf({ path, format: "A4", printBackground: true, preferCSSPageSize: true });
+    await page.pdf({ path, format, printBackground: true, preferCSSPageSize: true });
     console.log(`public/print/${name}.pdf`);
   }
   await browser.close();

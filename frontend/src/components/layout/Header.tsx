@@ -4,7 +4,6 @@ import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { NAV_GROUPS } from "@/config/navigation";
-import { LOCATIONS } from "@/config/locations";
 import { getSiteSettings } from "@/features/settings/server";
 import { IS_SIMULATION } from "@/lib/environment";
 import { AccountMenu } from "./AccountMenu";
@@ -16,9 +15,15 @@ export async function Header() {
   const site = await getSiteSettings();
   return (
     <>
-      <div className="bg-brand-950 text-sm text-white/80">
+      <div className="bg-mesh text-sm text-white/80">
         <Container className="flex min-h-9 items-center justify-between gap-4 py-1.5">
-          <p>Jammu pilot: pickups every {LOCATIONS.route.days.join(" and ")} from partner shops</p>
+          <p className="flex items-center gap-2">
+            <span className="relative flex size-2" aria-hidden="true">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-gold-400 opacity-60 motion-reduce:hidden" />
+              <span className="relative inline-flex size-2 rounded-full bg-gold-400" />
+            </span>
+            Jammu pilot · weekly pickups from partner shops
+          </p>
           {site.supportPhone && site.whatsapp && !IS_SIMULATION && (
             <a
               href={`https://wa.me/${site.whatsapp}`}
@@ -29,13 +34,13 @@ export async function Header() {
           )}
         </Container>
       </div>
-      <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur-xl">
-        <Container className="relative flex h-16 items-center gap-2 lg:h-[72px] lg:gap-3">
+      <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/80 shadow-[0_1px_0_rgb(255_255_255/0.6)_inset] backdrop-blur-xl backdrop-saturate-150">
+        <Container className="relative flex h-16 items-center gap-2 lg:h-[76px] lg:gap-3">
           <Link href="/" aria-label="ReLoop home" className="mr-2 shrink-0">
             <Logo id="header" />
           </Link>
           <nav aria-label="Main" className="hidden lg:block">
-            <ul className="flex items-center">
+            <ul className="flex items-center rounded-full bg-sunken/70 p-1 ring-1 ring-line/80 ring-inset">
               {NAV_GROUPS.map((g) => (
                 <li key={g.key}>
                   <NavMenu group={g} />
@@ -57,7 +62,9 @@ export async function Header() {
             </div>
             <ButtonLink href="/sell" size="sm" className="hidden md:inline-flex">
               <Plus className="size-4" aria-hidden="true" />
-              Sell to us
+              {/* Between 1024 and 1280 px the menu shares the row, so the button is shorter there. */}
+              <span className="lg:hidden xl:inline">For shops & institutions</span>
+              <span className="hidden lg:inline xl:hidden">Sell to us</span>
             </ButtonLink>
             <div className="lg:hidden">
               <MobileNav />

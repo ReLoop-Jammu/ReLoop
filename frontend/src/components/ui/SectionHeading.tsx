@@ -21,14 +21,16 @@ export function SectionHeading({
   className,
 }: Props) {
   return (
-    <div className={cn("mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-4", className)}>
+    <div
+      className={cn("mb-10 flex flex-wrap items-end justify-between gap-x-6 gap-y-4", className)}
+    >
       <div className="max-w-2xl">
-        {eyebrow && <div className="mb-3">{eyebrow}</div>}
+        {eyebrow && <div className="mb-4">{eyebrow}</div>}
         <Tag
           id={id}
           className={cn(
-            "font-bold",
-            Tag === "h1" ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl",
+            "leading-[1.05] font-bold",
+            Tag === "h1" ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl",
           )}
         >
           {title}

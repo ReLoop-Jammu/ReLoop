@@ -95,6 +95,23 @@ Every link in the loop was tested on the live system with temporary test account
 | Outreach clicks                    | `/go/<link>`                            | `link_visits`                                                        | Works                                             | 5 links counted once each, previews skipped (PR #35) |
 | Partner map                        | `/locations`                            | `map_partner_shops` view                                             | Works; needs recorded consent                     | Live test 5/5 (PR #30)                               |
 
+### Business Plan v2 additions
+
+- **Scrap by weight.** Counter weigh-ins at the public rate card feed a kilo ledger with five bins (screens, boards, batteries, other, D devices). Each bin is handed over to VRRG Group on its own receipt. Receipts have a private link (`/receipt/<token>`, kept out of search engines).
+- **Parts Exchange.** Partner shops list tested parts; staff receive, test and approve them; ReLoop sells them and keeps a 12% commission; buyers have a 7-day return window. Tested parts carry no grade.
+- **Institution lots.** A flat lot fee per institution lot, with equipment itemised on the receipt.
+- **Stock rules.** Listed parts are cut by 25% once on day 30; A and B devices that have not sold by day 45 move to grade C for stripping.
+- **Ownership and wipe.** Intake records the seller's ownership tick; a device must be wiped before it is stripped. The date from which both are enforced is a staff setting (empty until launch).
+- **Money stays private.** Targets, costs and margins are staff-only settings (`finance.*`, `vrg.*`) and are not in the repository or on the public site.
+
+### v1.0.0 additions (batches 16 to 26)
+
+- **Impact and network.** `impact_flows` and `network_flows` give source-to-outcome and market-to-hub-to-buyer-area flows in kg and items. Markets with fewer than three active shops merge into "Other Jammu markets"; a buyer area appears only from three items. `/impact` draws them as server-rendered Sankey diagrams; `/network` on a map.
+- **Operations.** The route run sheet (`route_sheet()`), the repair board (`return_repair_job()`), capacity (`capacity_status()`: bins, the weekly battery cabinet, device racks, the parts shelf, stock ages) and the institution handover record.
+- **Staff pricing.** `item_margins` runs as the caller, so only staff see rows; COGS is buy plus repairs plus handling; flags use only the plan's unit figures from staff-only settings.
+- **Partners and transparency.** A consent-based partner directory with kg in bands, the shop's own dashboard, the public handover ledger, monthly reports with PDF and CSV, open data with a dictionary and an activity feed that stays empty until there are five events in 30 days and never shows anything under a day old.
+- **Standards.** Grading, data wipe (with a live count), rate card, ownership, compliance, about, FAQ and accessibility pages.
+
 ## 3. Security
 
 ### Who can see what
@@ -137,7 +154,12 @@ A review of the live database on 13 October 2026 found that the hand-made tables
 Two read-only SQL files check the live database's permissions and are re-run after every change:
 
 - `supabase-fixes/2026-10-14-checks.sql`: 13 checks;
-- `supabase-fixes/live-checks-extra.sql`: 30 checks.
+- `supabase-fixes/live-checks-extra.sql`: 30 checks;
+- `supabase-fixes/live-checks-v1.sql`: 19 checks (batches 01 to 15);
+- `supabase-fixes/live-checks-v2.sql`: 11 checks (Business Plan v2);
+- `supabase-fixes/live-checks-v3.sql`: 8 checks (batches 16 to 25).
+
+The v1.0.0 checks (19 + 11 + 8) pass on the repo schema in the in-memory tests; they are run on production after the release migrations (`scripts/finish-v1-local.md`).
 
 **All 43 were true after the last change of round 4 (14 October 2026).** They prove, among other things, that:
 
@@ -148,7 +170,7 @@ Two read-only SQL files check the live database's permissions and are re-run aft
 - ReLoop has at least one admin;
 - both daily jobs are scheduled.
 
-Besides the live checks, 90 database tests replay every query the site makes in an in-memory copy of the database (PGlite). 182 browser tests also run on every pull request.
+Besides the live checks, 254 database tests replay every query the site makes in an in-memory copy of the database (PGlite), 244 unit tests cover the site's logic, and about 390 browser tests (desktop and phone) run on every pull request.
 
 ## 4. KPI definitions
 

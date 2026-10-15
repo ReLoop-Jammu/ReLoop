@@ -21,7 +21,7 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "How ReLoop collects, tags, tests, grades, resells and recycles used electronics at its Jammu hub.",
+    "How ReLoop collects, weighs, tags, tests, grades and resells used electronics at its Jammu hub, and hands scrap to VRRG Group.",
 };
 
 const R = BUSINESS_RULES;
@@ -35,38 +35,38 @@ const HUB_STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ClipboardCheck,
     title: "Test and grade",
-    body: `Checked against a test list and graded A to D within ${R.gradeWithinHours} hours.`,
+    body: `Checked against a test list within ${R.gradeWithinHours} hours; devices are graded A to D, parts are labelled tested parts.`,
   },
   {
     icon: Eraser,
     title: "Wipe data",
-    body: "Phones, laptops and drives are reset and overwritten. Drives that fail are drilled.",
+    body: "Phones, laptops, boards and drives are reset and overwritten, or their storage chip is destroyed, before anything is stripped or sold. It is logged against the tag.",
   },
   {
     icon: Layers,
     title: "Rack by grade",
-    body: "Stored by grade. Batteries are kept apart in a closed metal cabinet.",
+    body: "Devices are racked by grade, tested parts go on the Parts Exchange shelf, and scrap goes into four bins. Batteries are kept apart in a closed metal cabinet.",
   },
   {
     icon: Camera,
     title: "List online",
-    body: `Grade A and B items are photographed and listed within ${R.listWithinHours} hours.`,
+    body: `Tested parts and grade A and B devices are photographed and listed within ${R.listWithinHours} hours.`,
   },
   {
     icon: Send,
     title: "Hand over",
-    body: "Collected from the hub, delivered in Jammu, or handed to the recycler.",
+    body: "Collected from the hub, delivered in Jammu city, or scrap handed to VRRG Group by weight.",
   },
 ];
 
 const FAQS = [
   {
     q: "What happens if an item doesn't sell?",
-    a: `After ${R.priceCut.afterDays} days its price drops by ${Math.round(R.priceCut.share * 100)}%. After ${R.downgradeToC.afterDays} days it is taken apart: good parts are tested and sold, and the rest goes to the recycler.`,
+    a: `A part that has not sold after ${R.partPriceCut.afterDays} days is cut by ${Math.round(R.partPriceCut.share * 100)}%, once. A device that has not sold after ${R.deviceToC.afterDays} days becomes grade C and is stripped: good parts are tested and sold, and the rest goes to VRRG Group by weight.`,
   },
   {
     q: "Is my data safe if I sell you a phone or laptop?",
-    a: "Every phone, laptop and drive is wiped before it is listed, and the wipe is recorded against its tag. Drives that fail the wipe are physically destroyed.",
+    a: "Every phone, laptop, board and drive is wiped, or its storage chip destroyed, before anything is stripped or sold, and it is logged against the tag.",
   },
   {
     q: "Who repairs grade-B items?",
@@ -74,11 +74,11 @@ const FAQS = [
   },
   {
     q: "Do you deliver outside Jammu?",
-    a: "Inside Jammu we deliver for ₹50, or you can collect for free from the hub. Laptops and boards can be shipped across India, with shipping paid by the buyer.",
+    a: "No. We sell in Jammu only. Delivery in Jammu city costs ₹50, or you can collect for free from the hub.",
   },
   {
-    q: "Are you a registered recycler?",
-    a: "No. ReLoop trades in used equipment for reuse. Dead and hazardous items go only to an authorised recycler, with a weight receipt for every handover.",
+    q: "Who takes the scrap?",
+    a: "VRRG Group, Gangyal, our dismantling partner, a JKPCC-authorised e-waste dismantler. Every kilo of scrap and every battery is handed to them on a weight receipt.",
   },
 ];
 
@@ -89,8 +89,8 @@ export default function HowItWorksPage() {
         <Container className="py-14 sm:py-20">
           <div className="mx-auto mb-14 max-w-2xl text-center">
             <Eyebrow>How it works</Eyebrow>
-            <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
-              Collect. Grade. Resell. Recycle.
+            <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
+              Collect. Grade. Resell. Hand over.
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-muted">
               Every item passes through one hub in Jammu before it leaves. That&apos;s how we know
@@ -106,8 +106,8 @@ export default function HowItWorksPage() {
           <SectionHeading
             id="hub-heading"
             eyebrow={<Eyebrow>At the hub</Eyebrow>}
-            title="Six steps for every item"
-            description="Whether it came from a shop counter, a college lab or a kitchen drawer."
+            title="Six steps for every device and part"
+            description="Whether it came from a repair shop, a store counter or a college lab."
           />
           <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
             {HUB_STEPS.map(({ icon: Icon, title, body }, i) => (
@@ -154,7 +154,7 @@ export default function HowItWorksPage() {
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
               <ButtonLink href="/sell" variant="secondary">
-                Sell to us
+                For shops & institutions
               </ButtonLink>
             </div>
           </div>

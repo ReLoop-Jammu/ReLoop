@@ -32,7 +32,7 @@ export function SellPageHeader({ icon: Icon, eyebrow, title, children }: Props) 
 export function SellQuickLinks() {
   return (
     <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
-      <WhatsAppButton message="Hi ReLoop, I'd like to sell old electronics" />
+      <WhatsAppButton message="Hi ReLoop, I run a shop or represent an institution and would like to sell to ReLoop. Our name is: " />
       <Link href="/what-we-accept" className="font-semibold text-brand-600 underline">
         What we accept
       </Link>

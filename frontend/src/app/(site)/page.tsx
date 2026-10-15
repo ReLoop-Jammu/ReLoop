@@ -16,10 +16,13 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { CtaBanner } from "@/components/marketing/CtaBanner";
 import { GradeStrip } from "@/components/marketing/GradeStrip";
 import { HeroShowcase } from "@/components/marketing/HeroShowcase";
+import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
 import { getImpactTotals } from "@/features/impact/queries";
+import { ActivityFeed } from "@/features/transparency/ActivityFeed";
+import { NetworkPreview } from "@/features/network/NetworkPreview";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
 import { getSiteSettings } from "@/features/settings/server";
 import { getLatestShopItems, isSampleStock } from "@/features/shop/queries";
@@ -31,7 +34,7 @@ const PROMISES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ShieldCheck,
     title: "Tested and graded",
-    body: "Every item carries an RL-JMU tag and an A–C grade.",
+    body: "Every device carries an RL-JMU tag and grade A or B; every part is a tested part.",
   },
   {
     icon: Wrench,
@@ -41,12 +44,12 @@ const PROMISES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Truck,
     title: "Pickup or delivery",
-    body: `Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} anywhere in Jammu.`,
+    body: `Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} in Jammu city.`,
   },
   {
     icon: Recycle,
     title: "Nothing dumped",
-    body: "What can't be reused goes to an authorised recycler.",
+    body: "What can't be reused goes to VRRG Group, our dismantling partner, by weight.",
   },
 ];
 
@@ -54,14 +57,14 @@ const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string 
   {
     href: "/sell/shops",
     icon: Store,
-    title: "Repair shops & retailers",
-    body: "Paid in cash or UPI when we collect, every Tuesday and Friday.",
+    title: "Repair shops, retailers & exchange stores",
+    body: "Scrap weighed and paid by UPI on the spot, on a fixed weekly pickup day.",
   },
   {
     href: "/sell/institutions",
     icon: Building2,
-    title: "Institutions",
-    body: "Booked pickups with a handover record.",
+    title: "Colleges, schools, banks & offices",
+    body: "Booked lot pickups, sorted on site, with a handover record.",
   },
 ];
 
@@ -95,65 +98,115 @@ export default async function HomePage() {
       />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden="true"
-          className="absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-brand-100),transparent)] opacity-70"
-        />
-        <Container className="relative grid items-center gap-12 pt-12 pb-16 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pt-20 lg:pb-24">
-          <div className="animate-rise">
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface py-1 pr-3 pl-1 text-sm text-ink-soft shadow-soft">
-              <span className="rounded-full bg-grade-a-bg px-2 py-0.5 text-xs font-semibold text-grade-a">
-                New
+      <section className="px-3 pt-3 sm:px-4 sm:pt-4">
+        <div className="relative overflow-hidden rounded-[2rem] bg-mesh text-white sm:rounded-[2.5rem]">
+          <div className="absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
+          <div
+            aria-hidden="true"
+            className="absolute -right-32 -bottom-40 size-[34rem] rounded-full bg-gold-400/20 blur-3xl"
+          />
+          <Container className="relative grid items-center gap-12 pt-14 pb-16 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pt-24 lg:pb-28">
+            <div className="animate-rise">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pr-3 pl-1 text-sm text-white/85 ring-1 ring-white/15 backdrop-blur ring-inset">
+                <span className="rounded-full bg-gold-400 px-2 py-0.5 text-xs font-bold text-brand-950">
+                  New
+                </span>
+                Jammu pilot · weekly pickups from partner shops
               </span>
-              Hub opening in Jammu, {site.hubOpens}
-            </span>
-            <h1 className="mt-6 text-[2.6rem] leading-[1.02] font-bold sm:text-6xl lg:text-[4.25rem]">
-              Collect. Grade.
-              <br />
-              <span className="bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">
-                Resell what still works.
-              </span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers,
-              institutions and homes, grades every item at one hub, and gives it its next useful
-              life. Only what is truly dead goes to an authorised recycler.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <ButtonLink href="/shop" size="lg">
-                Shop graded electronics
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </ButtonLink>
-              <ButtonLink href="/sell" size="lg" variant="secondary">
-                Sell to us
-              </ButtonLink>
+              <h1 className="mt-7 text-[2.8rem] leading-[0.98] font-bold text-white sm:text-7xl lg:text-[5.25rem]">
+                Collect. Grade.
+                <br />
+                <span className="text-gold-400">Resell what still works.</span>
+              </h1>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl">
+                ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers
+                and institutions, tests and grades them at one hub, and resells what still works as
+                graded devices and tested parts. Scrap is weighed and handed to VRRG Group, our
+                dismantling partner.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <ButtonLink href="/shop" size="lg" variant="gold">
+                  Shop graded electronics
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </ButtonLink>
+                <ButtonLink
+                  href="/sell"
+                  size="lg"
+                  className="bg-white/10 bg-none text-white shadow-none ring-white/25 hover:bg-white/15"
+                >
+                  For shops &amp; institutions
+                </ButtonLink>
+              </div>
+              <dl className="mt-12 grid max-w-lg grid-cols-3 gap-4 border-t border-white/15 pt-6">
+                {[
+                  ["A–D", "honest grade on every device"],
+                  [`${BUSINESS_RULES.warrantyDays} days`, "warranty on A and B"],
+                  ["100%", "of scrap to VRRG Group, by weight"],
+                ].map(([value, label]) => (
+                  <div key={label}>
+                    <dt className="sr-only">{label}</dt>
+                    <dd className="font-display text-2xl font-bold text-white sm:text-3xl">
+                      {value}
+                    </dd>
+                    <dd className="mt-1 text-xs leading-snug text-white/60 sm:text-sm">{label}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
-          </div>
-          <HeroShowcase items={latest.slice(0, 3)} />
-        </Container>
+            <HeroShowcase items={latest.slice(0, 3)} />
+          </Container>
+        </div>
       </section>
 
+      <TrustStrip />
+
       {/* Promises */}
-      <section aria-label="Why buy from ReLoop" className="border-y border-line bg-surface">
+      <section aria-label="Why buy from ReLoop" className="py-6">
         <Container>
-          <ul className="grid gap-x-6 gap-y-5 py-8 sm:grid-cols-2 lg:grid-cols-4" role="list">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" role="list">
             {PROMISES.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+              <li
+                key={title}
+                className="group rounded-card border border-line bg-surface p-6 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift"
+              >
+                <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100 text-brand-600 ring-1 ring-brand-100 transition ring-inset group-hover:scale-105">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
-                <div>
-                  <p className="text-sm font-semibold text-ink">{title}</p>
-                  <p className="mt-0.5 text-sm text-muted">{body}</p>
-                </div>
+                <p className="mt-5 text-base font-semibold text-ink">{title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
               </li>
             ))}
           </ul>
         </Container>
       </section>
 
-      <ImpactCounter totals={impact} hubOpens={site.hubOpens} />
+      <ImpactCounter totals={impact} />
+
+      <ActivityFeed />
+
+      <section className="py-16 sm:py-20" aria-labelledby="network-heading">
+        <Container>
+          <div className="grid items-center gap-10 overflow-hidden rounded-panel border border-line bg-surface p-6 shadow-soft sm:p-10 lg:grid-cols-2 lg:p-14">
+            <div>
+              <Eyebrow>The Jammu loop</Eyebrow>
+              <h2
+                id="network-heading"
+                className="mt-4 text-3xl leading-[1.05] font-bold sm:text-5xl"
+              >
+                From the market to the hub, and to VRRG Group
+              </h2>
+              <p className="mt-4 leading-relaxed text-ink-soft">
+                Partner shops on our Tuesday and Friday routes sell their scrap by weight. The hub
+                tests what can be reused; whatever is dead goes to VRRG Group on a weight receipt.
+              </p>
+              <ButtonLink href="/network" variant="secondary" className="mt-6">
+                See the network
+              </ButtonLink>
+            </div>
+            <NetworkPreview />
+          </div>
+        </Container>
+      </section>
 
       {/* Grades */}
       <section className="py-16 sm:py-20" aria-labelledby="grades-heading">
@@ -161,8 +214,8 @@ export default async function HomePage() {
           <SectionHeading
             id="grades-heading"
             eyebrow={<Eyebrow>Four grades</Eyebrow>}
-            title="Every item gets an honest grade"
-            description="We test everything at our hub before it goes anywhere. The grade decides its next life."
+            title="Every device gets an honest grade"
+            description="We test everything at our hub before it goes anywhere. The grade decides a device's next life; a working part is a tested part."
           />
           <GradeStrip />
         </Container>
@@ -177,7 +230,7 @@ export default async function HomePage() {
             title={sample ? "How our stock will look" : "Latest graded stock"}
             description={
               sample
-                ? `Sample items for now. Real stock appears here once the hub opens in ${site.hubOpens}.`
+                ? "Sample items for now. Real stock appears here as the hub tests it."
                 : "Tagged, tested and ready for pickup or delivery in Jammu."
             }
             actions={
@@ -192,26 +245,28 @@ export default async function HomePage() {
       </section>
 
       {/* The loop */}
-      <section
-        className="relative overflow-hidden bg-brand-950 py-20 sm:py-24"
-        aria-labelledby="loop-heading"
-      >
-        <div className="absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
-        <Container className="relative">
-          <div className="mx-auto mb-14 max-w-2xl text-center">
-            <Eyebrow tone="dark">The loop</Eyebrow>
-            <h2 id="loop-heading" className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              From the bazaar to its next owner
-            </h2>
-          </div>
-          <LoopSteps tone="dark" />
-          <div className="mt-12 text-center">
-            <ButtonLink href="/how-it-works" variant="gold">
-              See how the hub works
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </ButtonLink>
-          </div>
-        </Container>
+      <section className="px-3 sm:px-4" aria-labelledby="loop-heading">
+        <div className="relative overflow-hidden rounded-[2rem] bg-mesh py-20 sm:rounded-[2.5rem] sm:py-28">
+          <div className="absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
+          <Container className="relative">
+            <div className="mx-auto mb-14 max-w-2xl text-center">
+              <Eyebrow tone="dark">The loop</Eyebrow>
+              <h2
+                id="loop-heading"
+                className="mt-4 text-3xl leading-[1.05] font-bold text-white sm:text-5xl"
+              >
+                From the bazaar to its next owner
+              </h2>
+            </div>
+            <LoopSteps tone="dark" />
+            <div className="mt-12 text-center">
+              <ButtonLink href="/how-it-works" variant="gold">
+                See how the hub works
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </ButtonLink>
+            </div>
+          </Container>
+        </div>
       </section>
 
       {/* Sell paths */}
@@ -219,28 +274,28 @@ export default async function HomePage() {
         <Container>
           <SectionHeading
             id="sell-heading"
-            eyebrow={<Eyebrow>Sell to us</Eyebrow>}
-            title="Got electronics you don't use?"
-            description="Working, broken or dead: we test it, pay for what can be reused, and handle the rest properly."
+            eyebrow={<Eyebrow>For shops &amp; institutions</Eyebrow>}
+            title="Run a repair shop, store or office?"
+            description="Scrap is paid by the kilo at the rate card. Working devices get an offer after testing. Working parts are priced one by one, or listed by you on the Parts Exchange."
             actions={
-              <ButtonLink href="/sell" variant="secondary">
-                How we price
+              <ButtonLink href="/rate-card" variant="secondary">
+                The rate card
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             }
           />
-          <ul className="grid gap-4 md:grid-cols-3" role="list">
+          <ul className="grid gap-4 md:grid-cols-2" role="list">
             {SELL_PATHS.map(({ href, icon: Icon, title, body }) => (
               <li key={href}>
                 <Link
                   href={href}
-                  className="group flex h-full items-start gap-4 rounded-card border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
+                  className="group flex h-full items-start gap-5 rounded-card border border-line bg-surface p-7 shadow-soft transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-lift"
                 >
-                  <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                  <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-mesh text-gold-400 shadow-glow">
                     <Icon className="size-5" aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="flex items-center gap-1 font-semibold text-ink">
+                    <span className="flex items-center gap-1 text-lg font-semibold text-ink">
                       {title}
                       <ArrowRight
                         className="size-4 opacity-0 transition group-hover:opacity-100"
@@ -262,7 +317,7 @@ export default async function HomePage() {
           <CtaBanner
             eyebrow="Where scrap goes"
             title="Nothing dead goes in the bin."
-            description="Dead and hazardous items, and every battery, go only to an authorised recycler, weighed, with a receipt for each handover."
+            description="Dead scrap and every battery go to VRRG Group, Gangyal, by weight, with a weight receipt for each handover."
             actions={
               <ButtonLink href="/where-scrap-goes" size="lg" variant="dark">
                 Where scrap goes

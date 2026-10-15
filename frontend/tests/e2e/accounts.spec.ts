@@ -50,7 +50,7 @@ test.describe("warranty", () => {
     await expect(page.getByText(/Not covered: physical or liquid damage/)).toBeVisible();
     await expect(page.getByText(/a repair first, then a replacement/)).toBeVisible();
     await expect(
-      page.getByText(/We don't take returns because you changed your mind/),
+      page.getByText(/We don't take returns because you changed your mind/).first(),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Warranty claims" })).toHaveAttribute(
       "href",

@@ -104,6 +104,12 @@ type ItemRow = {
   new_price_paise: number | null;
   new_price_source: string;
   new_price_checked_on: string | null;
+  ownership_confirmed_at?: string | null;
+  locked_device?: boolean;
+  listed_by_partner_id?: string | null;
+  commission_pct?: number | null;
+  weighin_id?: string | null;
+  buyer_area?: string | null;
   item_events?: { at: string; type: string; note: string }[];
 };
 
@@ -177,6 +183,15 @@ export function rowToItem(r: ItemRow): Item {
         : Number(r.new_price_paise),
     newPriceSource: r.new_price_source || undefined,
     newPriceCheckedOn: opt(r.new_price_checked_on),
+    ownershipConfirmedAt: opt(r.ownership_confirmed_at),
+    lockedDevice: r.locked_device ? true : undefined,
+    listedByPartnerId: opt(r.listed_by_partner_id),
+    commissionPct:
+      r.commission_pct === null || r.commission_pct === undefined
+        ? undefined
+        : Number(r.commission_pct),
+    weighinId: opt(r.weighin_id),
+    buyerArea: opt(r.buyer_area),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) Object.assign(item, { [k]: v });
   return item;
@@ -229,6 +244,9 @@ export function itemToRow(i: Omit<Item, "id" | "events" | "photos">) {
     new_price_paise: i.newPricePaise ?? null,
     new_price_source: i.newPriceSource ?? "",
     new_price_checked_on: i.newPriceCheckedOn ?? null,
+    ownership_confirmed_at: i.ownershipConfirmedAt ?? null,
+    locked_device: i.lockedDevice ?? false,
+    weighin_id: i.weighinId ?? null,
   };
 }
 
@@ -359,6 +377,14 @@ export async function saveItem(item: Item): Promise<Item> {
 }
 
 /** Corrects brand, model and description; the reason goes into the history. */
+/** Records where a sold item went (a locality from the buyer-areas list). */
+export async function setBuyerArea(id: string, area: string | null): Promise<void> {
+  await rest("rpc/set_item_buyer_area", {
+    method: "POST",
+    body: JSON.stringify({ p_id: id, p_area: area }),
+  });
+}
+
 export async function editItemDetails(
   id: string,
   d: { brand: string; model: string; description: string },
@@ -430,6 +456,9 @@ type PartnerRow = {
   status: Partner["status"];
   joined_at: string;
   notes: string;
+  label?: string;
+  shop_owner_id?: string | null;
+  show_in_directory?: boolean;
 };
 const toPartner = (r: PartnerRow): Partner => ({
   id: r.id,
@@ -443,6 +472,9 @@ const toPartner = (r: PartnerRow): Partner => ({
   status: r.status,
   joinedAt: r.joined_at,
   notes: r.notes,
+  ...(r.label && { label: r.label }),
+  ...(r.shop_owner_id && { shopOwnerId: r.shop_owner_id }),
+  ...(r.show_in_directory && { showInDirectory: true }),
 });
 
 export async function getPartners(): Promise<Partner[]> {
@@ -472,6 +504,8 @@ export async function savePartner(p: Omit<Partner, "id"> & { id?: string }): Pro
     status: p.status,
     joined_at: p.joinedAt,
     notes: p.notes,
+    label: p.label ?? "",
+    shop_owner_id: p.shopOwnerId || null,
   };
   return toPartner(await upsertRow<PartnerRow>("partners", dbId(p.id).id, row));
 }

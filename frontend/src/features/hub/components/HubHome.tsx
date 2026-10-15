@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils/cn";
 import { useHubBadges } from "../badges";
 import type { HubBadges } from "../tools";
 import { useHubData } from "../useHubData";
+import { TodayPanel } from "./TodayPanel";
 import { PageTitle, Panel } from "./ui";
 
 export type Todo = {
@@ -20,6 +21,12 @@ export type Todo = {
   /** "act": overdue or blocking; "check": waiting for someone. */
   level: "act" | "check";
   ids?: string[];
+};
+
+/** "Thursday 15 October", built from parts: Node and browsers punctuate the one-call format differently, which breaks hydration. */
+const longToday = (d: Date) => {
+  const part = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-IN", o);
+  return `${part({ weekday: "long" })} ${part({ day: "numeric" })} ${part({ month: "long" })}`;
 };
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
@@ -95,9 +102,57 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       level: "act",
     },
     {
+      key: "pickups_unconfirmed",
+      count: b.pickups_unconfirmed ?? 0,
+      label: plural(
+        b.pickups_unconfirmed ?? 0,
+        "pickup waiting for its route day to be confirmed",
+        "pickups waiting for their route day to be confirmed",
+      ),
+      href: "/hub/submissions",
+      level: "act",
+    },
+    {
+      key: "part_listings_waiting",
+      count: b.part_listings_waiting ?? 0,
+      label: plural(
+        b.part_listings_waiting ?? 0,
+        "Parts Exchange listing to receive, test or approve",
+        "Parts Exchange listings to receive, test or approve",
+      ),
+      href: "/hub/exchange",
+      level: "act",
+    },
+    {
+      key: "part_sales_to_pay",
+      count: b.part_sales_to_pay ?? 0,
+      label: plural(
+        b.part_sales_to_pay ?? 0,
+        "shop share to pay (the 7-day window has passed)",
+        "shop shares to pay (the 7-day window has passed)",
+      ),
+      href: "/hub/exchange",
+      level: "act",
+    },
+    {
+      key: "bins_due",
+      count: b.bins_due ?? 0,
+      label: plural(
+        b.bins_due ?? 0,
+        "scrap bin due for handover to VRRG Group",
+        "scrap bins due for handover to VRRG Group",
+      ),
+      href: "/hub/handovers",
+      level: "act",
+    },
+    {
       key: "open_claims",
       count: b.open_claims,
-      label: plural(b.open_claims, "open warranty claim", "open warranty claims"),
+      label: plural(
+        b.open_claims,
+        "open warranty claim or part return",
+        "open warranty claims or part returns",
+      ),
       href: "/hub/warranty",
       level: "act",
     },
@@ -149,7 +204,7 @@ export function stockTodos(
 ): Todo[] {
   const due = stockRulesDue(items, now);
   return [
-    // The day-45 reminder is listed below with the day-75 one (stockRulesDue).
+    // The day-30 reminder is listed below with the day-45 one (stockRulesDue).
     ...hubAlerts(items, handovers, now)
       .filter((al) => al.key !== "price_cut_soon")
       .map((al) => ({
@@ -165,7 +220,7 @@ export function stockTodos(
           {
             key: "price-cut",
             count: due.priceCut.length,
-            label: `${due.priceCut.length} listed ${plural(due.priceCut.length, "item reaches", "items reach")} the day-45 price cut this week`,
+            label: `${due.priceCut.length} listed ${plural(due.priceCut.length, "part reaches", "parts reach")} the day-30 price cut this week`,
             href: "/hub/items?status=listed",
             level: "check" as const,
             ids: due.priceCut,
@@ -177,7 +232,7 @@ export function stockTodos(
           {
             key: "downgrade",
             count: due.downgrade.length,
-            label: `${due.downgrade.length} listed ${plural(due.downgrade.length, "item reaches", "items reach")} day 75 (downgrade to C for parts) this week`,
+            label: `${due.downgrade.length} listed ${plural(due.downgrade.length, "device reaches", "devices reach")} day 45 (moves to C to be stripped) this week`,
             href: "/hub/items?status=listed",
             level: "act" as const,
             ids: due.downgrade,
@@ -202,11 +257,7 @@ export function HubHome() {
     <>
       <PageTitle
         title={name ? `Good to see you, ${name}` : "Overview"}
-        description={now.toLocaleDateString("en-IN", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })}
+        description={longToday(now)}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link href="/hub/intake" className={buttonClasses({ size: "sm" })}>
@@ -218,6 +269,10 @@ export function HubHome() {
           </div>
         }
       />
+
+      <div className="mb-6">
+        <TodayPanel items={items} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Requests and submissions">

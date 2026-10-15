@@ -30,7 +30,13 @@ export function HubShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas lg:flex-row">
-      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lift"
+      >
+        Skip to content
+      </a>
+      <aside className="border-b border-line bg-mesh text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0 print:hidden">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5 lg:py-6">
           <Link href="/hub" className="flex items-center gap-2 font-display text-lg font-bold">
             <LogoMark id="hub" inverted className="size-7" />
@@ -50,7 +56,7 @@ export function HubShell({ children }: { children: ReactNode }) {
       </aside>
       <div className="min-w-0 flex-1">
         {SHARED_DATABASE ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-sunken px-4 py-2 text-xs text-ink-soft sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-sunken px-4 py-2 text-xs text-ink-soft sm:px-8 print:hidden">
             <span>
               <strong>Shared database:</strong> everything you save here is stored for all hub
               staff.
@@ -68,7 +74,7 @@ export function HubShell({ children }: { children: ReactNode }) {
           </p>
         )}
         <HubErrors />
-        <main id="main" className="px-4 py-6 sm:px-8 sm:py-8">
+        <main id="main" className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-8 sm:py-10">
           {SHARED_DATABASE ? <RequireRole role="staff">{children}</RequireRole> : children}
         </main>
       </div>
@@ -111,8 +117,8 @@ function HubMenu({ pathname }: { pathname: string }) {
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition",
                         active
-                          ? "bg-white/15 font-semibold text-white"
-                          : "text-white/70 hover:bg-white/5 hover:text-white",
+                          ? "bg-white/15 font-semibold text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12)]"
+                          : "text-white/70 hover:bg-white/[0.07] hover:text-white",
                       )}
                     >
                       <Icon className="size-4" aria-hidden="true" />
@@ -137,6 +143,18 @@ function HubMenu({ pathname }: { pathname: string }) {
 
 /** Find an item by its RL-JMU tag, a shop or (admins) an account. */
 function HubSearch() {
+  // "/" jumps to the search box, unless the person is already typing somewhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
+      e.preventDefault();
+      document.getElementById("hub-search")?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   return (
     <Form
       action="/hub/search"
@@ -153,7 +171,7 @@ function HubSearch() {
           id="hub-search"
           name="q"
           type="search"
-          placeholder="RL-JMU tag, shop or person"
+          placeholder="RL-JMU tag, shop or person (press /)"
           className="min-h-10 w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
         />
       </div>

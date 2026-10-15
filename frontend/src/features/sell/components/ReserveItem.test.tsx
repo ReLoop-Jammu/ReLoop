@@ -29,7 +29,7 @@ describe("reserving or asking about an item", () => {
       target: { value: "98765 43210" },
     });
     fireEvent.change(screen.getByLabelText(/^How\ do\ you\ want\ it\?/), {
-      target: { value: "Delivery in Jammu (₹50)" },
+      target: { value: "Delivery in Jammu city (₹50)" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Prepare my reservation" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
@@ -38,7 +38,7 @@ describe("reserving or asking about an item", () => {
     expect(JSON.parse(init.body as string)).toMatchObject({
       kind: "reservation",
       itemId: "RL-JMU-0006",
-      fields: { name: "Asha", phone: "98765 43210", fulfilment: "Delivery in Jammu (₹50)" },
+      fields: { name: "Asha", phone: "98765 43210", fulfilment: "Delivery in Jammu city (₹50)" },
     });
     expect(await screen.findByText("Almost done: send this to ReLoop")).toBeInTheDocument();
     expect(screen.queryByText(/couldn't keep a copy/)).not.toBeInTheDocument();

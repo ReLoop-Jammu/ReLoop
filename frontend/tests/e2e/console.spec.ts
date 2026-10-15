@@ -9,10 +9,19 @@ import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./sh
 function watch(page: Page) {
   const problems: string[] = [];
   page.on("console", (msg) => {
+    // A third-party resource that fails to load (map tiles behind a proxy) is not a site bug;
+    // same-site failures are still caught here and by the request listeners below.
+    const from = msg.location().url;
+    if (
+      msg.text().startsWith("Failed to load resource") &&
+      from &&
+      !from.startsWith("http://localhost")
+    )
+      return;
     if (msg.type() === "error" || msg.type() === "warning")
-      problems.push(`console.${msg.type()}: ${msg.text()}`);
+      problems.push(`console.${msg.type()}: ${msg.text()} (on ${page.url()})`);
   });
-  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message}`));
+  page.on("pageerror", (err) => problems.push(`uncaught: ${err.message} (on ${page.url()})`));
   page.on("requestfailed", (req) => {
     const url = new URL(req.url());
     // Ignore requests the test itself cancels by navigating away, and third-party beacons.
@@ -43,10 +52,25 @@ const PAGES = [
   "/what-we-accept",
   "/help",
   "/print",
-  "/print/partner-poster",
+  "/print/counter-card",
+  "/rate-card",
   "/print/awareness-flyer",
   "/warranty",
   "/impact",
+  "/network",
+  "/partners",
+  "/ledger",
+  "/reports",
+  "/data",
+  "/standards",
+  "/standards/grading",
+  "/standards/data-wipe",
+  "/standards/rate-card",
+  "/standards/ownership",
+  "/compliance",
+  "/about",
+  "/faq",
+  "/accessibility",
   "/contact",
   "/privacy",
   "/terms",
@@ -55,7 +79,6 @@ const PAGES = [
   "/login",
   "/forgot-password",
   "/reset-password",
-  "/resend-confirmation",
   "/hub",
   "/shop/compare?ids=RL-JMU-0001,RL-JMU-0002",
   "/shop?sort=saving&max=20000",
@@ -72,6 +95,13 @@ const PAGES = [
   "/hub/items",
   "/hub/partners",
   "/hub/handovers",
+  "/hub/weighins",
+  "/hub/route",
+  "/hub/pricing",
+  "/hub/capacity",
+  "/hub/repairs",
+  "/hub/exchange",
+  "/hub/lots",
   "/hub/data",
   "/hub/shops",
   "/hub/users",
@@ -115,6 +145,7 @@ test("main interactions run without console errors", async ({ page }) => {
   await page.getByLabel("Brand").fill("Nokia");
   await page.getByLabel("Grade (if tested now)").selectOption("A");
   await page.getByLabel("We paid (₹)").fill("500");
+  await page.getByLabel(/Ownership/).check();
   await page.getByRole("button", { name: "Save and assign tag" }).click();
   await page.getByRole("link", { name: "Open item" }).click();
   await page.getByRole("button", { name: "Mark wiped" }).click();

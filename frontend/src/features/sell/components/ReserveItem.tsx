@@ -10,7 +10,6 @@ type Props = {
   itemId: string;
   title: string;
   pricePaise: number;
-  shipsIndia: boolean;
   sample?: boolean;
 };
 
@@ -18,13 +17,13 @@ type Props = {
  * "Reserve this item" or "Ask a question": saves the request for hub staff,
  * then hands off to ReLoop on WhatsApp or email.
  */
-export function ReserveItem({ itemId, title, pricePaise, shipsIndia, sample }: Props) {
+export function ReserveItem({ itemId, title, pricePaise, sample }: Props) {
   const [mode, setMode] = useState<"reserve" | "ask" | null>(null);
   if (sample) {
     return (
       <p className="mt-8 rounded-card border border-line bg-sunken p-5 text-sm leading-relaxed text-ink-soft">
-        This is a sample item to show how stock will look. Real items can be reserved once the hub
-        opens.
+        This is a sample item to show how stock will look. Real items can be reserved as soon as
+        they are listed.
       </p>
     );
   }
@@ -77,11 +76,7 @@ export function ReserveItem({ itemId, title, pricePaise, shipsIndia, sample }: P
               label: "How do you want it?",
               type: "select",
               required: true,
-              options: [
-                "Pick up from the hub (free)",
-                "Delivery in Jammu (₹50)",
-                ...(shipsIndia ? ["Ship outside Jammu (you pay shipping)"] : []),
-              ],
+              options: ["Pick up from the hub (free)", "Delivery in Jammu city (₹50)"],
               full: true,
             },
           ]}

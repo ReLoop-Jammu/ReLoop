@@ -18,11 +18,26 @@ export const DEMO_ACCOUNTS = [
   { key: "buyer", email: "demo-buyer@reloop.demo", name: "Demo Buyer", role: "buyer" },
 ];
 
-/** The business plan's ramp (items received per simulated month). */
-export const ITEMS_PER_MONTH = [60, 110, 160, 200, 240, 280];
+/** Months simulated, ending today. Every report and KPI is labelled "Simulated month N". */
+export const SIM_MONTHS = 6;
 
-/** Share of intake by source at steady state (plan: 140 / 60 / 60 / 20 of 280). */
-export const SOURCE_MIX = { repair_shop: 140, retailer: 60, institution: 60, household: 20 };
+/** Business Plan v2, operational ramp by simulated month (counts and kg only). */
+export const PARTNER_SHOPS_BY_MONTH = [10, 18, 26, 32, 36, 40];
+export const SCRAP_KG_BY_MONTH = [92, 222, 352, 436, 474, 506];
+/** Tagged devices received per month (phones, laptops, desktops, monitors). */
+export const ITEMS_PER_MONTH = [15, 25, 35, 45, 55, 60];
 
-/** Planned grade split until real grading data replaces it. */
-export const GRADE_MIX = { A: 0.15, B: 0.25, C: 0.3, D: 0.3 };
+/** Where tagged devices come from. Institutions start in month 3; repair shops send mostly scrap. */
+export const SOURCE_MIX = { retailer: 60, institution: 25, repair_shop: 15 };
+
+/** Device grade split (A 15% / B 20% / C 45% / D 20%). */
+export const GRADE_MIX = { A: 0.15, B: 0.2, C: 0.45, D: 0.2 };
+
+/** The public rate card per kg, in paise (published terms; also in the migration). */
+export const RATE_CARD_PAISE = { screens: 17000, batteries: 80000, boards: 13000, other: 500 };
+
+/** Simulated split of the scrap weighed at the counter (working values, not plan figures). */
+export const SCRAP_KG_SHARE = { screens: 0.28, boards: 0.12, batteries: 0.06, other: 0.54 };
+
+/** The institution lot fee is a published term (Rs 3,000 a lot), in paise. */
+export const LOT_FEE_PAISE = 300000;

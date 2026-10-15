@@ -61,7 +61,11 @@ export default async function PrivacyPage() {
         </ul>
         <p>
           We do not collect payment card details, and we do not sell your personal data. Data stored
-          on devices you sell us is wiped before resale, as described on our How it works page.
+          on devices, boards and drives you sell us (including parts left in a to-test bag) is
+          wiped, or the storage chip destroyed, before anything is stripped or sold, and it is
+          logged against the tag, as described on our How it works page. Photos a partner shop
+          uploads of a part are stored privately, with their location and camera details removed,
+          and are made public only when staff approve the listing.
         </p>
       </section>
 
@@ -70,7 +74,15 @@ export default async function PrivacyPage() {
         <ul>
           <li>To arrange pickups, drop-offs and payments when you sell to us.</li>
           <li>To reserve items, arrange delivery and honour warranties when you buy from us.</li>
-          <li>To keep records of where items came from and where recycled material went.</li>
+          <li>
+            To keep records of where items came from, how much scrap each shop handed over, and
+            where scrap went (the weight ledger is kept as an e-waste record).
+          </li>
+          <li>
+            To show, in totals only, which parts of Jammu our stock goes to: when you buy, staff may
+            note your locality (never your address), and an area is shown only once three or more
+            items have gone there.
+          </li>
           <li>To answer your questions and keep the service secure.</li>
         </ul>
       </section>
@@ -80,7 +92,9 @@ export default async function PrivacyPage() {
         <p>
           We use trusted service providers to run the site, such as hosting and messaging. They
           process data only on our instructions. For institutions, the institution&apos;s name
-          appears on the recycler&apos;s weight receipt. We may disclose data if required by law.
+          appears on the weight receipt of our dismantling partner, VRRG Group. A shop&apos;s
+          kilograms are shown publicly only in bands (such as &ldquo;25-100 kg&rdquo;), and only
+          with its consent. We may disclose data if required by law.
         </p>
       </section>
 
@@ -91,9 +105,10 @@ export default async function PrivacyPage() {
           delete your account and data from your account&apos;s Profile and settings page, or by
           contacting us. An admin carries out the request within 30 days: your account, profile,
           shop details, saved items and notifications are deleted. Records we must keep by law
-          (items we bought from you and what we paid, for tax and e-waste records) are kept with
-          your name replaced by &ldquo;Deleted account&rdquo;, and your requests keep only their
-          stage. Handled deletion requests are themselves deleted after 12 months.
+          (items we bought from you, what we paid and the weights we recorded, for tax and e-waste
+          records) are kept with your name replaced by &ldquo;Deleted account&rdquo;, and your
+          requests keep only their stage. Handled deletion requests are themselves deleted after 12
+          months.
         </p>
         <p>
           Notifications on the site are deleted after 90 days. Saved items stay until you remove

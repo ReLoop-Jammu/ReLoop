@@ -6,22 +6,29 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 
 export const metadata: Metadata = {
   title: "Printable outreach",
-  description: "A4 poster for partner shops and a flyer for awareness drives, ready to print.",
+  description:
+    "A4 counter card for partner shops, a buyer and campus flyer and an A5 partner window badge, ready to print.",
   robots: { index: false, follow: false },
 };
 
 const SHEETS = [
   {
-    title: "Partner-shop poster",
-    body: "“ReLoop partner: drop old electronics here”, with the QR code and our WhatsApp number. For the counter or the shop window.",
-    pdf: "/print/partner-poster.pdf",
-    page: "/print/partner-poster",
+    title: "Shopkeeper counter card",
+    body: "The rate card per kilo with its date, the weekly pickup days, what we don't take, and a QR code to the live rate card. For the shop counter.",
+    pdf: "/print/counter-card.pdf",
+    page: "/print/counter-card",
   },
   {
-    title: "Awareness-drive flyer",
-    body: "Why e-waste matters (national figures with sources), how ReLoop works in three steps, and the QR code. For college and colony drives.",
+    title: "Buyer and campus flyer",
+    body: "Tested phones, laptops and parts for buyers, technicians, colleges and offices, with national e-waste figures and their sources, and the QR code. For campus drives.",
     pdf: "/print/awareness-flyer.pdf",
     page: "/print/awareness-flyer",
+  },
+  {
+    title: "ReLoop Partner window badge (A5)",
+    body: 'For a partner shop\'s window: "Tested parts from ReLoop", with a QR code to the hub and the routes.',
+    pdf: "/print/partner-badge.pdf",
+    page: "/print/partner-badge",
   },
 ];
 
@@ -32,8 +39,8 @@ export default function PrintIndexPage() {
         <Eyebrow>Printable outreach</Eyebrow>
         <h1 className="mt-4 text-4xl font-bold">Posters and flyers</h1>
         <p className="mt-4 text-lg text-muted">
-          A4, one page each, in colour. Print the PDF at 100% (no &ldquo;fit to page&rdquo;) so the
-          QR code stays sharp. The QR code opens our locations page.
+          One page each, in colour (the badge is A5). Print the PDF at 100% (no &ldquo;fit to
+          page&rdquo;) so the QR code stays sharp. The QR code opens our locations page.
         </p>
       </div>
       <ul className="mt-10 grid gap-4 md:grid-cols-2" role="list">

@@ -72,7 +72,10 @@ export async function receiptPdf(r: Receipt): Promise<Uint8Array> {
   });
   y -= 18;
   for (const text of [
-    "ReLoop bought these items outright. This receipt confirms the payment above.",
+    r.line === "scrap"
+      ? "Scrap was weighed in front of the shop and paid at the rate card on the day."
+      : "ReLoop bought these items outright. This receipt confirms the payment above.",
+    ...(r.declaration ? [r.declaration] : []),
     "It is not a tax invoice.",
     ...(lossy
       ? ["Some characters in a name can't be printed here; your account shows it in full."]

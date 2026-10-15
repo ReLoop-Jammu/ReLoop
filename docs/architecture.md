@@ -88,27 +88,29 @@ Sellers (shops, institutions, households) don't have accounts. They sell **to** 
 
 ## 4. Data model
 
-Defined in `backend/supabase/migrations/` and described in `backend/README.md`:
+Defined in `backend/supabase/migrations/` (one file per change, each with a PGlite test in `backend/tests/`) and described in `backend/README.md`. The main groups, after v1.0.0 and Business Plan v2:
 
-- **Items:** RL-JMU tags, grade A–D, status, prices, wipe, source
-- **Item history**
-- **Partners and institutions**
-- **Repair jobs**
-- **Consignments**
-- **Recycler handovers**
-- **Public requests**
-- **Staff**
+- **Items:** RL-JMU tags, grade A–D (parts: "Tested part"), status, prices, inspection (ReLoop Checked), wipe, source, ownership tick, buyer area at sale; item history (`item_events`).
+- **Partners and institutions:** hub partner records (linked to a shop-owner account), directory consent; institutions and institution lots (lot fee, equipment, handover on their behalf).
+- **Scrap by weight:** `scrap_weighins` at the public rate card, the kilo ledger `scrap_ledger` with five bins (screens, boards, other, D devices, batteries; battery count, condition, reused flag), per-bin `handovers` to VRRG Group.
+- **Parts Exchange:** `part_listings` by partner shops, `exchange_sales` with the 12% commission and the 7-day return window; part returns are warranty claims of kind `part_return`.
+- **Shops' accounts:** `shop_owners`, `shop_submissions` (offers), `pickups` on route days, `payouts` with tokenised receipts.
+- **Buyers:** requests, reservations, warranty claims, saved items, notifications.
+- **Staff-only:** repair jobs, reference prices, `app_settings` (`finance.*` and `vrg.*` never public), `item_margins` (security invoker), audit log.
+- **Public views (counts and kg only, no names or money):** `public_kpis`, `impact_flows`, `network_flows` (markets under 3 shops merged, buyer areas under 3 items hidden), `partner_directory` (kg bands), `public_ledger`, `public_monthly_reports`, `activity_feed` (24 h old, 5+ events in 30 days), `public_wipe_stats`, `public_price_bands`, `item_passport`.
 
-Business rules (no selling without a wipe, the day-45/75 rules, public-only columns) are enforced in the database. The browser-storage version used until Supabase is connected has the same shape: `frontend/src/features/inventory/model.ts`.
+Business rules (no selling without a wipe or an inspection, the day-30 part cut and day-45 device-to-C rules, public-only columns, consent before naming anyone) are enforced in the database. The read-only live checks are `supabase-fixes/2026-10-14-checks.sql`, `live-checks-extra.sql`, `live-checks-v1.sql`, `live-checks-v2.sql` and `live-checks-v3.sql`. The browser-storage version used without Supabase (local dev, CI) has the same item shape: `frontend/src/features/inventory/model.ts`.
 
 ## 5. Pages / routes
 
 - **Public:**
-  - `/`, `/shop`, `/shop/[RL-JMU-id]`
-  - `/sell` (+ `/sell/shops`, `/sell/institutions`, `/sell/consignment`, `/sell/list-yourself`)
-  - `/how-it-works`, `/where-scrap-goes`, `/warranty`, `/impact`, `/contact`, `/privacy`, `/terms`
-- **Staff (noindex; Hub link in the account menu for staff):** `/hub` (overview of to-dos), `/hub/intake`, `/hub/items`, `/hub/items/[id]`, `/hub/requests`, `/hub/submissions`, `/hub/partners`, `/hub/handovers`, `/hub/kpis`, `/hub/data`, `/hub/search`; admins also `/hub/shops`, `/hub/users`, `/hub/team`, `/hub/links`, `/hub/audit`, `/hub/settings`. The menu, account cards and overview come from `frontend/src/features/hub/tools.ts`.
-- **Later:** `/hub/login` once Supabase auth is connected
+  - Buy: `/`, `/shop` (devices; `?kind=parts` for tested parts), `/shop/[RL-JMU-id]`, `/shop/compare`, `/passport/[tag]`, `/how-we-price`, `/warranty`.
+  - For shops and institutions: `/sell` (+ `/sell/shops`, `/sell/institutions`), `/rate-card`, `/partners`, `/what-we-accept`, `/help` (EN/HI), `/receipt/[token]` (private, not indexed).
+  - Transparency: `/impact`, `/network`, `/ledger`, `/reports` (+ `/reports/[yyyy-mm]` with `report.pdf` and `report.csv`), `/data` (+ CSVs), `/where-scrap-goes`.
+  - About: `/about`, `/how-it-works`, `/standards` (+ grading, data-wipe, rate-card, ownership), `/compliance`, `/faq`, `/locations`, `/contact`, `/accessibility`, `/privacy`, `/terms`.
+  - Print: `/print` (counter card, campus flyer, A5 partner badge).
+  - Accounts: `/register`, `/login`, `/account` (shop owners: partnership numbers, submissions, weigh-ins, `/account/parts`).
+- **Staff (noindex; Hub link in the account menu for staff):** `/hub` (today panel and to-dos), intake, items, route, repairs, weigh-ins, capacity, exchange, lots, requests, submissions, partners, handovers, warranty, pricing, price references, KPIs, data, search; admins also shops, users, team, links, audit, deletions, settings. The menu, account cards and overview come from `frontend/src/features/hub/tools.ts`.
 
 ## 6. Design system
 

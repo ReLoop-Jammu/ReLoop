@@ -9,12 +9,15 @@ const DOC = join(__dirname, "../../../../docs/report/shop-owner-guide.md");
 describe("shop owner guide", () => {
   it("has every section in English and Hindi, with the same number of steps", () => {
     expect(GUIDE.sections.map((s) => s.id)).toEqual([
+      "counter",
+      "parts",
       "sign-up",
       "verification",
       "submit",
       "offers",
       "pickup",
       "payment",
+      "exchange",
       "contact",
     ]);
     for (const s of GUIDE.sections) {

@@ -9,7 +9,7 @@ package-lock.json
 **/next-env.d.ts
 
 # The group's business plan, kept exactly as written.
-docs/ReLoop_Business_Plan.html
+docs/ReLoop_Business_Plan_v2.html
 
 # Generated from frontend/src/features/help/guide.json; a test checks it matches
 docs/report/shop-owner-guide.md

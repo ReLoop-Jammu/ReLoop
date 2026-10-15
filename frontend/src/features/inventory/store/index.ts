@@ -171,6 +171,26 @@ export async function editItemDetails(
   });
 }
 
+/** Adds a staff note to an item's history. */
+export async function addItemNote(id: string, note: string): Promise<void> {
+  if (SHARED_DATABASE) return live.addNote(id, note);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  await upsert(C.items, {
+    ...item,
+    events: [...item.events, { at: nowIso(), type: "note", note }],
+  });
+}
+
+/** Records the buyer's area on a sold item (staff only; shown only in aggregates of 3 or more). */
+export async function setBuyerArea(id: string, area: string | null): Promise<void> {
+  if (SHARED_DATABASE) return live.setBuyerArea(id, area);
+  const item = await getItem(id);
+  if (!item) throw new Error(`Item ${id} not found`);
+  if (item.status !== "sold") throw new Error("Only a sold item has a buyer area");
+  await upsert(C.items, { ...item, buyerArea: area ?? undefined });
+}
+
 /** Records that a sold item came back, with the reason. */
 export async function markReturned(id: string, reason: string): Promise<Item> {
   if (SHARED_DATABASE) return live.markReturned(id, reason);

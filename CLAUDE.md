@@ -1,12 +1,13 @@
 # ReLoop
 
-E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades and resells at one hub (only laptops and boards ship outside Jammu).
+E-waste / used-electronics business for the Jammu pilot, built to **Business Plan v2**: a fixed weekly pickup through Jammu's repair markets that pays a posted rate per kilo. ReLoop weighs, sorts and tags at one hub in Gandhi Nagar, resells devices and tested parts locally, and hands all scrap to VRRG Group, Gangyal. Nothing is sold or shipped outside Jammu; nothing is bought from households.
 
 ## Read first, and follow
 
 - **[docs/architecture.md](docs/architecture.md)**: stack, repo structure, roles, data model, routes, design system and phased roadmap.
 - **[docs/engineering-standards.md](docs/engineering-standards.md)**: mandatory code, security, testing and workflow rules.
 - **[docs/adr/](docs/adr/)**: why the key decisions were made. Changing a decision means writing a new ADR.
+- **[docs/handoff/v1-cloud-handoff.md](docs/handoff/v1-cloud-handoff.md)**: the decisions on Business Plan v2 and what only a local session can do (section 7). All batches up to 27 are built on `release/v1`; **[scripts/finish-v1-local.md](scripts/finish-v1-local.md)** lists the ordered local steps to release it. **Business Plan v2 is the source of truth**; its public summary is `docs/business-plan-v2-summary.md`.
 
 ## Layout
 
@@ -14,12 +15,21 @@ E-waste / used-electronics marketplace for the Jammu pilot: ReLoop buys, grades 
 - `backend/`: the Supabase schema, RLS, storage and seed as SQL migrations, tested with PGlite (`npm test -w backend`).
 - `legacy/index.html`: the old prototype, reference only. Don't build on it.
 
-## Current state (2026-10-14, after round 4)
+## Feature freeze (v1.0.0)
+
+v1.0.0 is feature-complete on `release/v1` (see `CHANGELOG.md`). Until it is merged to `main`, applied and tagged (`scripts/finish-v1-local.md`):
+
+- Only fixes go in: a bug, a failing gate, a wording problem or a security issue. No new pages, tables or settings.
+- Every fix is still a branch off `release/v1` with tests, merged only when `npm run check` and `CI=true npm run test:e2e` pass.
+- No database change outside a new migration file; the 13 migrations `20261106000001` to `20261107000007` are applied together by the local session, simulation first.
+- After the release, new work follows the roadmap again: one phase per branch, reviewed before merging.
+
+## Current state (2026-10-16: v1.0.0 migrations applied to production, 81/81 checks true; see `docs/runbooks/apply-v1-2026-10-16.md`)
 
 Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md` and `docs/security-report-2026-10-14.md`. To apply the database fix, follow `docs/runbooks/apply-fix-2026-10-14.md`.
 
 - **The Business Plan is the source of truth** (ADR 0004).
-  - ReLoop buys stock outright (purchase-only: no consignment, no self-listing), grades it A–D at one Jammu hub and resells it.
+  - ReLoop buys devices outright (purchase-only: no consignment, no self-listing), grades them A–D at one Jammu hub and resells them. Shops list tested parts on the Parts Exchange on a 12% commission (ADR 0005). Scrap is paid by weight at the public rate card and kept in a kg ledger (four bins and a battery cabinet).
   - Numbers come only from `frontend/src/config/business-rules.ts`, summarised in `docs/business-rules.md`.
 - **Stack:** Next.js 16 on Vercel, with a **live Supabase project (Postgres 17) connected through the Vercel Marketplace integration**.
   - **Region:** the database is in AWS `ap-south-1` (Mumbai). `frontend/vercel.json` pins server functions to `bom1` (Mumbai) as well; they ran in `iad1` (US East) until that is deployed.
@@ -29,7 +39,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - Never run e2e tests, seeds or migrations against a preview or production.
   - **e2e tests need a separate test database.** Until one exists, they run only in CI (`CI=true`, not on Vercel), where the shop falls back to the sample stock file `frontend/src/data/shop-snapshot.json`. Anywhere else, missing Supabase variables fail the build on purpose.
 - **Public site:**
-  - Pages: home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions), how-it-works, where-scrap-goes, warranty, impact, contact, legal.
+  - Pages: home, `/shop` (+ `/shop/[RL-JMU-id]`), `/sell` (shops, institutions), `/rate-card`, `/partners`, how-it-works, where-scrap-goes, warranty, `/impact`, `/network`, `/ledger`, `/reports`, `/data`, `/standards`, `/compliance`, `/about`, `/faq`, `/accessibility`, contact, legal. The full route list is in `docs/architecture.md`.
   - Accounts: `/register`, `/login`, `/account`.
   - The shop reads the live `listings` and `categories` tables (`frontend/src/features/shop/queries.ts`).
   - Institution forms hand off to WhatsApp or email (`SITE.whatsapp` / `SITE.supportEmail` in `frontend/src/lib/site.ts`).
@@ -44,7 +54,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
 - **No email sending, by decision.** Password recovery is admin-only.
   - Admins reset passwords on `/hub/users` after confirming the person by phone. The server route generates a temporary password, shows it once and logs the reset in `admin_audit_log`, never the password.
   - `profiles.must_change_password` makes `is_admin()` and `is_staff()` false until the user sets a new password at `/account/change-password`.
-  - `/resend-confirmation` is unlinked (the code is kept).
+  - `/resend-confirmation` was removed in v1.0.0.
 - **The loop:**
   - shop submissions are reviewed on `/hub/submissions` (offer or reject), and `convert_submission()` turns an accepted offer into linked hub items;
   - shop owners see their offers on `/account`;
@@ -57,7 +67,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
   - Admins count as staff (`is_staff()`).
   - Without the Supabase variables (local dev, CI) it falls back to the device-only store.
   - Tags come from the database (next real item `RL-JMU-0006`).
-  - The day-45/75 rules run daily at 06:00 IST (`pg_cron`) and are idempotent.
+  - The stock rules (a part unsold for 30 days is cut 25% once; an A or B device unsold for 45 days becomes C and is stripped) run daily at 06:00 IST (`pg_cron`) and are idempotent.
   - Visitors read only shop-facing item columns; checked by `supabase-fixes/live-checks-extra.sql`, run alongside the 13 checks.
 - **Database:**
   - Live tables: `admin_users`, `categories`, `enquiries`, `institution_submissions`, `listings`, `orders`, `processing_records`, `profiles`, `shop_owners`, `shop_submissions`. All have RLS on.
@@ -89,7 +99,7 @@ Latest checks: `docs/health-check-2026-10-13.md`, `docs/live-check-2026-10-13.md
 
 - Run `npm run check` and `npm run test:e2e` from the repo root before calling work done.
 - Every DB change is a new file in `backend/supabase/migrations/` with a test in `backend/tests/`.
-- Never put unsupported claims on the public site (authorisations, certifications, India-wide shipping, internal financials); the e2e copy test enforces this.
+- Never put unsupported claims on the public site (authorisations, certifications, shipping outside Jammu, internal financials); the e2e copy test enforces this. **Never commit the business plan's money figures** (P&L, costs, margins, per-device buy prices, VRRG rates): they are staff-only settings (`finance.*`, `vrg.*`) filled in locally. Only the public rate card per kg, the 12% commission and the lot fee are in the repo.
 - Build one roadmap phase at a time, on its own branch. The user reviews each phase before merging and before the next one starts.
 - Never commit secrets or `.env` files. Commit locally, and push only when the user asks.
 - At the end of every task, update docs/progress.md.

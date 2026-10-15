@@ -12,7 +12,7 @@ import { TrackView } from "@/features/shop/components/RecentlyViewed";
 import { getPriceBand, getPriceHistory } from "@/features/pricing/server";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { GradeBadge } from "@/features/inventory/components/GradeBadge";
+import { GradeBadge, TestedPartBadge } from "@/features/inventory/components/GradeBadge";
 import { GRADE_INFO, categoryLabel } from "@/features/inventory/model";
 import { ReserveItem } from "@/features/sell/components/ReserveItem";
 import { ItemGrid } from "@/features/shop/components/ItemGrid";
@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: PageProps<"/shop/[itemId]">):
   const item = await getShopItem((await params).itemId);
   if (!item) return { title: "Item not found" };
   return {
-    title: `${item.title} (Grade ${item.grade})`,
-    description: `${GRADE_INFO[item.grade].label} · ${formatPrice(item.pricePaise)} · ${item.id}. ${item.description}`,
+    title: `${item.title} (${item.category === "part" ? "Tested part" : `Grade ${item.grade}`})`,
+    description: `${item.category === "part" ? "Tested part" : GRADE_INFO[item.grade].label} · ${formatPrice(item.pricePaise)} · ${item.id}. ${item.description}`,
     alternates: { canonical: `/shop/${item.id}` },
   };
 }
@@ -99,9 +99,9 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <Gallery item={item} />
 
-        <div>
+        <div className="lg:sticky lg:top-28 lg:self-start lg:rounded-panel lg:border lg:border-line lg:bg-surface lg:p-8 lg:shadow-lift">
           <div className="flex flex-wrap items-center gap-2">
-            <GradeBadge grade={item.grade} />
+            {item.category === "part" ? <TestedPartBadge /> : <GradeBadge grade={item.grade} />}
             <span className="font-mono text-sm text-muted">{item.id}</span>
             {item.sample && (
               <span className="rounded bg-sunken px-2 py-0.5 text-xs font-medium text-muted">
@@ -109,10 +109,12 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
               </span>
             )}
           </div>
-          <h1 className="mt-4 text-3xl font-bold sm:text-4xl">{item.title}</h1>
+          <h1 className="mt-4 text-3xl leading-[1.05] font-bold sm:text-5xl">{item.title}</h1>
           <p className="mt-2 text-sm text-muted">{categoryLabel(item.category)}</p>
           <div className="mt-6 flex flex-wrap items-baseline gap-x-3">
-            <p className="font-display text-4xl font-bold">{formatPrice(item.pricePaise)}</p>
+            <p className="font-display text-5xl font-bold tracking-tight">
+              {formatPrice(item.pricePaise)}
+            </p>
             {item.wasPaise && (
               <p className="text-muted">
                 <s>
@@ -162,8 +164,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
                 <strong className="text-ink">
                   {formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} delivery
                 </strong>{" "}
-                anywhere in Jammu
-                {item.shipsIndia && <> · ships across India at the buyer&apos;s cost</>}
+                in Jammu city, or collect from the hub
               </span>
             </li>
           </ul>
@@ -172,14 +173,36 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             itemId={item.id}
             title={item.title}
             pricePaise={item.pricePaise}
-            shipsIndia={item.shipsIndia}
             sample={item.sample}
           />
 
-          <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted">
-            What grade {item.grade} means
-          </h2>
-          <p className="mt-2 leading-relaxed text-ink-soft">{grade.description}</p>
+          {item.category === "part" ? (
+            <>
+              <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted">
+                A tested part
+              </h2>
+              <p className="mt-2 leading-relaxed text-ink-soft">
+                Parts are not graded: each one is tested at our hub before it is listed, and the
+                test result is below. You can return a part within {BUSINESS_RULES.partReturnDays}{" "}
+                days if it is faulty, doesn&apos;t work when fitted or doesn&apos;t fit the stated
+                model, as long as it is undamaged. Returns are not for a change of mind.
+              </p>
+              {item.listedBy && (
+                <p className="mt-2 text-sm text-ink-soft">
+                  Listed by {item.listedBy.name}
+                  {item.listedBy.market ? `, ${item.listedBy.market}` : ""}, tested by ReLoop.
+                  ReLoop is your contact for the sale and any return.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted">
+                What grade {item.grade} means
+              </h2>
+              <p className="mt-2 leading-relaxed text-ink-soft">{grade.description}</p>
+            </>
+          )}
 
           {item.description && (
             <>
@@ -216,7 +239,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
             )
           )}
 
-          {item.grade === "C" && (
+          {item.category === "part" && (
             <p className="mt-8 flex gap-2 rounded-xl bg-sunken p-4 text-sm leading-relaxed text-ink-soft">
               <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               Parts are tested before sale. Check compatibility with your device before buying.

@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { goViaMenu } from "./nav";
+import { publicPaths } from "./paths";
 import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
 test.describe("public shop", () => {
   test("home explains the loop and shows graded stock", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Collect. Grade.");
-    await expect(page.locator("main article")).toHaveCount(8);
+    await expect(page.locator("main article")).toHaveCount(7);
     await expect(page.locator("main article [data-grade]").first()).toBeVisible();
   });
 
@@ -27,7 +28,7 @@ test.describe("public shop", () => {
     await page.goto("/shop?q=zzzz-nothing");
     await expect(page.getByRole("heading", { name: "Nothing matches yet" })).toBeVisible();
     await page.getByRole("link", { name: "Clear filters" }).click();
-    await expect(page.locator("main article")).toHaveCount(12);
+    await expect(page.locator("main article")).toHaveCount(7);
   });
 
   test("item page shows ID, grade, warranty and delivery", async ({ page }) => {
@@ -38,14 +39,19 @@ test.describe("public shop", () => {
     ).toBeVisible();
     await expect(page.getByText("30-day warranty").first()).toBeVisible();
     await expect(page.getByText("₹50 delivery")).toBeVisible();
-    await expect(page.getByText(/ships across India/)).toBeVisible();
+    await expect(page.getByText(/in Jammu city, or collect from the hub/)).toBeVisible();
   });
 
-  test("parts have no warranty and phones don't ship outside Jammu", async ({ page }) => {
+  test("parts have no warranty, and nothing ships outside Jammu", async ({ page }) => {
     await page.goto("/shop/RL-JMU-0008");
     await expect(page.getByText(/day warranty/)).toHaveCount(0);
-    await page.goto("/shop/RL-JMU-0002");
-    await expect(page.getByText(/ships across India/)).toHaveCount(0);
+    for (const id of ["RL-JMU-0001", "RL-JMU-0002", "RL-JMU-0008"]) {
+      await page.goto(`/shop/${id}`);
+      await expect(page.getByText(/ships? (across|outside)/i)).toHaveCount(0);
+      await expect(page.getByText(/shipping/i)).toHaveCount(0);
+    }
+    await page.goto("/shop/compare?ids=RL-JMU-0001,RL-JMU-0002");
+    await expect(page.getByText("Jammu city only, or collect from the hub").first()).toBeVisible();
   });
 
   test("old marketplace URLs redirect to the shop", async ({ page }) => {
@@ -81,15 +87,17 @@ test.describe("what we accept", () => {
     isMobile,
   }) => {
     await page.goto("/");
-    await goViaMenu(page, isMobile, "Sell", "What we accept");
+    await goViaMenu(page, isMobile, "For shops & institutions", "What we accept");
     await expect(page).toHaveURL(/\/what-we-accept$/);
     const main = page.getByRole("main");
     await expect(main.getByRole("heading", { name: "What we take" })).toBeVisible();
     await expect(main.getByRole("heading", { name: "Laptops" })).toBeVisible();
     await expect(main.getByRole("heading", { name: "What we don't take" })).toBeVisible();
     await expect(main.getByText(/fridges, washing machines and air conditioners/)).toBeVisible();
+    await expect(main.getByText(/TVs, printers, UPS units and small appliances/)).toBeVisible();
     await expect(main.getByText(/closed metal cabinet with sand/)).toBeVisible();
-    await expect(main.getByText(/VRG Groups, Gangyal/)).toBeVisible();
+    await expect(main.getByText(/VRRG Group, Gangyal/).first()).toBeVisible();
+    await expect(main.getByText(/not from homes/).first()).toBeVisible();
   });
 
   test("the sell pages and locations link to it, and sell pages offer a WhatsApp chat", async ({
@@ -109,7 +117,7 @@ test.describe("what we accept", () => {
       expect(url.host, path).toBe("wa.me");
       expect(url.pathname, path).toBe("/919871276179");
       expect(url.searchParams.get("text"), path).toBe(
-        "Hi ReLoop, I'd like to sell old electronics",
+        "Hi ReLoop, I run a shop or represent an institution and would like to sell to ReLoop. Our name is: ",
       );
       await expect(chat).toHaveAttribute("target", "_blank");
     }
@@ -168,7 +176,7 @@ test.describe("sell to us", () => {
 
   test("every sell path is reachable from /sell", async ({ page }) => {
     await page.goto("/sell");
-    for (const name of ["Become a partner shop", "Book a pickup"]) {
+    for (const name of ["Become a partner shop", "Book a lot pickup", "The full rate card"]) {
       await expect(
         page.getByRole("main").getByRole("link", { name: new RegExp(name) }),
       ).toBeVisible();
@@ -190,10 +198,12 @@ test.describe("site", () => {
       "/what-we-accept",
       "/help",
       "/print",
-      "/print/partner-poster",
+      "/print/counter-card",
       "/print/awareness-flyer",
+      "/rate-card",
       "/warranty",
       "/impact",
+      "/network",
       "/contact",
       "/hub",
       "/hub/intake",
@@ -208,47 +218,70 @@ test.describe("site", () => {
 
   test("navigation works on every viewport", async ({ page, isMobile }) => {
     await page.goto("/");
-    await goViaMenu(page, isMobile, "Sell", "Sell to ReLoop");
+    await goViaMenu(page, isMobile, "For shops & institutions", "For shops & institutions");
     await expect(page).toHaveURL(/\/sell$/);
   });
 
-  test("public pages never make claims the business plan doesn't support", async ({ page }) => {
+  test("public pages never make claims the business plan doesn't support", async ({
+    page,
+    request,
+  }) => {
     const banned = [
       /buyers across india/i,
       /nationwide/i,
+      /nationally/i,
+      /ship(s|ping|ped)? (across|outside) (india|jammu)/i,
       /publish(es)? instantly/i,
       /verified partners/i,
       /we are (an )?authori[sz]ed/i,
       /certified/i,
+      /certificate/i,
       /₹73/,
       /margin/i,
+      /gross margin/i,
       /break-?even/i,
-      /\b(reloop|we) (is|are) (a |an )?(registered|licensed|authori[sz]ed)\b/i,
+      /\b(reloop|we) (is|are) (a |an )?(registered|licensed|authori[sz]ed|approved)\b/i,
+      /(authori[sz]ed|approved|endorsed|registered) by (the )?(jkpcc|jmc|cpcb|j&k|jammu municipal)/i,
       /cpcb[- ]registered/i,
       /purchase cost|processing cost|internal notes/i,
       /\bprofit\b/i,
+      /profitab/i,
+      /set-?up cost/i,
+      /\bCOGS\b/,
+      /P&L/,
+      /fixed costs/i,
+      /\blakh\b/i,
+      /is legal/i,
+      /unregistered (van|dealer)/i,
       /to be published/i,
+      /matches or beats|beats the dealer|beats? (all )?(the )?(other )?dealers|best price|dealers pay|guaranteed/i,
+      /\b(dismantl(e|es|ed|ing)|recycl(e|es|ed|ing)) (it|them|your|the scrap) ourselves/i,
+      /kept out of landfill/i,
+      /unclaimed (customer )?devices/i,
+      /\bhouseholds?\b.*\b(sell|drop[- ]?off|collect)/i,
     ];
-    for (const path of [
-      "/",
-      "/shop",
-      "/sell",
-      "/sell/shops",
-      "/sell/institutions",
-      "/how-it-works",
-      "/where-scrap-goes",
-      "/warranty",
-      "/impact",
-      "/contact",
-      "/privacy",
-      "/terms",
-      "/locations",
-      "/register",
-      "/login",
-    ]) {
+    const paths = await publicPaths(request);
+    expect(paths.length, "the page list should not be empty").toBeGreaterThan(15);
+    for (const path of paths) {
       await page.goto(path);
       const text = await page.locator("body").innerText();
       for (const re of banned) expect(text, `${re} found on ${path}`).not.toMatch(re);
+    }
+  });
+});
+
+test.describe("launch wording", () => {
+  test("the hub opening date appears only on the locations and contact pages", async ({
+    page,
+    request,
+  }) => {
+    // Institution bookings open in January 2027 (decision 14); that date may appear on /sell/institutions.
+    const dated = /\b(november 2026|hub opens|opening november)\b/i;
+    for (const path of await publicPaths(request)) {
+      if (["/locations", "/contact"].includes(path)) continue;
+      await page.goto(path);
+      const text = await page.locator("body").innerText();
+      expect(text, `an opening date found on ${path}`).not.toMatch(dated);
     }
   });
 });
@@ -262,8 +295,8 @@ test.describe("contact details", () => {
       "href",
       "tel:+919871276179",
     );
-    await expect(main.getByText("Mon–Sat, 10:00–18:00 IST from November 2026")).toBeVisible();
-    await expect(main.getByText(/Old-city market belt, between Raghunath Bazaar/)).toBeVisible();
+    await expect(main.getByText("Mon–Sat, 10:00–18:00 IST.", { exact: false })).toBeVisible();
+    await expect(main.getByText(/Gandhi Nagar, between Bahu Plaza and Gole Market/)).toBeVisible();
   });
 
   test("the privacy policy lists the grievance officer's name, designation and contacts", async ({
@@ -362,7 +395,7 @@ test.describe("impact counter", () => {
   test("shows the pilot date on the home page until there are real totals", async ({ page }) => {
     await page.goto("/");
     const impact = page.getByRole("region", { name: "Our impact so far" });
-    await expect(impact.getByText("Pilot starts November 2026")).toBeVisible();
+    await expect(impact.getByText("The Jammu pilot is running")).toBeVisible();
     await expect(impact.getByText("items reused")).toHaveCount(0);
   });
 });
@@ -375,33 +408,40 @@ test.describe("help for partner shops", () => {
     await page.getByRole("link", { name: "Step-by-step help, in English and Hindi" }).click();
     await expect(page).toHaveURL(/\/help$/);
     const main = page.getByRole("main");
-    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. Scrap at the counter (no account needed)" }),
+    ).toBeVisible();
     await expect(main.getByRole("button", { name: "English" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
     for (const title of [
-      "2. Wait for verification",
-      "3. Submit your items",
-      "4. See our offer",
-      "5. Pickup",
-      "6. Payment",
-      "7. Contact us",
+      "4. Wait for verification",
+      "6. See our offer",
+      "7. The weekly pickup",
+      "8. Payment and receipts",
+      "10. Contact us",
     ])
       await expect(main.getByRole("heading", { name: title })).toBeVisible();
 
     await main.getByRole("button", { name: "हिन्दी" }).click();
-    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
-    await expect(main.locator('[lang="hi"]').filter({ hasText: "साइन अप करें" })).toHaveCount(1);
+    await expect(
+      main.getByRole("heading", { name: "1. काउंटर पर कबाड़ (अकाउंट ज़रूरी नहीं)" }),
+    ).toBeVisible();
+    await expect(main.locator('[lang="hi"]').filter({ hasText: "काउंटर पर कबाड़" })).toHaveCount(1);
     await expect(main.getByRole("link", { name: "/register" })).toHaveAttribute(
       "href",
       "/register",
     );
 
     await page.reload();
-    await expect(main.getByRole("heading", { name: "1. साइन अप करें" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. काउंटर पर कबाड़ (अकाउंट ज़रूरी नहीं)" }),
+    ).toBeVisible();
     await main.getByRole("button", { name: "English" }).click();
-    await expect(main.getByRole("heading", { name: "1. Sign up" })).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "1. Scrap at the counter (no account needed)" }),
+    ).toBeVisible();
   });
 
   test("is linked from the footer", async ({ page }) => {

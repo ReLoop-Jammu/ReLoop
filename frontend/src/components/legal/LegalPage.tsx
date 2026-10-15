@@ -20,7 +20,7 @@ export function LegalPage({ title, updated, children }: Props) {
         <h1 className="mt-4 text-4xl font-bold sm:text-5xl">{title}</h1>
         <p className="mt-3 text-sm text-muted">Last updated {date}</p>
         <Notice tone="warning" role="note" className="mt-6">
-          <strong>Draft.</strong> This page is a working draft while ReLoop is in early preview. It
+          <strong>Draft.</strong> This page is a working draft while ReLoop runs its Jammu pilot. It
           will be reviewed by a legal professional before full launch.
         </Notice>
         <div className="mt-10 space-y-8 leading-relaxed text-ink-soft [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-ink [&_li]:mt-1.5 [&_p]:mt-3 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5">

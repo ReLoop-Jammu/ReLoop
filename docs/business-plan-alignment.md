@@ -13,7 +13,7 @@ The website was built for a different model, an open or hybrid marketplace where
 
 Seller onboarding starts **14 Oct (7 days away)**. This plan says what to change, what to build, in what order, and what will not be ready by then.
 
-**Note:** `docs/ReLoop_Business_Plan.html` is not in the repo. I worked from the attached copy. It should be committed to `docs/` so it is versioned alongside the code.
+**Note (2026-10-15):** this document was written against the first business plan, which is no longer in the tree (it stays in git history). Business Plan v2 replaces it; the team keeps the full plan privately, and its public summary is `docs/business-rules.md`. Where they differ, v2 wins.
 
 ---
 

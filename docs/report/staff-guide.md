@@ -172,6 +172,85 @@ Do this every time the authorised recycler collects: when the scrap cage reaches
 4. For an institution's e-waste, fill in **On behalf of (institution)** so its name is on the record.
 5. Press **Save handover (… items)**. Keep the paper receipt; file it under the receipt number.
 
+## 9a. Weighing scrap at the counter (Business Plan v2)
+
+**Page:** `/hub/weighins`
+
+Scrap is bought by weight at the public rate card (`/rate-card`), not item by item.
+
+1. Choose the shop, then weigh each category in front of the seller: **Screens**, **Boards**, **Batteries** and **Everything else** (kg).
+2. If there is a bag of parts that might work, enter the number of items and a note under **To test**. They are not paid by weight; each tested part is paid separately later.
+3. Tick the seller's **declaration** and save. The weigh-in gets a receipt number (`RL-PAY-YYYY-NNNN`); share its link on WhatsApp, or print it. The seller sees the same receipt on their account.
+4. Every kilo goes into a **bin** (screens, boards, batteries, other, D devices). The bins and their kilos are shown on `/hub/handovers`.
+
+## 9b. Per-bin handovers to VRRG Group
+
+**Page:** `/hub/handovers`
+
+When a bin is due (the overview says "scrap bin due for handover"), pick the bin, copy the weights from VRRG Group's receipt and save. Each bin is handed over on its own receipt. D devices are weighed in per item and counted in the D bin.
+
+## 9c. The Parts Exchange
+
+**Page:** `/hub/exchange`
+
+1. A partner shop lists a tested part (`/account/parts`). Staff **receive** it, **test** it, then **approve** it. It is tagged `RL-JMU-…` and listed as a "Tested part" (no grade).
+2. When a buyer pays, the sale is recorded with ReLoop's commission (12%). The shop's share is paid after the 7-day return window.
+3. A buyer can return a part within 7 days (see **Warranty claims**: a "Part return"). A refunded return reverses the shop's share.
+4. Parts that do not sell by day 30 are cut by 25% once; devices that do not sell by day 45 move to grade C to be stripped. The overview shows what is due this week.
+
+## 9d. Institution lots
+
+**Page:** `/hub/lots`
+
+A school, office or other institution is quoted a lot fee for the whole lot. Record the lot, the pickup and the payment here; the lot equipment is itemised on the receipt.
+
+## 9e. The route run sheet
+
+**Page:** `/hub/route`
+
+Pick the route day (the next Tuesdays and Fridays are listed). Stops are grouped by market in driving order: weekly partner stops first, then booked lots. At each stop:
+
+1. Press **Weigh scrap** to open the weigh-in form with the shop already chosen.
+2. For a booked lot, press **Collected**, or **Missed** if you couldn't collect it. A missed lot moves to the next route day for that market and the shop is told on its account.
+3. **Print the run sheet** before you leave, for the phone numbers and the order.
+
+Retailers appear once a month (when they have not been weighed for 28 days).
+
+## 9f. Repairs
+
+**Page:** `/hub/repairs`
+
+Items sent to repair partners (from the item page, **Send for repair**) appear here with the partner, the fault, the agreed fee and the days out. Anything out for more than 14 days is highlighted. When it comes back press **Back, fixed** (it returns to graded, to be re-tested and listed) or **Not fixable** (it becomes grade C, to be stripped). The fee is part of the item's cost and is never shown to buyers.
+
+## 9g. Capacity and the battery cabinet
+
+**Page:** `/hub/capacity`
+
+- **Bins:** each is handed over at 100 kg or after 14 days; the bar turns amber from 80 kg and red when due.
+- **Battery cabinet:** log batteries taken out of devices (weight, count, condition). A battery tested good and fitted into a device: **Mark reused** and say which tag. The cabinet is handed over weekly; the overview reminds you.
+- **Device racks:** a percentage only once `capacity.device_rack_slots` is set in Settings.
+- **Age of stock:** devices at 0 to 30, 31 to 45 and over 45 days; parts at 0 to 30 and over 30 days.
+
+## 9h. Institution handover records
+
+**Page:** `/hub/lots`
+
+Each lot has **Handover record (PDF)**: the tags ReLoop bought and, once recorded, VRRG Group's weight receipt in the institution's name, with the kg by category. Give it to the institution. It has no prices; the equipment payment and the lot fee have their own receipts.
+
+## 9i. Pricing (staff only)
+
+**Page:** `/hub/pricing`
+
+Buy against sale, COGS (what we paid, plus repair fees, plus handling), days to sell and sell-through, by category and grade. Flags appear only once an admin has entered the plan's unit figures in Settings (`finance.device_unit_paise`, `finance.scrap_spread_paise_per_kg`, `vrg.rates_paise`). There is no margin target. **Download margins (CSV)** has buy prices but no supplier names or contacts: keep it inside the team.
+
+At **intake**, a grade and the brand and model show a suggested price from the freshest price reference. If your expected resale is more than 10% away from it, say why; the reason goes into the item's history.
+
+## 9j. The partner directory (admin)
+
+**Page:** `/hub/partners`
+
+Tick **In public directory (shop agreed)** only after the shop has said yes. The date is recorded. The public `/partners` page then shows the shop's name, market, type, the month it joined and its weighed kg in bands.
+
 ## 10. Today's overview and the KPIs
 
 **Page:** `/hub` (menu: **Overview**). After logging in, hub staff and admins land here.

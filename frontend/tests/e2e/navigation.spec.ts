@@ -48,7 +48,7 @@ test.describe("navigation", () => {
     await page.goto("/");
     const button = page
       .getByRole("navigation", { name: "Main" })
-      .getByRole("button", { name: "Sell" });
+      .getByRole("button", { name: "For shops & institutions" });
     await button.click();
     await expect(button).toHaveAttribute("aria-expanded", "true");
     await page.keyboard.press("Escape");

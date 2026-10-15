@@ -10,9 +10,9 @@ const PUBLIC_PHONE = "+91 98712 76179";
 export const SITE = {
   name: "ReLoop Jammu",
   shortName: "ReLoop",
-  tagline: "Graded used electronics, collected in Jammu",
+  tagline: "Jammu's local loop for used electronics",
   description:
-    "ReLoop buys used and broken electronics in Jammu, grades every item at one hub, resells what still works and sends the rest to an authorised recycler.",
+    "ReLoop buys used and broken electronics from Jammu's repair shops, retailers and institutions, tests and grades them at one hub, resells what still works and hands scrap to VRRG Group, our dismantling partner.",
   city: "Jammu, Jammu & Kashmir, India",
   /** Registered legal name of the business or organisation. */
   legalName: null as string | null,
@@ -23,13 +23,10 @@ export const SITE = {
   whatsapp: "919871276179" as string | null,
   supportPhone: PUBLIC_PHONE as string | null,
   /** Opening hours, e.g. "Mon–Sat, 10:00–18:00 IST". */
-  hours:
-    "Mon–Sat, 10:00–18:00 IST from November 2026. Until then, WhatsApp replies within one working day." as
-      string | null,
-  /** Hub (collection point) street address. The plan places it in the old-city market belt. */
-  hubAddress:
-    "Old-city market belt, between Raghunath Bazaar and Residency Road. Exact address when we open in November 2026." as
-      string | null,
+  hours: "Mon–Sat, 10:00–18:00 IST. WhatsApp replies within one working day." as string | null,
+  /** Hub street address: a small ground-floor room in Gandhi Nagar, between Bahu Plaza and Gole Market. */
+  hubAddress: "Gandhi Nagar, between Bahu Plaza and Gole Market. Exact address when we open." as
+    string | null,
   /** When the hub opens for drop-offs and pickups (plan: November 2026). */
   hubOpens: "November 2026",
   /** Required for platforms under India's IT Rules 2021 and the DPDP Act 2023. */

@@ -8,7 +8,14 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: `http://localhost:${PORT}`, trace: "on-first-retry" },
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    trace: "on-first-retry",
+    // A browser already on the machine (cloud sessions), instead of the downloaded one.
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH && {
+      launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH },
+    }),
+  },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },

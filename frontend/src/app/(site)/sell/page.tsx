@@ -1,22 +1,16 @@
-import { ArrowRight, Building2, Store, type LucideIcon } from "lucide-react";
+import { ArrowRight, Building2, PackageCheck, Store, Wrench, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { GradeBadge } from "@/features/inventory/components/GradeBadge";
-import { GRADE_INFO, GRADES } from "@/features/inventory/model";
-import { formatPrice } from "@/lib/utils/money";
-import { BUSINESS_RULES } from "@/config/business-rules";
 import { SellQuickLinks } from "@/features/sell/components/SellPageHeader";
-
-function pct(value: number): string {
-  return `${Math.round(value * 100)}%`;
-}
+import { getSiteSettings } from "@/features/settings/server";
+import { formatPrice } from "@/lib/utils/money";
 
 export const metadata: Metadata = {
-  title: "Sell to us",
+  title: "For shops & institutions",
   description:
-    "Sell used and broken electronics to ReLoop in Jammu: repair shops, retailers and institutions. We test, grade and pay.",
+    "Repair shops, retailers, exchange stores and institutions in Jammu: sell scrap by the kilo at the rate card, devices at an offer after testing, and list tested parts on the Parts Exchange.",
 };
 
 const PATHS: {
@@ -30,46 +24,41 @@ const PATHS: {
   {
     href: "/sell/shops",
     icon: Store,
-    title: "Repair shops & retailers",
-    who: "Raghunath Bazaar, Residency Road, Gandhi Nagar",
-    body: "Unclaimed devices, dead units, old spares, trade-ins. Paid in cash or UPI when we collect on our Tuesday and Friday route.",
+    title: "Repair shops, retailers & exchange stores",
+    who: "Bahu Plaza, Gole Market, Raghunath Bazaar, Residency Road",
+    body: "A fixed weekly pickup day. Scrap is weighed in front of you and paid by UPI on the spot. Dead handsets and trade-ins get an offer after testing.",
     cta: "Become a partner shop",
   },
   {
     href: "/sell/institutions",
     icon: Building2,
-    title: "Colleges, schools & offices",
-    who: "Bulk lots of desktops, monitors, printers, UPS",
-    body: "We pick up, sort and give you a handover record. Dead e-waste goes straight to an authorised recycler in your name.",
-    cta: "Book a pickup",
+    title: "Colleges, schools, banks & offices",
+    who: "Bulk lots of desktops, laptops and monitors",
+    body: "We pick up, sort on site, buy the working and repairable equipment and give you a handover record. Dead e-waste goes straight to VRRG Group in your name.",
+    cta: "Book a lot pickup",
   },
 ];
 
-const BUY_RULE: Record<(typeof GRADES)[number], string> = {
-  A: `About ${pct(BUSINESS_RULES.buy.A.shareOfResale)} of what we expect to resell it for`,
-  B: `About ${pct(BUSINESS_RULES.buy.B.shareOfResale)} of expected resale; we pay for the repair`,
-  C: `${formatPrice(BUSINESS_RULES.buy.C.minPaise)}–${formatPrice(BUSINESS_RULES.buy.C.maxPaise)} flat`,
-  D: "Nothing to pay, nothing to charge: free, safe disposal",
-};
-
-export default function SellPage() {
+export default async function SellPage() {
+  const site = await getSiteSettings();
   return (
     <>
       <section className="border-b border-line bg-surface">
         <Container className="py-14 sm:py-20">
           <div className="max-w-3xl">
-            <Eyebrow>Sell to us</Eyebrow>
+            <Eyebrow>For shops & institutions</Eyebrow>
             <h1 className="mt-4 text-4xl font-bold sm:text-6xl">
-              We buy what still has a life in it.
+              Run a repair shop, store or office? We buy what still has a life in it.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-muted">
-              Working or broken: we inspect each item at our Jammu hub and make an outright purchase
-              offer for items we can buy. If you accept, we pay the agreed amount directly. Items we
-              cannot purchase are directed to an authorised recycler where appropriate.
+              Scrap is paid at the rate card. Each working device gets an offer after testing that
+              you can decline. Working parts are priced one by one after testing, or you can list
+              them yourself on the Jammu Parts Exchange. We buy from shops, retailers and
+              institutions only, not from homes.
             </p>
             <SellQuickLinks />
           </div>
-          <ul className="mt-12 grid gap-4 lg:grid-cols-3" role="list">
+          <ul className="mt-12 grid gap-4 lg:grid-cols-2" role="list">
             {PATHS.map(({ href, icon: Icon, title, who, body, cta }) => (
               <li key={href}>
                 <Link
@@ -98,45 +87,45 @@ export default function SellPage() {
 
       <Container className="py-16 sm:py-20">
         <section aria-labelledby="pay-heading">
-          <Eyebrow>How we price</Eyebrow>
+          <Eyebrow>How we pay</Eyebrow>
           <h2 id="pay-heading" className="mt-3 text-3xl font-bold sm:text-4xl">
-            What we pay depends on the grade
+            Three ways, all written down
           </h2>
-          <p className="mt-3 max-w-2xl text-muted">
-            We test every item and give it a grade. Our price follows simple rules, so if resale
-            prices fall, so does our offer, and you always know why.
-          </p>
-          <div className="mt-8 overflow-hidden rounded-card border border-line bg-surface shadow-soft">
-            <table className="w-full text-left text-sm">
-              <caption className="sr-only">What ReLoop pays for each grade</caption>
-              <thead className="bg-sunken text-xs text-muted">
-                <tr>
-                  <th scope="col" className="px-5 py-3 font-semibold">
-                    Grade
-                  </th>
-                  <th scope="col" className="hidden px-5 py-3 font-semibold sm:table-cell">
-                    What it means
-                  </th>
-                  <th scope="col" className="px-5 py-3 font-semibold">
-                    What we pay
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {GRADES.map((g) => (
-                  <tr key={g}>
-                    <td className="px-5 py-4 align-top">
-                      <GradeBadge grade={g} />
-                    </td>
-                    <td className="hidden px-5 py-4 align-top text-ink-soft sm:table-cell">
-                      {GRADE_INFO[g].description}
-                    </td>
-                    <td className="px-5 py-4 align-top font-medium text-ink">{BUY_RULE[g]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="mt-8 grid gap-4 md:grid-cols-3" role="list">
+            <li className="rounded-card border border-line bg-surface p-6 shadow-soft">
+              <PackageCheck className="size-6 text-brand-600" aria-hidden="true" />
+              <h3 className="mt-3 text-lg font-semibold">Scrap, by the kilo</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                Screens {formatPrice(site.rateScreensPaise)}, batteries{" "}
+                {formatPrice(site.rateBatteriesPaise)}, dead motherboards{" "}
+                {formatPrice(site.rateBoardsPaise)} and everything else{" "}
+                {formatPrice(site.rateOtherPaise)} a kg. Weighed in front of you, paid by UPI on the
+                spot, with a receipt.{" "}
+                <Link href="/rate-card" className="font-semibold text-brand-600 underline">
+                  The full rate card
+                </Link>
+                .
+              </p>
+            </li>
+            <li className="rounded-card border border-line bg-surface p-6 shadow-soft">
+              <Wrench className="size-6 text-brand-600" aria-hidden="true" />
+              <h3 className="mt-3 text-lg font-semibold">Devices, an offer after testing</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                Dead handsets, trade-ins and old PCs are tested at the hub and graded A to D. You
+                get an offer for each lot and can decline. Before any device is bought you confirm
+                that you own it or have it signed over.
+              </p>
+            </li>
+            <li className="rounded-card border border-line bg-surface p-6 shadow-soft">
+              <Store className="size-6 text-brand-600" aria-hidden="true" />
+              <h3 className="mt-3 text-lg font-semibold">Working parts, one by one</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                Working parts are priced one by one after testing. You can decline, or list them
+                yourself on the Parts Exchange: staff test and approve each listing, and the shop is
+                named on it.
+              </p>
+            </li>
+          </ul>
         </section>
       </Container>
     </>

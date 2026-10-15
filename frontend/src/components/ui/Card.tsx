@@ -11,7 +11,7 @@ type Props = {
 
 const PAD = { none: "", sm: "p-4", md: "p-5 sm:p-6", lg: "p-6 sm:p-8" };
 const TONE = {
-  surface: "border border-line bg-surface",
+  surface: "border border-line bg-surface shadow-soft",
   sunken: "bg-sunken",
   ink: "bg-brand-950 text-white",
 };

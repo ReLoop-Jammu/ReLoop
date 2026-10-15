@@ -27,9 +27,10 @@ const listing = (over: Partial<Parameters<typeof listingToShopItem>[0]>) => ({
 });
 
 describe("live listings in the shop", () => {
-  it("only laptops (and boards) ship outside Jammu", () => {
-    expect(listingToShopItem(listing({ category_id: 1 }), categories)?.shipsIndia).toBe(true);
-    expect(listingToShopItem(listing({ category_id: 5 }), categories)?.shipsIndia).toBe(false);
+  it("carries no shipping flag: nothing is sold outside Jammu", () => {
+    expect(listingToShopItem(listing({ category_id: 1 }), categories)).not.toHaveProperty(
+      "shipsIndia",
+    );
   });
 
   it("carries the sample flag and the category", () => {
@@ -92,7 +93,6 @@ describe("hub items in the shop", () => {
       photo: "https://x.supabase.co/storage/v1/object/public/item-photos/RL-JMU-0006/a.jpg",
       checks: ["Powers on", "Keyboard"],
       dataWiped: true,
-      shipsIndia: true,
       warrantyDays: 30,
       report: {
         inspectedAt: "2026-11-02T09:00:00.000Z",
@@ -144,7 +144,6 @@ describe("finding items in the shop", async () => {
       checks: [],
       dataWiped: true,
       warrantyDays: 30,
-      shipsIndia: true,
       listedAt: "2026-10-01T00:00:00.000Z",
       ...over,
     }) as import("./model").ShopItem;

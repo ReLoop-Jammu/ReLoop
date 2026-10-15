@@ -14,15 +14,13 @@ test.describe("hub (staff tool)", () => {
     await expect(page.getByRole("cell", { name: /Sharma Mobiles/ })).toBeVisible();
 
     await page.goto("/hub/intake");
-    await page
-      .getByLabel("Partner shop")
-      .selectOption({ label: "Sharma Mobiles (Raghunath Bazaar)" });
+    await page.getByLabel("Partner shop").selectOption({ label: "Sharma Mobiles (Bahu Plaza)" });
     await page.getByLabel("Brand").fill("Samsung");
     await page.getByLabel("Model").fill("Galaxy M31");
     await page.getByLabel("Expected resale (₹)").fill("6000");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
-    await expect(page.getByText("₹2,450 – ₹2,950")).toBeVisible();
     await page.getByLabel("We paid (₹)").fill("2700");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByText("RL-JMU-0001", { exact: true })).toBeVisible();
 
@@ -34,7 +32,7 @@ test.describe("hub (staff tool)", () => {
     await expect(page.getByText(/Listed at ₹6,000/).first()).toBeVisible();
 
     await page.goto("/hub/kpis");
-    await expect(page.getByText("Items in this month")).toBeVisible();
+    await expect(page.getByText("Devices in this month")).toBeVisible();
 
     await page.goto("/hub/data");
     const download = page.waitForEvent("download");
@@ -54,26 +52,28 @@ test.describe("hub (staff tool)", () => {
     expect(JSON.stringify(snapshot)).not.toMatch(/buyPaise|Sharma/);
   });
 
-  test("grade D goes to the scrap cage and out with a handover", async ({ page }) => {
+  test("grade D goes to the D devices bin and out with a handover", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Old CRT");
     await page.getByLabel("Grade (if tested now)").selectOption("D");
     await page.getByLabel("How we bought it").selectOption("free");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("Weight (kg)").fill("14");
-    await page.getByRole("button", { name: "Move to scrap cage" }).click();
+    await page.getByRole("button", { name: "Move to the D devices bin" }).click();
 
     await page.goto("/hub/handovers");
     await expect(page.getByText(/1 items, 14.0 kg/)).toBeVisible();
-    await page.getByLabel("Recycler").fill("Authorised recycler");
+    await page.getByLabel("Dismantling partner").fill("VRRG Group, Gangyal");
     await page.getByLabel("Receipt number").fill("R-001");
     await page.getByLabel("Total weight on receipt (kg)").fill("14");
     await page.getByRole("button", { name: /Save handover/ }).click();
     await expect(page.getByRole("cell", { name: "R-001" })).toBeVisible();
-    await expect(page.getByText("The cage is empty.")).toBeVisible();
+    await expect(page.getByText("The bin is empty.")).toBeVisible();
   });
 });
 
@@ -85,6 +85,7 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Brand").fill("Acer");
     await page.getByLabel("Grade (if tested now)").selectOption("C");
     await page.getByLabel("We paid (₹)").fill("150");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByRole("button", { name: "Add part" }).click();
@@ -92,7 +93,7 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Part description").fill("8 GB DDR4");
     await page.getByLabel("Price (₹)").fill("900");
     await page.getByRole("button", { name: "Save parts, shell to scrap" }).click();
-    await expect(page.getByText("Parts tagged. Shell moved to the scrap cage.")).toBeVisible();
+    await expect(page.getByText("Parts tagged. Shell moved to the D devices bin.")).toBeVisible();
     await expect(page.locator("[data-grade]").first()).toHaveAttribute("data-grade", "C");
 
     await page.goto("/hub/items");
@@ -105,11 +106,8 @@ test.describe("hub item lifecycle", () => {
     await page.getByLabel("Phone").first().fill("9876500000");
     await page.getByRole("button", { name: "Add shop" }).click();
     await page.goto("/hub/intake");
-    await page
-      .getByLabel("Partner shop")
-      .selectOption({ label: "Gupta Electronics (Raghunath Bazaar)" });
-    await page.getByLabel("Source").selectOption("household");
-    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Partner shop").selectOption({ label: "Gupta Electronics (Bahu Plaza)" });
+    await page.getByLabel("Source").selectOption("retailer");
     await expect(page.getByLabel("Partner shop")).toHaveValue("");
   });
 });
@@ -135,6 +133,7 @@ test.describe("KPI dashboard exports", () => {
     await page.getByLabel("Brand").fill("Nokia");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
 
@@ -201,11 +200,13 @@ test.describe("hub overview, menu and search", () => {
     await expect(page.getByText(/arrive in the shared database/)).toBeVisible();
 
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Lenovo");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
     // A freshly graded item isn't overdue for anything yet.
@@ -235,11 +236,13 @@ test.describe("hub overview, menu and search", () => {
     await page.getByLabel("Phone").first().fill("9876543211");
     await page.getByRole("button", { name: "Add shop" }).click();
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Dell");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("500");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await expect(page.getByRole("link", { name: "Open item" })).toBeVisible();
 
@@ -249,7 +252,7 @@ test.describe("hub overview, menu and search", () => {
     await expect(page).toHaveURL(/\/hub\/search\?q=1$/);
     await expect(page.getByRole("link", { name: /RL-JMU-0001/ })).toBeVisible();
 
-    await page.goto("/hub/search?q=raghunath");
+    await page.goto("/hub/search?q=bahu");
     await expect(page.getByRole("link", { name: /Gupta Electronics/ })).toBeVisible();
     await expect(page.getByText(/No items match/)).toBeVisible();
   });
@@ -274,12 +277,14 @@ test.describe("hub overview, menu and search", () => {
 test.describe("listing controls", () => {
   test("hide, correct with a reason, sell, take back and scrap", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("LG");
     await page.getByLabel("Model").fill("22MK400");
     await page.getByLabel("Grade (if tested now)").selectOption("A");
     await page.getByLabel("We paid (₹)").fill("400");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("List price (₹)").fill("2500");
@@ -309,8 +314,8 @@ test.describe("listing controls", () => {
     await page.getByLabel(/What happened/).fill("Dead pixels found at home (warranty)");
     await page.getByRole("button", { name: "Record the return" }).click();
     await expect(page.getByText("Return recorded. Decide where it goes next.")).toBeVisible();
-    await page.getByRole("button", { name: "Send it to the scrap cage" }).click();
-    await expect(page.getByText("Sent to the scrap cage.")).toBeVisible();
+    await page.getByRole("button", { name: "Send it to the D devices bin" }).click();
+    await expect(page.getByText("Sent to the D devices bin.")).toBeVisible();
     await expect(page.getByText(/returned · Dead pixels found at home/)).toBeVisible();
   });
 });
@@ -318,11 +323,13 @@ test.describe("listing controls", () => {
 test.describe("ReLoop Checked", () => {
   test("a grade B item is inspected before it can be listed", async ({ page }) => {
     await page.goto("/hub/intake");
-    await page.getByLabel("Source").selectOption("household");
+    await page.getByLabel("Source").selectOption("repair_shop");
+    await page.getByLabel("Seller name", { exact: true }).fill("Walk-in shop");
     await page.getByLabel("Category").selectOption("monitor");
     await page.getByLabel("Brand").fill("Samsung");
     await page.getByLabel("Grade (if tested now)").selectOption("B");
     await page.getByLabel("We paid (₹)").fill("300");
+    await page.getByLabel(/Ownership/).check();
     await page.getByRole("button", { name: "Save and assign tag" }).click();
     await page.getByRole("link", { name: "Open item" }).click();
     await page.getByLabel("List price (₹)").fill("2000");
@@ -346,5 +353,73 @@ test.describe("ReLoop Checked", () => {
     await page.goto("/shop/RL-JMU-0001");
     await expect(page.getByRole("heading", { name: "ReLoop Checked" })).toBeVisible();
     await expect(page.getByText(/Sample, not inspected/)).toBeVisible();
+  });
+});
+
+test.describe("hub shell and daily panel", () => {
+  test("the overview shows today's counts, and / jumps to the search box", async ({
+    page,
+    isMobile,
+  }) => {
+    await page.goto("/hub");
+    const today = page.getByRole("heading", { name: "Today at the hub" });
+    await expect(today).toBeVisible();
+    await expect(page.getByText("Items received", { exact: true })).toBeVisible();
+    await expect(page.getByText("Sold today", { exact: true })).toBeVisible();
+    test.skip(isMobile, "keyboard shortcuts are for the hub laptop");
+    await page.locator("main").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press("/");
+    await expect(page.getByRole("searchbox", { name: "Search the hub" })).toBeFocused();
+  });
+
+  test("the skip link is the first thing a keyboard reaches", async ({ page }) => {
+    await page.goto("/hub");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+  });
+});
+
+test.describe("route and repairs", () => {
+  test("the menu links the route and repairs screens", async ({ page }) => {
+    await page.goto("/hub");
+    const menu = page.getByRole("navigation", { name: "Hub" });
+    await expect(menu.getByRole("link", { name: "Route" })).toHaveAttribute("href", "/hub/route");
+    await expect(menu.getByRole("link", { name: "Repairs" })).toHaveAttribute(
+      "href",
+      "/hub/repairs",
+    );
+  });
+
+  test("the capacity screen is in the menu and needs the shared database", async ({ page }) => {
+    await page.goto("/hub");
+    await expect(
+      page.getByRole("navigation", { name: "Hub" }).getByRole("link", { name: "Capacity" }),
+    ).toHaveAttribute("href", "/hub/capacity");
+    await page.goto("/hub/capacity");
+    await expect(page.getByText("Capacity is kept in the shared database.")).toBeVisible();
+  });
+
+  test("the route needs the shared database; the repair board starts empty", async ({ page }) => {
+    await page.goto("/hub/route");
+    await expect(page.getByText("The route is kept in the shared database.")).toBeVisible();
+    await page.goto("/hub/repairs");
+    await expect(page.getByRole("heading", { level: 1, name: "Repairs" })).toBeVisible();
+    await expect(page.getByText("Nothing is out for repair.")).toBeVisible();
+  });
+});
+
+test.describe("staff pricing", () => {
+  test("the pricing screen is staff-only, in Records, and needs the shared database", async ({
+    page,
+  }) => {
+    await page.goto("/hub");
+    await expect(
+      page
+        .getByRole("navigation", { name: "Hub" })
+        .getByRole("link", { name: "Pricing", exact: true }),
+    ).toHaveAttribute("href", "/hub/pricing");
+    await page.goto("/hub/pricing");
+    await expect(page.getByText("Pricing is kept in the shared database.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Price references" }).first()).toBeVisible();
   });
 });

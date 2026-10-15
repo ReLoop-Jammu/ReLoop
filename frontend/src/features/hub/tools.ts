@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  BadgePercent,
   ChartColumn,
   ClipboardList,
   Database,
@@ -9,6 +10,11 @@ import {
   Link2,
   PackageOpen,
   PackagePlus,
+  Gauge,
+  Scale,
+  Route,
+  Wrench,
+  Truck,
   Recycle,
   Settings,
   ShieldCheck,
@@ -32,6 +38,10 @@ export type HubBadges = {
   payouts_due: number;
   pickups_next: number;
   open_claims: number;
+  pickups_unconfirmed: number;
+  part_listings_waiting: number;
+  part_sales_to_pay: number;
+  bins_due: number;
   pending_shops: number | null;
   deletion_requests: number | null;
 };
@@ -40,6 +50,9 @@ export type BadgeKey =
   | "new_submissions"
   | "offers_accepted"
   | "open_claims"
+  | "part_listings_waiting"
+  | "part_sales_to_pay"
+  | "bins_due"
   | "pending_shops"
   | "deletion_requests";
 
@@ -102,9 +115,58 @@ export const HUB_TOOLS: readonly HubTool[] = [
     badge: ["new_submissions", "offers_accepted"],
   },
   {
+    href: "/hub/route",
+    label: "Route",
+    description: "Tuesday and Friday run sheets: stops in order, booked lots, collected or missed.",
+    icon: Route,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/repairs",
+    label: "Repairs",
+    description: "Items out with repair partners: fault, fee, days out, and back fixed or not.",
+    icon: Wrench,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/weighins",
+    label: "Weigh-ins",
+    description: "Weigh a shop's scrap, pay by the rate card, share the receipt.",
+    icon: Scale,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/capacity",
+    label: "Capacity",
+    description: "Scrap bins, battery cabinet, device racks, parts shelf and stock age.",
+    icon: Gauge,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
+    href: "/hub/exchange",
+    label: "Parts Exchange",
+    description: "Receive, test and approve shops' part listings; pay their share.",
+    icon: Store,
+    role: "staff",
+    group: "Daily work",
+    badge: ["part_listings_waiting", "part_sales_to_pay"],
+  },
+  {
+    href: "/hub/lots",
+    label: "Institution lots",
+    description: "Lot fees, equipment bought, and dead e-waste sent to VRRG Group.",
+    icon: Truck,
+    role: "staff",
+    group: "Daily work",
+  },
+  {
     href: "/hub/warranty",
-    label: "Warranty claims",
-    description: "Claims on grade A and B devices within 30 days of the sale.",
+    label: "Warranty and returns",
+    description: "Claims on grade A and B devices (30 days) and returns of parts (7 days).",
     icon: ShieldCheck,
     role: "staff",
     group: "Daily work",
@@ -120,9 +182,18 @@ export const HUB_TOOLS: readonly HubTool[] = [
   },
   {
     href: "/hub/handovers",
-    label: "Recycler handovers",
-    description: "Scrap and battery handovers, with the recycler's receipt.",
+    label: "Handovers to VRRG Group",
+    description: "Bins, batteries and the partner's weight receipts.",
     icon: Recycle,
+    role: "staff",
+    group: "Records",
+    badge: "bins_due",
+  },
+  {
+    href: "/hub/pricing",
+    label: "Pricing",
+    description: "Staff only: buy against sale, COGS, days to sell and sell-through.",
+    icon: BadgePercent,
     role: "staff",
     group: "Records",
   },
@@ -220,7 +291,14 @@ export function toolsFor(access: { is_staff: boolean; is_admin: boolean } | null
 
 /** Whether a menu entry is the current page (the overview only on /hub itself). */
 export const isToolActive = (href: string, pathname: string) =>
-  href === "/hub" ? pathname === "/hub" : pathname === href || pathname.startsWith(`${href}/`);
+  href === "/hub"
+    ? pathname === "/hub"
+    : pathname === href ||
+      (pathname.startsWith(`${href}/`) &&
+        // a more specific screen of its own (e.g. /hub/pricing/references) wins
+        !HUB_TOOLS.some(
+          (t) => t.href !== href && t.href.startsWith(`${href}/`) && pathname.startsWith(t.href),
+        ));
 
 /** A tool's badge count: the sum of its keys, or null when there is nothing to show. */
 export function badgeCount(tool: Pick<HubTool, "badge">, badges: HubBadges | null): number | null {

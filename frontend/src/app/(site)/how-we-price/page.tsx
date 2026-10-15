@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/features/settings/server";
 export const metadata: Metadata = {
   title: "How we price",
   description:
-    "How ReLoop sets the price of a used device: the grade, an estimated fair-price range from published listings, and an automatic cut for anything unsold after 45 days.",
+    "How ReLoop sets prices: the grade, an estimated fair-price range from published listings, the Parts Exchange commission, and what happens to stock that does not sell.",
   alternates: { canonical: "/how-we-price" },
 };
 
@@ -19,7 +19,7 @@ export default async function HowWePricePage() {
     <Container className="py-12 sm:py-20">
       <article className="mx-auto max-w-3xl">
         <Eyebrow>How we price</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
           A fair price, and why it is that price
         </h1>
         <div className="mt-8 grid gap-6 leading-relaxed text-ink-soft">
@@ -54,11 +54,32 @@ export default async function HowWePricePage() {
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold text-ink">4. Unsold stock gets cheaper</h2>
+            <h2 className="text-xl font-semibold text-ink">4. Unsold stock</h2>
             <p className="mt-2">
-              Anything unsold {BUSINESS_RULES.priceCut.afterDays} days after listing is cut by{" "}
-              {BUSINESS_RULES.priceCut.share * 100}% automatically, once. Each item page shows its
-              own price history.
+              A part that is unsold {BUSINESS_RULES.partPriceCut.afterDays} days after listing is
+              cut by {BUSINESS_RULES.partPriceCut.share * 100}% automatically, once. A grade A or B
+              device that is unsold {BUSINESS_RULES.deviceToC.afterDays} days after listing is not
+              cut: it becomes grade C and is stripped for parts, which are tested and sold as tested
+              parts. Each item page shows its own price history.
+            </p>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-ink">5. Parts listed by partner shops</h2>
+            <p className="mt-2">
+              On the Parts Exchange a partner shop sets the price of a part it lists. ReLoop tests
+              the part, sells it and keeps a {site.commissionPct}% commission; the rest goes to the
+              shop after the {BUSINESS_RULES.partReturnDays}-day return window.
+            </p>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-ink">6. What we pay shops</h2>
+            <p className="mt-2">
+              Scrap is paid by the kilo at the{" "}
+              <Link href="/standards/rate-card" className="font-semibold text-brand-600 underline">
+                rate card
+              </Link>
+              . Working parts are priced one by one after testing; a shop can decline, or list the
+              part itself on the Parts Exchange.
             </p>
           </section>
         </div>

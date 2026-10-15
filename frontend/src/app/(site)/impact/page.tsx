@@ -1,51 +1,43 @@
 import { ArrowRight, Hammer, Recycle, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { WasteHotspots } from "./WasteHotspots";
+import { BUSINESS_RULES } from "@/config/business-rules";
+import { flowsAreThin, impactLinks, summariseImpact } from "@/features/impact/flows";
+import { MonthlyBars } from "@/features/impact/MonthlyBars";
+import { getImpactFlows } from "@/features/impact/queries";
+import { SankeyChart } from "@/features/impact/SankeyChart";
+import { formatKg } from "@/features/impact/totals";
 
 export const metadata: Metadata = {
   title: "Our impact",
   description:
-    "Why ReLoop starts in Jammu: giving used electronics another useful life through reuse, repair, refurbishment and responsible recovery.",
+    "Jammu's e-waste, kept in Jammu: what ReLoop has weighed, tested, resold and handed to VRRG Group, from weighed records only.",
 };
 
-const STATS = [
-  {
-    label: "India · FY 2023–24",
-    value: "1.75M tonnes",
-    body: "National e-waste estimate cited in a December 2024 Rajya Sabha reply.",
-  },
-  {
-    label: "India · FY 2024–25",
-    value: "1.94M tonnes",
-    body: "National estimate for the following financial year in the same parliamentary reply.",
-  },
-  {
-    label: "ReLoop's starting point",
-    value: "Jammu → India",
-    body: "Collect and assess locally, then connect suitable inventory with buyers and responsible downstream routes.",
-  },
-];
+// The flows come from public views and are cached for five minutes.
+export const revalidate = 300;
 
+/** An illustrative story, not a real shop or a real figure. */
 const STORY = [
   {
-    title: "Used for years",
-    body: "The laptop handles classes, browsing and assignments. Over time, its battery weakens and it starts feeling slow.",
+    title: "A dead board is left behind",
+    body: "A repair shop in a Jammu market replaces a phone's dead board for a customer. The old board stays in the shop with other leftovers.",
   },
   {
-    title: "Left in a drawer",
-    body: "A newer machine arrives. The old laptop sits unused because its owner is unsure whether it is worth repairing or selling.",
+    title: "Weighed and paid",
+    body: "On the weekly pickup day ReLoop weighs the shop's leftovers in front of the owner and pays by UPI at the rate card. The board goes in the to-test bag.",
   },
   {
-    title: "Assessed by ReLoop",
-    body: "Condition, parts, battery, data-handling needs and repair potential are checked. It is then classified for the most suitable next route.",
+    title: "Tested at the hub",
+    body: "At the hub the board is tagged, tested and wiped. A part that works is listed on the Parts Exchange; one that does not goes into a scrap bin.",
   },
   {
     title: "Another useful life",
-    body: "If repairable, it can be refurbished and used again. If not, suitable components or materials can move through responsible recovery channels.",
+    body: "A technician in Jammu buys the tested part. What is dead is handed to VRRG Group by weight, on a weight receipt.",
   },
 ];
 
@@ -58,12 +50,12 @@ const ROUTES = [
   {
     icon: Sparkles,
     title: "Refurbish & reuse",
-    body: "Clean, test and accurately describe suitable equipment so another buyer can use it for its next chapter.",
+    body: "Clean, test and accurately describe suitable devices so another buyer can use them for their next chapter.",
   },
   {
     icon: Recycle,
-    title: "Responsible recovery",
-    body: "When reuse or repair is no longer suitable, direct end-of-life material to appropriate authorised recycling and recovery channels.",
+    title: "Handed over by weight",
+    body: "When reuse or repair is no longer suitable, scrap and batteries go to VRRG Group, our dismantling partner, on a weight receipt.",
   },
 ];
 
@@ -72,36 +64,30 @@ const GOALS = [
   "Bring condition, quantity, category and location into one managed inventory process.",
   "Help buyers find tested used devices and parts, with an honest grade on every item.",
   "Keep reuse and repair opportunities separate from genuine end-of-life material.",
-  "Make sure only what is truly dead reaches the recycler, through an authorised channel with a receipt.",
+  "Make sure only what is truly dead reaches VRRG Group, by weight, with a receipt.",
 ];
 
 const SOURCES = [
-  {
-    text: "Government of India, Rajya Sabha Starred Question No. 264, reply dated 19 Dec 2024: national e-waste estimates of 1.75 million tonnes (FY 2023–24) and 1.94 million tonnes (FY 2024–25).",
-    link: "https://rsdebate.nic.in/bitstream/123456789/752961/1/PQ_266_19122024_S264_p27_p29.pdf",
-    linkText: "Official reply (PDF)",
-  },
   {
     text: "Central Pollution Control Board, E-Waste Management System and E-Waste (Management) Rules, 2022, including the EPR framework and registered-channel requirements.",
     link: "https://www.eprewaste.cpcb.gov.in/",
     linkText: "CPCB E-Waste Portal",
   },
   {
-    text: "Ministry of Environment, Forest and Climate Change, PIB release “Generation of E-waste” (27 July 2023), describing CPCB's estimation method and the E-Waste Rules, 2022.",
-    link: "https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=1943201&lang=2&reg=48",
-    linkText: "PIB release",
-  },
-  {
-    text: "Jammu & Kashmir Open Government Data portal, E-Waste dataset catalogue. State/UT-specific figures are not asserted on this page unless an official figure and reporting year are available.",
-    link: "https://jk.data.gov.in/keywords/E-Waste",
-    linkText: "J&K e-waste data catalogue",
-  },
-  {
-    text: "The laptop story is fictional and illustrative. Descriptions of reuse, repair, data security, safe handling and recovery are explanatory information; ReLoop's operating model and impact metrics remain under development.",
+    text: "The repair-shop story is fictional and illustrative. Descriptions of reuse, repair, data security, safe handling and recovery are explanatory information; ReLoop's operating model and impact metrics remain under development.",
   },
 ];
 
-export default function ImpactPage() {
+export default async function ImpactPage() {
+  const flows = (await getImpactFlows()) ?? [];
+  const thin = flowsAreThin(flows);
+  const summary = summariseImpact(flows);
+  const numbers = [
+    { label: "Scrap weighed", value: `${formatKg(summary.scrapKg)} kg` },
+    { label: "Handed to VRRG Group", value: `${formatKg(summary.scrapToVrrgKg)} kg` },
+    { label: "Devices on sale or resold", value: formatKg(summary.devices) },
+    { label: "Tested parts", value: formatKg(summary.parts) },
+  ];
   return (
     <>
       <section className="relative overflow-hidden">
@@ -109,52 +95,144 @@ export default function ImpactPage() {
           aria-hidden="true"
           className="absolute -top-40 -left-40 size-[520px] rounded-full bg-[radial-gradient(closest-side,var(--color-gold-100),transparent)]"
         />
-        <Container className="relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2 lg:py-20">
-          <div className="animate-rise">
+        <Container className="relative py-12 sm:py-16 lg:py-20">
+          <div className="max-w-3xl animate-rise">
             <Eyebrow>Our impact</Eyebrow>
             <h1 className="mt-5 text-5xl leading-[1.02] font-bold sm:text-6xl">
-              From <span className="text-gold-700">waste</span>
-              <br />
-              to another life.
+              Jammu&apos;s e-waste, <span className="text-gold-700">kept in Jammu.</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-ink-soft">
-              Electronics do not become worthless the moment someone stops using them. A laptop may
-              need a repair, a phone may still work, and a circuit board may contain recoverable
-              materials. The first question should be:{" "}
-              <strong className="text-ink">what useful life can this item have next?</strong>
-            </p>
-            <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-              ReLoop starts in Jammu by creating a clearer route from collection and assessment to
-              reuse, repair, refurbishment and responsible recovery.
+              Electronics do not become worthless the moment someone stops using them. A phone may
+              need a repair, a monitor may still work, and a dead board may hold a part a technician
+              can use.{" "}
+              <strong className="text-ink">The first question is: what useful life is next?</strong>{" "}
+              Everything below is counted from what we weigh and tag at the hub.
             </p>
           </div>
-          <WasteHotspots />
         </Container>
       </section>
 
       <Container className="pb-20">
-        <section className="grid gap-4 md:grid-cols-3" aria-label="E-waste in numbers">
-          {STATS.map((s, i) => (
-            <div
-              key={s.label}
-              className="rounded-card border border-line bg-surface p-6 shadow-soft"
+        <section aria-labelledby="numbers-heading">
+          <h2 id="numbers-heading" className="sr-only">
+            The numbers so far
+          </h2>
+          {thin ? (
+            <p
+              role="status"
+              className="rounded-card border border-line bg-surface p-6 text-ink-soft shadow-soft"
             >
-              <span className="text-xs font-semibold text-muted">{s.label}</span>
-              <strong className="mt-3 block font-display text-3xl font-bold text-brand-600">
-                {s.value}
-                {i < 2 && <sup className="ml-0.5 text-xs text-muted">1</sup>}
-              </strong>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
-            </div>
-          ))}
+              <strong className="text-ink">The pilot is starting.</strong> The numbers appear here
+              as soon as the hub has weighed and tagged its first stock. Nothing on this page is
+              estimated or filled in.
+            </p>
+          ) : (
+            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {numbers.map((n) => (
+                <div
+                  key={n.label}
+                  className="rounded-card border border-line bg-surface p-6 shadow-soft"
+                >
+                  <dt className="text-xs font-semibold text-muted">{n.label}</dt>
+                  <dd className="mt-3 font-display text-3xl font-bold text-brand-600">{n.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <p className="mt-3 text-xs text-muted">
+            Kilograms are counted only from weigh-ins and weight receipts. Devices and parts are
+            counted by tag.
+          </p>
+        </section>
+
+        {!thin && (
+          <>
+            <section className="mt-16" aria-labelledby="flows-heading">
+              <SectionHeading
+                id="flows-heading"
+                eyebrow={<Eyebrow>Where it goes</Eyebrow>}
+                title="From a shop's counter to its next use"
+                description="Scrap is weighed at the counter and ends at VRRG Group, our dismantling partner. Devices and parts are tested at the hub and sold in Jammu."
+              />
+              <div className="grid gap-8 rounded-panel border border-line bg-surface p-4 shadow-soft sm:p-8 lg:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-semibold">Scrap, by weight</h3>
+                  <SankeyChart
+                    title="Scrap in kilograms, from source to where it is now"
+                    links={impactLinks(flows, "kg")}
+                    unit="kg"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Devices and tested parts, by count</h3>
+                  <SankeyChart
+                    title="Devices and parts in items, from source to outcome"
+                    links={impactLinks(flows, "items")}
+                    unit="items"
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-muted">
+                See the same flows on a map of Jammu on the{" "}
+                <Link href="/network" className="font-semibold text-brand-600 underline">
+                  network page
+                </Link>
+                .
+              </p>
+            </section>
+
+            <section className="mt-16" aria-labelledby="months-heading">
+              <SectionHeading
+                id="months-heading"
+                eyebrow={<Eyebrow>Over time</Eyebrow>}
+                title="Month by month"
+              />
+              <div className="rounded-panel border border-line bg-surface p-6 shadow-soft sm:p-8">
+                <MonthlyBars months={summary.months} />
+              </div>
+            </section>
+          </>
+        )}
+
+        <section className="mt-16" aria-labelledby="targets-heading">
+          <SectionHeading
+            id="targets-heading"
+            eyebrow={<Eyebrow>Our standards and pilot targets</Eyebrow>}
+            title="What we hold ourselves to"
+            description="These are targets and standards, not results."
+          />
+          <ul className="grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Every kilo by weight receipt",
+                body: "All scrap we collect goes to VRRG Group on a weight receipt. We track the share that does, and it should be 100%.",
+              },
+              {
+                title: `${BUSINESS_RULES.targets.kgPerMonth} kg a month`,
+                body: "The pilot target for scrap weighed at the counter each month once the partner network is running.",
+              },
+              {
+                title: `${BUSINESS_RULES.targets.partnerShops} partner shops`,
+                body: "The pilot target for repair shops and retailers on the weekly Tuesday and Friday routes.",
+              },
+            ].map((t) => (
+              <li
+                key={t.title}
+                className="rounded-card border border-line bg-surface p-6 shadow-soft"
+              >
+                <h3 className="text-lg font-semibold">{t.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t.body}</p>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="mt-20" aria-labelledby="story-heading">
           <SectionHeading
             id="story-heading"
             eyebrow={<Eyebrow>An illustrative story</Eyebrow>}
-            title="The journey of one old laptop"
-            description="Imagine a student in Jammu replaces a four-year-old laptop. It is no longer fast enough for its first job — but that does not make it waste."
+            title="The journey of one dead board"
+            description="An example of the route a repair shop's leftovers take, step by step."
           />
           <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" role="list">
             {STORY.map((card, i) => (
@@ -171,8 +249,8 @@ export default function ImpactPage() {
             ))}
           </ol>
           <p className="mt-4 text-xs text-muted">
-            Illustrative example: this story describes the intended circular pathway, not a
-            documented ReLoop case or a measured impact outcome.
+            Illustrative example: this story describes the intended pathway, not a documented ReLoop
+            case or a measured outcome.
           </p>
         </section>
 
@@ -228,7 +306,7 @@ export default function ImpactPage() {
             <div>
               <Eyebrow tone="dark">Why Jammu</Eyebrow>
               <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
-                Start local, connect nationally.
+                Start local, in Jammu.
               </h2>
               <p className="mt-4 leading-relaxed text-white/70">
                 A managed route for used electronics: local collection, clearer inventory

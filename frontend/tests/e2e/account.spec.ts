@@ -31,15 +31,8 @@ test.describe("account recovery", () => {
     await expect(main.getByLabel("Email address")).toHaveCount(0);
   });
 
-  test("the resend-confirmation page still exists, but nothing links to it", async ({ page }) => {
-    await page.goto("/resend-confirmation");
-    await expect(
-      page.getByRole("heading", { name: "Resend the confirmation email" }),
-    ).toBeVisible();
-    for (const path of ["/", "/login", "/register", "/forgot-password"]) {
-      await page.goto(path);
-      await expect(page.locator('a[href="/resend-confirmation"]')).toHaveCount(0);
-    }
+  test("the old resend-confirmation page is gone", async ({ request }) => {
+    expect((await request.get("/resend-confirmation")).status()).toBe(404);
   });
 
   test("changing your password asks you to log in first", async ({ page }) => {

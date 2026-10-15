@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BUSINESS_RULES } from "@/config/business-rules";
+import { BUYER_AREAS } from "@/config/buyer-areas";
 import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 import {
   GRADES,
@@ -26,6 +27,7 @@ import {
   saveRepairJob,
   setItemStatus,
   SHARED_DATABASE,
+  setBuyerArea,
 } from "@/features/inventory/store";
 import type { Partner } from "@/features/inventory/model";
 import { formatPrice } from "@/lib/utils/money";
@@ -436,6 +438,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
   );
   const [sold, setSold] = useState(paiseToRupeeInput(item.currentPaise));
   const [fulfilment, setFulfilment] = useState<Fulfilment>("pickup");
+  const [area, setArea] = useState("");
   const [repair, setRepair] = useState({ partnerId: "", fault: item.faults, fee: "" });
   const [kg, setKg] = useState(item.weightKg ? String(item.weightKg) : "");
   const [parts, setParts] = useState<{ partType: PartType; title: string; price: string }[]>([]);
@@ -492,8 +495,9 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
             List online
           </Button>
           <p className="text-xs text-muted">
-            Unsold after {BUSINESS_RULES.priceCut.afterDays} days: price cut 20% automatically.
-            After {BUSINESS_RULES.downgradeToC.afterDays} days: downgraded to C.
+            A part unsold after {BUSINESS_RULES.partPriceCut.afterDays} days is cut
+            {BUSINESS_RULES.partPriceCut.share * 100}%, once. A grade A or B device unsold after{" "}
+            {BUSINESS_RULES.deviceToC.afterDays} days becomes C and is stripped.
           </p>
         </div>
       )}
@@ -679,12 +683,12 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
                     {
                       at: at(),
                       type: "stripped",
-                      note: `${kept} part(s) removed; shell to scrap cage`,
+                      note: `${kept} part(s) removed; shell to the D devices bin`,
                     },
                   ],
                 });
                 setParts([]);
-                setMsg("Parts tagged. Shell moved to the scrap cage.");
+                setMsg("Parts tagged. Shell moved to the D devices bin.");
                 await reload();
               }}
             >
@@ -707,20 +711,21 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
           <Button
             size="sm"
             onClick={() =>
-              void go("in_scrap_cage", `Into scrap cage${kg ? ` (${kg} kg)` : ""}`, {
+              void go("in_scrap_cage", `Into the D devices bin${kg ? ` (${kg} kg)` : ""}`, {
                 weightKg: kg ? Number(kg) : undefined,
               })
             }
           >
-            Move to scrap cage
+            Move to the D devices bin
           </Button>
         </div>
       )}
       {status === "in_scrap_cage" && (
         <p className="text-sm">
-          In the scrap cage{item.weightKg ? ` (${item.weightKg} kg)` : ""}. Record the pickup under{" "}
+          In the D devices bin{item.weightKg ? ` (${item.weightKg} kg)` : ""}. Record the pickup
+          under{" "}
           <Link href="/hub/handovers" className="text-brand-600 underline">
-            Recycler handovers
+            Handovers to VRRG Group
           </Link>
           .
         </p>
@@ -733,7 +738,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
             {item.priceCutAt && ` (cut from ${formatPrice(item.listPaise)})`} since{" "}
             {item.listedAt && new Date(item.listedAt).toLocaleDateString("en-IN")}.
           </p>
-          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
             <Input
               aria-label="Sold for (₹)"
               inputMode="decimal"
@@ -746,17 +751,31 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
               onChange={(e) => setFulfilment(e.target.value as Fulfilment)}
             >
               <option value="pickup">Hub pickup</option>
-              <option value="delivery_jammu">Jammu delivery (₹50)</option>
-              <option value="ship_india">Shipped (buyer paid)</option>
+              <option value="delivery_jammu">Jammu city delivery (₹50)</option>
+            </Select>
+            <Select
+              aria-label="Buyer's area"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+            >
+              <option value="">Buyer&apos;s area (optional)</option>
+              {BUYER_AREAS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
             </Select>
             <Button
               size="sm"
               onClick={() =>
-                void go(
-                  "sold",
-                  `Sold for ${formatPrice(rupeesToPaiseOrNull(sold) ?? 0)} (${fulfilment.replace("_", " ")})`,
-                  { currentPaise: rupeesToPaiseOrNull(sold) ?? item.currentPaise, fulfilment },
-                )
+                void (async () => {
+                  await go(
+                    "sold",
+                    `Sold for ${formatPrice(rupeesToPaiseOrNull(sold) ?? 0)} (${fulfilment.replace("_", " ")})`,
+                    { currentPaise: rupeesToPaiseOrNull(sold) ?? item.currentPaise, fulfilment },
+                  );
+                  if (area) await setBuyerArea(item.id, area);
+                })()
               }
             >
               Mark sold

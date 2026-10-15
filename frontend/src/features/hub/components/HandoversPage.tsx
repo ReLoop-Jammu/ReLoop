@@ -2,11 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
-import { BUSINESS_RULES } from "@/config/business-rules";
 import { categoryLabel } from "@/features/inventory/model";
-import { saveHandover } from "@/features/inventory/store";
+import { SHARED_DATABASE, saveHandover } from "@/features/inventory/store";
 import { formatPrice } from "@/lib/utils/money";
 import { useHubData } from "../useHubData";
+import { BinsPanel } from "./BinsPanel";
 import { Field, Input, PageTitle, Panel, Select, rupeesToPaiseOrNull } from "./ui";
 
 export function HandoversPage() {
@@ -38,7 +38,7 @@ export function HandoversPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.recycler.trim() || !form.receiptNo.trim())
-      return setError("Recycler name and receipt number are required.");
+      return setError("The partner's name and the weight receipt number are required.");
     const chosen = cage.filter((i) => selected.has(i.id));
     const kgByCategory: Record<string, number> = {};
     for (const i of chosen) {
@@ -83,13 +83,18 @@ export function HandoversPage() {
   return (
     <>
       <PageTitle
-        title="Recycler handovers"
-        description={`Book a pickup when the cage reaches ${BUSINESS_RULES.scrapHandover.kgTrigger} kg or every ${BUSINESS_RULES.scrapHandover.daysTrigger} days. Batteries go every week.`}
+        title="Handovers to VRRG Group"
+        description="Scrap goes to VRRG Group, Gangyal, by weight, on their weight receipt."
       />
+      {SHARED_DATABASE && (
+        <div className="mb-6">
+          <BinsPanel onChanged={refresh} />
+        </div>
+      )}
       <div className="grid gap-6 xl:grid-cols-2">
-        <Panel title={`Scrap cage: ${cage.length} items, ${cageKg.toFixed(1)} kg weighed`}>
+        <Panel title={`D devices bin: ${cage.length} items, ${cageKg.toFixed(1)} kg weighed`}>
           {cage.length === 0 ? (
-            <p className="text-sm text-muted">The cage is empty.</p>
+            <p className="text-sm text-muted">The bin is empty.</p>
           ) : (
             <ul className="max-h-80 divide-y divide-line overflow-auto text-sm">
               {cage.map((i) => (
@@ -125,11 +130,11 @@ export function HandoversPage() {
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
               />
             </Field>
-            <Field label="Recycler">
+            <Field label="Dismantling partner">
               <Input
                 value={form.recycler}
                 onChange={(e) => setForm({ ...form, recycler: e.target.value })}
-                placeholder="Authorised recycler's name"
+                placeholder="VRRG Group, Gangyal"
               />
             </Field>
             <Field label="Receipt number">
@@ -143,7 +148,7 @@ export function HandoversPage() {
                 value={form.onBehalfOf}
                 onChange={(e) => setForm({ ...form, onBehalfOf: e.target.value })}
               >
-                <option value="">ReLoop</option>
+                <option value="">ReLoop (hub scrap)</option>
                 {institutions.map((i) => (
                   <option key={i.id} value={i.name}>
                     {i.name}
@@ -204,7 +209,7 @@ export function HandoversPage() {
                   Date
                 </th>
                 <th scope="col" className="py-2 font-medium">
-                  Recycler
+                  Partner
                 </th>
                 <th scope="col" className="py-2 font-medium">
                   Receipt

@@ -2,17 +2,11 @@ import { Container } from "@/components/ui/Container";
 import { formatKg, showImpactNumbers, type ImpactTotals } from "./totals";
 
 /** Home-page impact strip: real totals, or the pilot date until there are any. */
-export function ImpactCounter({
-  totals,
-  hubOpens,
-}: {
-  totals: ImpactTotals | null;
-  hubOpens: string;
-}) {
+export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
   return (
     <section aria-labelledby="impact-heading" className="py-10 sm:py-12">
       <Container>
-        <div className="rounded-panel bg-brand-950 px-6 py-8 text-white sm:px-10">
+        <div className="relative overflow-hidden rounded-panel bg-mesh px-6 py-10 text-white shadow-lift sm:px-12 sm:py-12">
           <h2 id="impact-heading" className="text-sm font-semibold text-gold-400">
             Our impact so far
           </h2>
@@ -21,18 +15,18 @@ export function ImpactCounter({
               {[
                 [
                   totals.itemsReused.toLocaleString("en-IN"),
-                  "items reused",
-                  "Graded A, B or C: resold, repaired or used for parts",
+                  "devices and parts resold",
+                  "Grade A and B devices, and tested parts, sold in Jammu",
                 ],
                 [
                   `${formatKg(totals.kgRecycled)} kg`,
-                  "handed to the recycler",
-                  "Dead items and batteries, weighed, with a receipt",
+                  "handed to VRRG Group",
+                  "Scrap and batteries, by weight, on a weight receipt",
                 ],
                 [
                   totals.activePartnerShops.toLocaleString("en-IN"),
-                  "active partner shops",
-                  "Repair shops and retailers on our pickup route",
+                  "partner shops",
+                  "Repair shops, retailers and exchange stores on our weekly route",
                 ],
               ].map(([value, label, note]) => (
                 <div key={label} className="flex flex-col">
@@ -43,7 +37,12 @@ export function ImpactCounter({
               ))}
             </dl>
           ) : (
-            <p className="mt-3 text-2xl font-bold sm:text-3xl">Pilot starts {hubOpens}</p>
+            <>
+              <p className="mt-3 text-2xl font-bold sm:text-3xl">The Jammu pilot is running</p>
+              <p className="mt-2 text-white/70">
+                The totals appear here as the hub weighs and tags its first stock.
+              </p>
+            </>
           )}
         </div>
       </Container>

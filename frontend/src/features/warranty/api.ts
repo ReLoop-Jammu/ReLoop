@@ -77,6 +77,8 @@ export type HubClaim = {
   item_id: string;
   buyer_id: string | null;
   opened_by: "buyer" | "staff";
+  /** "part_return": a Parts Exchange part, 7-day return window. */
+  kind?: "warranty" | "part_return";
   contact_name: string;
   contact_phone: string;
   fault: string;
@@ -89,7 +91,7 @@ export type HubClaim = {
 export const listClaims = () =>
   allPages<HubClaim>((headers) =>
     call<HubClaim[]>(
-      "warranty_claims?select=id,item_id,buyer_id,opened_by,contact_name,contact_phone,fault,status,resolution,staff_note,created_at,closed_at&order=created_at.desc,id",
+      "warranty_claims?select=id,item_id,buyer_id,opened_by,kind,contact_name,contact_phone,fault,status,resolution,staff_note,created_at,closed_at&order=created_at.desc,id",
       { headers },
     ),
   );

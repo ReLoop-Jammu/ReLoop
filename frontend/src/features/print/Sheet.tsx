@@ -5,19 +5,41 @@ import { cn } from "@/lib/utils/cn";
  * One A4 portrait page (210 × 297 mm). On screen it sits on a grey desk;
  * printed (or saved as PDF by scripts/make-print.mjs) it fills the page.
  */
-export function Sheet({ children, className }: { children: ReactNode; className?: string }) {
+export function Sheet({
+  children,
+  className,
+  size = "A4",
+}: {
+  children: ReactNode;
+  className?: string;
+  size?: "A4" | "A5";
+}) {
   return (
     <>
-      <style>{"@page { size: A4 portrait; margin: 0; }"}</style>
+      <style>{`@page { size: ${size} portrait; margin: 0; }`}</style>
       <article
         className={cn(
-          "print-sheet mx-auto flex h-[297mm] w-[210mm] flex-col overflow-hidden bg-white text-ink shadow-lift print:shadow-none",
+          "print-sheet mx-auto flex flex-col overflow-hidden bg-white text-ink shadow-lift print:shadow-none",
+          size === "A4" ? "h-[297mm] w-[210mm]" : "h-[210mm] w-[148mm]",
           className,
         )}
       >
         {children}
       </article>
     </>
+  );
+}
+
+/** The rate-card QR code: /go/rate-card, counted, then the live rate card page. */
+export function RateCardQr({ size }: { size: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/qr/rate-card.svg"
+      alt="QR code linking to https://re-loop-ochre.vercel.app/go/rate-card"
+      style={{ width: size, height: size }}
+      className="rounded-lg bg-white"
+    />
   );
 }
 
@@ -28,6 +50,19 @@ export function DriveQr({ size }: { size: string }) {
     <img
       src="/qr/awareness-drive.svg"
       alt="QR code linking to https://re-loop-ochre.vercel.app/go/drive"
+      style={{ width: size, height: size }}
+      className="rounded-lg bg-white"
+    />
+  );
+}
+
+/** The partner-badge QR code: /go/partner-badge, counted, then the locations page. */
+export function PartnerBadgeQr({ size }: { size: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/qr/partner-badge.svg"
+      alt="QR code linking to https://re-loop-ochre.vercel.app/go/partner-badge"
       style={{ width: size, height: size }}
       className="rounded-lg bg-white"
     />
