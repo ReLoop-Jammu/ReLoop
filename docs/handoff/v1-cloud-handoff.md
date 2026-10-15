@@ -244,7 +244,7 @@ Every money value below is **absent from the repository**. The code reads it fro
 3. **Fill in `backend/sim/local-inputs.json`** (copy from `local-inputs.example.json`; gitignored): `buy_share_of_resale`, `c_device_buy_rupees`, `tested_part_buy_rupees` and `vrrg_rates_paise` (VRRG Group's per-kg rates per bin). Re-seed the simulation: `SUPABASE_ACCESS_TOKEN=$(security find-generic-password -s reloop-supabase-token -w) node backend/sim/seed.mjs --apply`.
 4. **Staff-only money settings** (set through `/hub/settings` as admin, or `set_setting()`; never in a file): `finance.scrap_spread_paise_per_kg`, `finance.device_unit_paise`, `finance.parts_target_monthly_paise`, `finance.fixed_costs_monthly_paise`, `finance.setup_costs_paise` and `vrg.rates_paise`. The pilot KPIs show "not set" until they exist.
 5. **Launch-date settings** (empty by default, so nothing is enforced early): `ownership.required_from`, `wipe.strip_required_from`, `stock.grace_until`, and `capacity.device_rack_slots`.
-6. **Vercel environment:** no new variables for 15b. Confirm `vercel.json` still pins `bom1`. The `reloop-daily-rules` cron job is unchanged (the new stock rules run inside it).
+6. **Vercel environment:** no new variables for 15b. Confirm `vercel.json` still pins `bom1`. The `reloop-stock-rules` cron job is unchanged (the new stock rules run inside it).
 7. **Printables:** open `frontend/public/print/counter-card.pdf` and `awareness-flyer.pdf` and check them visually; the rate-card QR points at `/go/rate-card`.
 
 ### Open items for the final report

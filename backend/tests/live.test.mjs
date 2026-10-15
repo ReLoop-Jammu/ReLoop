@@ -2698,7 +2698,12 @@ describe("offers, pickups and payouts (20261030000001)", () => {
       "select count(*)::int as n from public.shop_submissions where status in ('Pending', 'Under Review')",
     );
     assert.equal(b.new_submissions, review.rows[0].n, "accepted lots aren't counted as new");
-    assert.ok(b.pickups_next >= 1);
+    const booked = await db.query(
+      "select route_date from public.pickups where shop_submission_id = $1 and status = 'scheduled'",
+      [id],
+    );
+    assert.equal(booked.rows.length, 1, "the accepted lot has a booked pickup");
+    // Whether pickups_next counts it depends on the weekday today (its route day may be later).
     const unpaid = await db.query(
       `select count(*)::int as n from public.shop_submissions x where x.status = 'Purchased' and x.purchase_price > 0
          and not exists (select 1 from public.payouts p where p.shop_submission_id = x.id)`,
