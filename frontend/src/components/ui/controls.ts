@@ -11,7 +11,7 @@ export function controlClasses({
   className,
 }: { dense?: boolean; select?: boolean; className?: string } = {}) {
   return cn(
-    "w-full rounded-lg border border-line-strong bg-surface text-ink transition placeholder:text-muted",
+    "w-full rounded-xl border border-line-strong bg-surface text-ink transition placeholder:text-muted",
     "hover:border-ink/40 focus:border-brand-600 focus:ring-3 focus:ring-brand-600/25 focus:outline-none",
     "disabled:cursor-not-allowed disabled:bg-sunken disabled:text-muted aria-[invalid=true]:border-danger",
     dense ? "min-h-10 px-3 text-sm" : "min-h-11 px-3.5 text-base sm:text-sm",

@@ -6,20 +6,22 @@ type Variant = "primary" | "secondary" | "dark" | "gold" | "ghost";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition duration-200 hover:-translate-y-px active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-brand-600 text-white shadow-soft hover:bg-brand-700",
-  secondary: "border border-line-strong bg-surface text-ink hover:border-ink/40 hover:bg-sunken",
-  dark: "bg-ink text-white hover:bg-brand-950",
-  gold: "bg-gold-500 text-brand-950 hover:bg-gold-400",
+  primary:
+    "bg-gradient-to-b from-brand-500 to-brand-700 text-white shadow-glow ring-1 ring-brand-700/40 ring-inset hover:from-brand-600 hover:to-brand-800",
+  secondary:
+    "bg-surface text-ink shadow-soft ring-1 ring-line-strong ring-inset hover:bg-sunken hover:ring-ink/30",
+  dark: "bg-ink text-white shadow-lift hover:bg-brand-900",
+  gold: "bg-gold-400 text-brand-950 shadow-soft hover:bg-gold-500",
   ghost: "text-brand-600 hover:bg-brand-50",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "min-h-9 px-3.5 text-sm",
+  sm: "min-h-9 px-4 text-sm",
   md: "min-h-11 px-5 text-sm",
-  lg: "min-h-12 px-6 text-base",
+  lg: "min-h-13 px-7 text-base",
 };
 
 type StyleProps = { variant?: Variant; size?: Size; className?: string };

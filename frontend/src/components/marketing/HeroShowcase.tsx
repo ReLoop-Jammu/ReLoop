@@ -9,9 +9,9 @@ export function HeroShowcase({ items }: { items: ShopItem[] }) {
   const [front, left, right] = items;
   return (
     <div className="relative mx-auto hidden h-[540px] w-full max-w-lg lg:block" aria-hidden="true">
-      <div className="absolute inset-x-5 top-6 bottom-6 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-950 shadow-float">
-        <div className="absolute inset-0 bg-dots opacity-60" />
-        <div className="absolute -top-10 -right-10 size-40 rounded-full bg-gold-500/80 blur-3xl" />
+      <div className="absolute inset-x-5 top-6 bottom-6 overflow-hidden rounded-[2.5rem] bg-white/[0.06] ring-1 ring-white/15 backdrop-blur-sm ring-inset">
+        <div className="absolute -top-10 -right-10 size-48 rounded-full bg-gold-400/50 blur-3xl" />
+        <div className="absolute -bottom-16 -left-10 size-56 rounded-full bg-brand-400/40 blur-3xl" />
       </div>
       {left && (
         <MiniCard
@@ -57,7 +57,7 @@ function MiniCard({
   return (
     <div className={`absolute ${className}`}>
       <div
-        className="animate-drift overflow-hidden rounded-2xl border border-white/60 bg-surface shadow-float"
+        className="animate-drift overflow-hidden rounded-3xl border border-white/70 bg-surface shadow-float"
         style={{ animationDelay: delay }}
       >
         <ItemVisual

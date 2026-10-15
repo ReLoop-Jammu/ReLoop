@@ -31,14 +31,26 @@ export function StandardPage({
             eyebrow
           )}
         </Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">{title}</h1>
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">{title}</h1>
         <div className="mt-5 text-lg leading-relaxed text-ink-soft">{lead}</div>
         {children}
-        <div className="mt-10 grid gap-8 leading-relaxed text-ink-soft">
+        <div className="mt-10 grid gap-5 leading-relaxed text-ink-soft">
           {sections.map((s, i) => (
-            <section key={s.title}>
-              <h2 className="text-xl font-semibold text-ink">
-                {i + 1}. {s.title}
+            <section
+              key={s.title}
+              className="rounded-card border border-line bg-surface p-6 shadow-soft sm:p-8"
+            >
+              <h2 className="flex items-center gap-3 text-xl font-semibold text-ink">
+                <span
+                  aria-hidden="true"
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-mesh font-sans text-sm text-gold-400"
+                >
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="sr-only">{i + 1}. </span>
+                  {s.title}
+                </span>
               </h2>
               <div className="mt-2 space-y-3">{s.body}</div>
             </section>

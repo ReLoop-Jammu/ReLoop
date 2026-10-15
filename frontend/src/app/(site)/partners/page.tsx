@@ -18,7 +18,7 @@ export default async function PartnersPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Partner shops</Eyebrow>
-      <h1 className="mt-4 max-w-3xl text-4xl font-bold sm:text-5xl">
+      <h1 className="mt-5 max-w-3xl text-4xl leading-[1.02] font-bold sm:text-6xl">
         Jammu shops in the ReLoop loop
       </h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">

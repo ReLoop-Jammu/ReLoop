@@ -48,7 +48,7 @@ export default async function WhatWeAcceptPage() {
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
         <Eyebrow>What we accept</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
           What shops and institutions can sell us.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">

@@ -36,7 +36,7 @@ export function HubShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <aside className="border-b border-line bg-brand-950 text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0 print:hidden">
+      <aside className="border-b border-line bg-mesh text-white lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0 print:hidden">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5 lg:py-6">
           <Link href="/hub" className="flex items-center gap-2 font-display text-lg font-bold">
             <LogoMark id="hub" inverted className="size-7" />
@@ -74,7 +74,7 @@ export function HubShell({ children }: { children: ReactNode }) {
           </p>
         )}
         <HubErrors />
-        <main id="main" className="px-4 py-6 sm:px-8 sm:py-8">
+        <main id="main" className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-8 sm:py-10">
           {SHARED_DATABASE ? <RequireRole role="staff">{children}</RequireRole> : children}
         </main>
       </div>
@@ -117,8 +117,8 @@ function HubMenu({ pathname }: { pathname: string }) {
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition",
                         active
-                          ? "bg-white/15 font-semibold text-white"
-                          : "text-white/70 hover:bg-white/5 hover:text-white",
+                          ? "bg-white/15 font-semibold text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12)]"
+                          : "text-white/70 hover:bg-white/[0.07] hover:text-white",
                       )}
                     >
                       <Icon className="size-4" aria-hidden="true" />

@@ -43,7 +43,7 @@ export default async function MonthPage({ params }: PageProps<"/reports/[month]"
           Monthly reports
         </Link>
       </Eyebrow>
-      <h1 className="mt-4 text-4xl font-bold sm:text-5xl">{title}</h1>
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">{title}</h1>
       <dl className="mt-10 grid max-w-3xl gap-x-8 gap-y-4 sm:grid-cols-2">
         {MONTH_COLUMNS.filter(([k]) => k !== "month").map(([key, label]) => (
           <div key={key} className="flex justify-between gap-4 border-b border-line pb-2">

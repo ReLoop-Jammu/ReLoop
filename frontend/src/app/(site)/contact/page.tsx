@@ -40,7 +40,7 @@ export default async function ContactPage() {
     <Container className="py-12 sm:py-20">
       <div className="max-w-2xl">
         <Eyebrow>Contact</Eyebrow>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">Talk to ReLoop</h1>
+        <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">Talk to ReLoop</h1>
         <p className="mt-4 text-lg leading-relaxed text-muted">
           Questions about an item, selling to us, or becoming a partner shop? Reach the ReLoop team
           in Jammu.
