@@ -70,7 +70,7 @@ export default async function InstitutionsPage() {
           <RequestForm
             kind="institution_pickup"
             title="Institution pickup booking"
-            submitLabel="Prepare my booking"
+            submitLabel="Send my booking"
             fields={[
               {
                 name: "institution",

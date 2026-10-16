@@ -10,7 +10,7 @@ import { controlClasses } from "@/components/ui/controls";
 import { IS_SIMULATION } from "@/lib/environment";
 import { SimulationFormNote } from "@/components/layout/SimulationFormNote";
 import { HandoffPanel } from "./HandoffPanel";
-import { StatusLink } from "./StatusLink";
+import { RequestReceived } from "./RequestReceived";
 
 export type Field = {
   name: string;
@@ -39,7 +39,7 @@ type Props = {
 /** The shared control style (components/ui/controls.ts), kept under its old name for the forms that import it. */
 export const inputClass = controlClasses();
 
-/** Generic sell-side request form with inline validation and WhatsApp/email handoff. */
+/** Generic request form with inline validation. A saved request is a hub ticket; WhatsApp/email are extras. */
 export function RequestForm({ kind, title, fields, submitLabel, initial = {}, itemId }: Props) {
   const formId = useId();
   const [values, setValues] = useState<Record<string, string>>(() =>
@@ -48,6 +48,7 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState<string | null>(null);
   const [saved, setSaved] = useState(true);
+  const [ticket, setTicket] = useState<string | null>(null);
   const [tracking, setTracking] = useState<{ token: string | null; linked: boolean }>({
     token: null,
     linked: false,
@@ -83,6 +84,7 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
     );
     const result = await addSubmission(kind, values, itemId);
     setSaved(result.saved);
+    setTicket(result.ticket);
     setTracking({ token: result.statusToken, linked: result.linked });
     setSent(text);
   };
@@ -97,12 +99,19 @@ export function RequestForm({ kind, title, fields, submitLabel, initial = {}, it
               : "We couldn't keep a copy of this request, so please send it to us below."}
           </p>
         )}
-        {saved && tracking.token && <StatusLink token={tracking.token} linked={tracking.linked} />}
+        {saved && (
+          <RequestReceived
+            kind={kind}
+            ticket={ticket}
+            phone={values.phone ?? ""}
+            tracking={tracking}
+          />
+        )}
         <HandoffPanel
-          subject={`ReLoop: ${title}`}
-          text={sent}
+          subject={ticket ? `ReLoop: ${title} (${ticket})` : `ReLoop: ${title}`}
+          text={ticket ? `${sent}\nTicket: ${ticket}` : sent}
           saved={saved}
-          onReset={() => setSent(null)}
+          onReset={saved ? undefined : () => setSent(null)}
         />
       </>
     );

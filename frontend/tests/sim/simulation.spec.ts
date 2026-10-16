@@ -168,8 +168,8 @@ test.describe("accounts and requests (real logins)", () => {
     await page.getByLabel("Your name").fill("Demo Buyer");
     await page.getByLabel("Phone / WhatsApp").fill("9000000123");
     await page.getByLabel("Your question").fill(question);
-    await page.getByRole("button", { name: "Prepare my question" }).click();
-    await expect(page.getByText("Your request is saved", { exact: true })).toBeVisible({
+    await page.getByRole("button", { name: "Send my question" }).click();
+    await expect(page.getByText("Question received", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
     return tag;

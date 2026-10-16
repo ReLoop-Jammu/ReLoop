@@ -43,3 +43,8 @@ export function cleanRequest(body: unknown): CleanRequest | { error: string } {
   if (JSON.stringify(fields).length > 7000) return { error: "That's too long. Please shorten it." };
   return { kind, fields, itemId };
 }
+
+/** The short reference a visitor and staff both quote for a request: "RQ-" and the start of its id. */
+export function ticketRef(id: string): string {
+  return `RQ-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+}

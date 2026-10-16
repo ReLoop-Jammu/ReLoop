@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { Submission } from "@/features/inventory/model";
 import { SHARED_DATABASE, setItemStatus } from "@/features/inventory/store";
+import { ticketRef } from "@/features/sell/requests";
 import { IS_SIMULATION } from "@/lib/environment";
 import { cancelRequest, listRequests, setRequestStatus, type HubRequest } from "../loop";
 import { reportHubError } from "../useHubData";
@@ -35,6 +36,7 @@ export function RequestsPage() {
   const [rows, setRows] = useState<HubRequest[] | null>(null);
   const [kind, setKind] = useState<Submission["kind"] | "all">("all");
   const [status, setStatus] = useState<Submission["status"] | "open">("open");
+  const [search, setSearch] = useState("");
   const load = useCallback(() => {
     listRequests().then(setRows).catch(reportHubError);
   }, []);
@@ -42,23 +44,40 @@ export function RequestsPage() {
     if (SHARED_DATABASE) load();
   }, [load]);
 
-  const shown = (rows ?? []).filter(
-    (r) =>
-      (kind === "all" || r.kind === kind) &&
-      (status === "open" ? OPEN.has(r.status) : r.status === status),
+  // A ticket quoted by phone may be closed, so a search looks at every status.
+  const needle = search.trim().toUpperCase().replace(/^#/, "");
+  const digits = needle.replace(/\D/g, "");
+  const matches = (r: HubRequest) =>
+    ticketRef(r.id).includes(needle) ||
+    (digits.length >= 4 && (r.fields.phone ?? "").replace(/\D/g, "").includes(digits));
+  const shown = (rows ?? []).filter((r) =>
+    needle
+      ? matches(r)
+      : (kind === "all" || r.kind === kind) &&
+        (status === "open" ? OPEN.has(r.status) : r.status === status),
   );
 
   return (
     <>
       <PageTitle
         title="Requests"
-        description="Reservations, questions about items and institution pickup bookings from the public site. Contact people by WhatsApp, then update the status. Closed requests (sold, cancelled or done) are deleted automatically 12 months after closing."
+        description="Every reservation, question about an item and institution pickup booking from the public site lands here as a ticket (RQ-…), whether or not the person also messaged us. Contact people by WhatsApp, then update the status. Closed requests (sold, cancelled or done) are deleted automatically 12 months after closing."
       />
       {!SHARED_DATABASE ? (
         <p className="text-sm text-muted">Requests are kept in the shared database.</p>
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-3">
+            <label className="grid gap-1 text-xs font-medium">
+              Ticket or phone
+              <input
+                className={hubInput}
+                type="search"
+                value={search}
+                placeholder="RQ-3F9A2C"
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
             <label className="grid gap-1 text-xs font-medium">
               Kind
               <select
@@ -142,7 +161,8 @@ function RequestRow({ row, onChanged }: { row: HubRequest; onChanged: () => void
     <li className="py-4 text-sm">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-semibold">
-          {label.replace(/s$/, "")} · {name || "No name"}
+          <span className="font-mono">{ticketRef(row.id)}</span> · {label.replace(/s$/, "")} ·{" "}
+          {name || "No name"}
           {row.item_id && (
             <>
               {" "}

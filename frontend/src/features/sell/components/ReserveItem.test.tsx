@@ -7,7 +7,9 @@ afterEach(() => vi.unstubAllGlobals());
 function stubRequests(ok = true) {
   const fetchMock = vi.fn(
     async () =>
-      new Response(JSON.stringify(ok ? { ok: true } : { error: "x" }), { status: ok ? 200 : 503 }),
+      new Response(JSON.stringify(ok ? { ok: true, ticket: "RQ-3F9A2C" } : { error: "x" }), {
+        status: ok ? 200 : 503,
+      }),
   );
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -20,7 +22,7 @@ const props = {
 };
 
 describe("reserving or asking about an item", () => {
-  it("saves a reservation for staff, linked to the item, then hands off", async () => {
+  it("saves a reservation as a ticket for staff, linked to the item", async () => {
     const fetchMock = stubRequests();
     render(<ReserveItem {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "Reserve this item" }));
@@ -31,7 +33,7 @@ describe("reserving or asking about an item", () => {
     fireEvent.change(screen.getByLabelText(/^How\ do\ you\ want\ it\?/), {
       target: { value: "Delivery in Jammu city (₹50)" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Prepare my reservation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send my reservation" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("/api/requests");
@@ -40,7 +42,12 @@ describe("reserving or asking about an item", () => {
       itemId: "RL-JMU-0006",
       fields: { name: "Asha", phone: "98765 43210", fulfilment: "Delivery in Jammu city (₹50)" },
     });
-    expect(await screen.findByText("Almost done: send this to ReLoop")).toBeInTheDocument();
+    expect(await screen.findByText("Reservation received")).toBeInTheDocument();
+    expect(screen.getByText("RQ-3F9A2C")).toBeInTheDocument();
+    expect(screen.getByText(/We'll call or WhatsApp you on 98765 43210/)).toBeInTheDocument();
+    // Saved: WhatsApp and email are optional extras, and editing would make a second ticket.
+    expect(screen.queryByText("Almost done: send this to ReLoop")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit details" })).not.toBeInTheDocument();
     expect(screen.queryByText(/couldn't keep a copy/)).not.toBeInTheDocument();
   });
 
@@ -55,7 +62,7 @@ describe("reserving or asking about an item", () => {
     fireEvent.change(screen.getByLabelText(/^Your\ question/), {
       target: { value: "Battery health?" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Prepare my question" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send my question" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const body = JSON.parse(
       (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string,
@@ -66,6 +73,8 @@ describe("reserving or asking about an item", () => {
       fields: { question: "Battery health?" },
     });
     expect(await screen.findByText(/couldn't keep a copy/)).toBeInTheDocument();
+    expect(screen.getByText("Almost done: send this to ReLoop")).toBeInTheDocument();
+    expect(screen.queryByText("Question received")).not.toBeInTheDocument();
   });
 
   it("samples can't be reserved or asked about", () => {
