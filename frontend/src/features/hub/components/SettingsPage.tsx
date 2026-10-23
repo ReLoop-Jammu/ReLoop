@@ -384,8 +384,8 @@ function RateCardSection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
     setV({ ...v, [k]: e.target.value });
   return (
     <Section
-      title="Rate card and published terms"
-      description="The per-kg rate card, the Parts Exchange commission and the institution lot fee are published terms: the Rate card page and the shop pages show them. Every weigh-in keeps a snapshot of the rates used, so a change never touches earlier receipts."
+      title="Scrap prices and published terms"
+      description="The scrap prices per kg, the used parts shop commission and the institution lot fee are published terms: the Scrap prices page and the shop pages show them. Every weigh-in keeps a snapshot of the rates used, so a change never touches earlier receipts."
       onSaved={onSaved}
       save={() => {
         const out: [string, unknown][] = [];
@@ -399,7 +399,8 @@ function RateCardSection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
           if (!(r >= 0 && r <= 5000)) return `${label}: enter rupees per kg between 0 and 5,000.`;
           out.push([key, toPaise(v[k])]);
         }
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(v.asOf)) return "Enter the rate card date as YYYY-MM-DD.";
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v.asOf))
+          return "Enter the scrap prices date as YYYY-MM-DD.";
         const c = Number(v.commission);
         if (!(c >= 0 && c <= 30)) return "The commission is a percentage between 0 and 30.";
         const fee = Number(v.lotFee);
@@ -422,10 +423,10 @@ function RateCardSection({ rows, onSaved }: { rows: Rows; onSaved: () => void })
         <Field label="Everything else (₹ per kg)">
           <Input inputMode="decimal" value={v.other} onChange={set("other")} />
         </Field>
-        <Field label="Rate card date" hint="Shown as “as of” on the Rate card page">
+        <Field label="Scrap prices date" hint="Shown as “as of” on the Scrap prices page">
           <Input value={v.asOf} onChange={set("asOf")} />
         </Field>
-        <Field label="Parts Exchange commission (%)">
+        <Field label="Used parts shop commission (%)">
           <Input inputMode="decimal" value={v.commission} onChange={set("commission")} />
         </Field>
         <Field label="Institution lot fee (₹)">
@@ -507,7 +508,7 @@ function NumbersSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }) 
   return (
     <Section
       title="Pricing and capacity"
-      description="The grade-B factor and the reference-price window are public (they explain the price bands). Handling and the device rack slots are for staff only. Leave the rack slots empty until the hub lead has counted them: no capacity percentage or alert is shown until then. Handling defaults to ₹0; the B repair cost is the actual repair fee."
+      description="The grade-B factor and the reference-price window are public (they explain the usual price ranges). Handling and the device rack slots are for staff only. Leave the rack slots empty until the hub lead has counted them: no capacity percentage or alert is shown until then. Handling defaults to ₹0; the B repair cost is the actual repair fee."
       onSaved={onSaved}
       save={() => {
         const factor = Number(v.factor),
@@ -570,8 +571,8 @@ const STAFF_NUMBERS: [key: string, label: string, hint: string][] = [
   ],
   [
     "finance.parts_target_monthly_paise",
-    "Tested parts sold a month, target (₹)",
-    "Parts Exchange included. Staff-only.",
+    "Used parts sold a month, target (₹)",
+    "Used parts shop included. Staff-only.",
   ],
   ["finance.fixed_costs_monthly_paise", "Fixed costs a month (₹)", "Staff-only."],
   ["finance.setup_costs_paise", "Set-up costs (₹)", "Staff-only."],
@@ -615,7 +616,7 @@ function StaffPlanSection({ rows, onSaved }: { rows: Rows; onSaved: () => void }
   return (
     <Section
       title="Staff-only plan figures and launch dates"
-      description="These never appear on the public site or in any public view. They start empty: enter them from the private business plan. VRRG rates are what the dismantling partner pays per kg, by bin."
+      description="These never appear on the public site or in any public view. They start empty: enter them from the private business plan. VRRG rates are what the licensed recycler pays per kg, by bin."
       onSaved={onSaved}
       save={() => {
         const out: [string, unknown][] = [];

@@ -8,9 +8,9 @@ import { num } from "@/features/transparency/model";
 import { getLedger } from "@/features/transparency/queries";
 
 export const metadata: Metadata = {
-  title: "Handover ledger",
+  title: "List of scrap sent for recycling",
   description:
-    "Every handover to VRRG Group, our dismantling partner: date, categories and kilograms, with the receipt number for ReLoop's own handovers.",
+    "Every handover to VRRG Group, our licensed recycler: date, categories and kilograms, with the receipt number for ReLoop's own handovers.",
 };
 
 export const revalidate = 300;
@@ -21,9 +21,11 @@ export default async function LedgerPage() {
   return (
     <Container className="py-12 sm:py-16">
       <Eyebrow>Transparency</Eyebrow>
-      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">Handover ledger</h1>
+      <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
+        List of scrap sent for recycling
+      </h1>
       <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
-        Every time scrap leaves the hub for VRRG Group, our dismantling partner, it is weighed on
+        Every time scrap leaves the hub for VRRG Group, our licensed recycler, it is weighed on
         their receipt. ReLoop&apos;s own handovers show that receipt&apos;s number. Lots collected
         from institutions are shown as &ldquo;Institution lot&rdquo;, named only if the institution
         agreed.

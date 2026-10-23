@@ -11,7 +11,7 @@ export const STAGE_LABEL: Record<string, { title: string; detail: string }> = {
   received: { title: "Received at the hub", detail: "Bought by ReLoop and given this tag." },
   graded: { title: "Graded", detail: "Tested and graded at the hub." },
   inspected: {
-    title: "Inspected (ReLoop Checked)",
+    title: "Tested (our test report)",
     detail: "Every check recorded, and a grade given.",
   },
   data_wiped: { title: "Personal data wiped", detail: "Wiped before it could go to anyone else." },
@@ -31,7 +31,7 @@ export const STAGE_LABEL: Record<string, { title: string; detail: string }> = {
   },
   recycled: {
     title: "Handed to VRRG Group",
-    detail: "Handed to our dismantling partner, VRRG Group, by weight.",
+    detail: "Handed to our licensed recycler, VRRG Group, by weight.",
   },
 };
 

@@ -78,7 +78,7 @@ export type Flag = { itemId?: string; bin?: string; message: string };
 /**
  * Flags against the plan's unit figures only (no margin target). A sold device
  * whose margin is under the per-device figure; a bin whose VRRG rate minus our
- * rate card is under the per-kg spread. Nothing is flagged while a figure is unset.
+ * scrap prices is under the per-kg spread. Nothing is flagged while a figure is unset.
  */
 export function pricingFlags(rows: readonly MarginRow[], b: Benchmarks): Flag[] {
   const flags: Flag[] = [];
@@ -105,7 +105,7 @@ export function pricingFlags(rows: readonly MarginRow[], b: Benchmarks): Flag[] 
       if (theirs - ours < spread)
         flags.push({
           bin,
-          message: `The ${bin} spread (VRRG rate minus our rate card) is under the per-kg figure`,
+          message: `The ${bin} spread (VRRG rate minus our scrap prices) is under the per-kg figure`,
         });
     }
   }

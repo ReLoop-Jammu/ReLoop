@@ -34,7 +34,7 @@ export default async function CounterCardPage() {
         </p>
 
         <table className="mt-[8mm] w-full text-left text-[17pt]">
-          <caption className="sr-only">ReLoop rate card per kilo</caption>
+          <caption className="sr-only">ReLoop scrap prices per kg</caption>
           <tbody className="divide-y-2 divide-line">
             {rows.map(([label, paise]) => (
               <tr key={label}>
@@ -72,7 +72,9 @@ export default async function CounterCardPage() {
         <div className="mt-auto mb-[14mm] flex items-center gap-[10mm] rounded-[6mm] bg-sunken p-[8mm]">
           <RateCardQr size="52mm" />
           <div>
-            <p className="font-display text-[22pt] leading-tight font-bold">The live rate card</p>
+            <p className="font-display text-[22pt] leading-tight font-bold">
+              Our scrap prices today (per kg)
+            </p>
             <p className="mt-[2mm] text-[13pt] text-ink-soft">Scan for today&apos;s rates</p>
             {site.supportPhone && (
               <p className="mt-[6mm] text-[13pt]">

@@ -11,7 +11,8 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with ReLoop Jammu about buying, selling or recycling electronics.",
+  description:
+    "Get in touch with ReLoop Jammu about buying or selling used phones, laptops, computers, monitors and parts.",
 };
 
 function Card({

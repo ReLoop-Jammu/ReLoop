@@ -27,13 +27,13 @@ export type ShopItem = {
   dataWiped: boolean;
   warrantyDays: number | null;
   listedAt: string;
-  /** The ReLoop Checked report: what the hub inspection found (absent for samples). */
+  /** Our test report: what the hub inspection found (absent for samples). */
   report?: ShopReport;
   /** True for illustrative items shown before real stock exists. */
   sample?: boolean;
   /** True for hub stock (the items table): the only items that can be saved. */
   hub?: boolean;
-  /** A part a partner shop listed on the Parts Exchange, if the shop agreed to be named. */
+  /** A part a partner shop listed in our used parts shop, if the shop agreed to be named. */
   listedBy?: { name: string; market?: string };
 };
 
@@ -188,7 +188,7 @@ const filtersSchema = z.object({
 export type ShopFilters = {
   q?: string;
   grade?: "A" | "B" | "C";
-  /** Devices (the default) or the Parts Exchange: parts are shown apart from refurbished devices. */
+  /** Devices (the default) or the used parts shop: parts are shown apart from refurbished devices. */
   kind?: "devices" | "parts";
   category?: Category;
   brand?: string;

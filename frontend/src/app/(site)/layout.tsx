@@ -24,6 +24,12 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
           <div className="absolute -top-32 right-[8%] h-80 w-80 rounded-full bg-[radial-gradient(closest-side,var(--color-gold-100),transparent)]" />
         </div>
         <SignedOutNotice />
+        <p
+          lang="hi"
+          className="hi-missing border-b border-line bg-gold-100 px-4 py-2 text-center text-sm text-ink"
+        >
+          इस पेज का ज़्यादातर हिस्सा अभी अंग्रेज़ी में है। मदद चाहिए तो हमें WhatsApp करें।
+        </p>
         {children}
       </main>
       <Footer />

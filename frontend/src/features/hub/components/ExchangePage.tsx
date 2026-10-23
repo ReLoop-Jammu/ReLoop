@@ -26,13 +26,13 @@ export function ExchangePage() {
   return (
     <>
       <PageTitle
-        title="Parts Exchange"
+        title="Used parts shop"
         description="Verified shops list parts they harvest. Receive the part (it gets a tag), test and wipe it like any part, then approve the listing. ReLoop records the commission when it sells and pays the shop after the 7-day return window."
       />
       {SHARED_DATABASE ? (
         <Exchange />
       ) : (
-        <p className="text-sm text-muted">The Parts Exchange is kept in the shared database.</p>
+        <p className="text-sm text-muted">The used parts shop is kept in the shared database.</p>
       )}
     </>
   );
@@ -250,7 +250,7 @@ function Exchange() {
 }
 
 function ShareCuts({ cuts }: { cuts: PriceCut[] }) {
-  const text = `ReLoop Parts Exchange: price cuts this week\n${cuts
+  const text = `ReLoop used parts shop: price cuts this week\n${cuts
     .map((c) => `${c.title}: ${formatPrice(Number(c.current_paise))} (${c.item_id})`)
     .join("\n")}\n${typeof window === "undefined" ? "" : window.location.origin}/parts`;
   return (

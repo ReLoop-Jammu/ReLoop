@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 };
 
 const TRY: Partial<Record<(typeof DEMO_ACCOUNTS)[number]["key"], string>> = {
-  shop: "See your submissions and ReLoop's offers, your weigh-ins and receipts, and list parts on the Parts Exchange.",
-  buyer: "Browse the shop and the Parts Exchange, reserve items and follow your requests.",
+  shop: "See your submissions and ReLoop's offers, your weigh-ins and receipts, and list parts in our used parts shop.",
+  buyer: "Browse the shop and our used parts shop, reserve items and follow your requests.",
 };
 /** The staff and admin demo logins are shared privately, not listed on a public page. */
 const PUBLIC_LOGINS = DEMO_ACCOUNTS.filter((a) => a.key in TRY);
@@ -60,11 +60,11 @@ export default function DemoPage() {
             {Math.round(GRADE_MIX.C * 100)}% and D {Math.round(GRADE_MIX.D * 100)}%.
           </li>
           <li>
-            Scrap is paid by the public rate card. Prices that come from the plan are simulated
-            working values, not real ones.
+            Scrap is paid by our published scrap prices. Prices that come from the plan are
+            simulated working values, not real ones.
           </li>
           <li>
-            Repairs by partner shops, parts stripped from grade C devices, Parts Exchange listings
+            Repairs by partner shops, parts stripped from grade C devices, used parts shop listings
             by partner shops, institution lots, and handovers to VRRG Group when a bin reaches 100
             kg or 14 days pass.
           </li>

@@ -12,8 +12,8 @@ const steps = [
     body: "Every phone, laptop and monitor is tagged at our Jammu hub, tested, wiped and graded A to D. Grade A and B devices carry a 30-day warranty.",
   },
   {
-    title: "Tested parts for technicians",
-    body: "Boards, screens, cameras, charging ports, RAM and SSDs, tested and listed on the Jammu Parts Exchange with a 7-day return.",
+    title: "Used parts, tested and working, for technicians",
+    body: "Boards, screens, cameras, charging ports, RAM and SSDs, tested and listed in our used parts shop with a 7-day return.",
   },
   {
     title: "Colleges, schools, banks and offices",

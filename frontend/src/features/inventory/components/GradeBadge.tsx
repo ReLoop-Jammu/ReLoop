@@ -8,7 +8,7 @@ const STYLE: Record<Grade, string> = {
   D: "bg-grade-d-bg text-grade-d",
 };
 
-/** The label parts carry instead of a grade: a tested part (grades apply to devices only). */
+/** The label parts carry instead of a grade: a used part, tested and working (grades apply to devices only). */
 export function TestedPartBadge({
   size = "md",
   className,
@@ -25,7 +25,7 @@ export function TestedPartBadge({
         className,
       )}
     >
-      Tested part
+      Used part, tested and working
     </span>
   );
 }

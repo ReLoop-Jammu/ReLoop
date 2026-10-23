@@ -4,7 +4,7 @@ import { PartnerBadgeQr, Sheet } from "@/features/print/Sheet";
 
 export const metadata: Metadata = { title: "ReLoop Partner window badge (A5)" };
 
-/** The A5 badge a partner shop puts in its window: tested parts from ReLoop, and where to find the hub. */
+/** The A5 badge a partner shop puts in its window: used parts, tested and working from ReLoop, and where to find the hub. */
 export default function PartnerBadgePage() {
   return (
     <Sheet size="A5">
@@ -17,11 +17,11 @@ export default function PartnerBadgePage() {
           ReLoop Partner
         </p>
         <h1 className="mt-[4mm] font-display text-[34pt] leading-[1.05] font-bold">
-          Tested parts from ReLoop
+          Used parts, tested and working, from ReLoop
         </h1>
         <p className="mt-[4mm] text-[13pt] leading-snug text-ink-soft">
-          This shop sells its repair leftovers to ReLoop by weight, and can get tested parts from
-          the ReLoop hub in Gandhi Nagar.
+          This shop sells its repair leftovers to ReLoop by weight, and can get used parts, tested
+          and working, from the ReLoop hub in Gandhi Nagar.
         </p>
         <div className="mt-[8mm]">
           <PartnerBadgeQr size="42mm" />

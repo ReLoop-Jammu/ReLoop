@@ -59,7 +59,7 @@ export function PriceFacts({
       {low !== null && high !== null && (
         <div>
           <p className="text-ink">
-            Estimated fair price{" "}
+            Usual price range{" "}
             {band?.band_scope === "model" ? "for this model" : "for this kind of item"} and grade:{" "}
             <strong>
               {formatPrice(low)} to {formatPrice(high)}

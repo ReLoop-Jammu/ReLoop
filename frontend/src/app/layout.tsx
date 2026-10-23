@@ -7,11 +7,12 @@ import { SiteSettingsProvider } from "@/features/settings/context";
 import { getSiteSettings } from "@/features/settings/server";
 import { env } from "@/lib/env";
 import { IS_SIMULATION } from "@/lib/environment";
+import { LANG_BOOT_SCRIPT } from "@/lib/lang";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 // The business plan's type: Outfit for headings, Instrument Sans for text,
-// JetBrains Mono only for real identifiers (RL-JMU tags, receipt numbers).
+// JetBrains Mono only for real identifiers (item numbers, receipt numbers).
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 const instrument = Instrument_Sans({
   subsets: ["latin"],
@@ -28,7 +29,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
-    default: "ReLoop Jammu — Graded used electronics, collected in Jammu",
+    default: "ReLoop Jammu — Tested used phones, laptops, computers and parts",
     template: "%s · ReLoop Jammu",
   },
   description: SITE.description,
@@ -49,7 +50,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en-IN"
       className={`${outfit.variable} ${instrument.variable} ${jetbrains.variable}`}
+      // The boot script may set data-lang before React loads.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: LANG_BOOT_SCRIPT }} />
+      </head>
       <body className="flex min-h-dvh flex-col font-sans">
         <SimulationBanner />
         <SiteSettingsProvider value={settings}>{children}</SiteSettingsProvider>

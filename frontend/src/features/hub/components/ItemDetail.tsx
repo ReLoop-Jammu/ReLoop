@@ -291,7 +291,7 @@ function GradePanel({
   }
 
   return (
-    <Panel title="Inspect and grade (ReLoop Checked)">
+    <Panel title="Inspect and grade (our test report)">
       <fieldset disabled={locked}>
         <legend className="sr-only">Inspection</legend>
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -378,8 +378,8 @@ function GradePanel({
           </Field>
         </div>
         <p className="mt-3 text-xs text-muted">
-          Once the item is listed, the checks and health readings are shown on its shop page as the
-          ReLoop Checked report. Faults are not.
+          Once the item is listed, the checks and health readings are shown on its shop page as our
+          test report. Faults are not.
         </p>
         <Button className="mt-4" size="sm" disabled={!grade} onClick={save}>
           Save inspection and grade
@@ -479,8 +479,7 @@ function ActionsPanel({ item, partners, wipeDone, reload, setMsg }: ActionProps)
           )}
           {!inspected && (
             <p className="text-sm text-grade-c">
-              Save the inspection (above) before listing: it is the item&apos;s ReLoop Checked
-              report.
+              Save the inspection (above) before listing: it becomes the item&apos;s test report.
             </p>
           )}
           <Button
@@ -865,7 +864,7 @@ function TagButtons({ id }: { id: string }) {
         target="_blank"
         className="text-sm font-semibold text-brand-600 underline"
       >
-        Passport
+        Item history
       </Link>
       {error && (
         <span role="alert" className="text-sm text-danger">

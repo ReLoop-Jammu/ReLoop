@@ -179,7 +179,7 @@ function Dashboard() {
             </Table>
           )}
         </Panel>
-        <Panel title="Parts Exchange commission">
+        <Panel title="Used parts shop commission">
           <p className="text-3xl font-bold tabular-nums">
             {formatPrice(commission.reduce((s, r) => s + Number(r.commission_paise), 0))}
           </p>

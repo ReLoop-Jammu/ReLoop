@@ -5,7 +5,7 @@ import { getSiteSettings } from "@/features/settings/server";
 import { formatPrice } from "@/lib/utils/money";
 
 export const metadata: Metadata = {
-  title: "Rate card standard",
+  title: "Scrap prices standard",
   description:
     "How ReLoop weighs and pays for scrap by the kilo, what each category covers, and what we don't take.",
 };
@@ -14,13 +14,13 @@ export default async function RateCardStandardPage() {
   const site = await getSiteSettings();
   return (
     <StandardPage
-      title="Rate card standard"
+      title="Scrap prices standard"
       lead={
         <>
-          Scrap is bought by weight at one published rate card, the same for every shop. The live
-          rates are on the{" "}
+          Scrap is bought by weight at one published list of scrap prices, the same for every shop.
+          The live rates are on the{" "}
           <Link href="/rate-card" className="font-semibold text-brand-600 underline">
-            rate card
+            scrap prices
           </Link>
           , with the date they were set.
         </>
@@ -66,7 +66,7 @@ export default async function RateCardStandardPage() {
           body: (
             <p>
               Parts that may work go in a to-test bag under your name. Each one is priced on its own
-              after testing; you can decline, or list it yourself on the Parts Exchange.
+              after testing; you can decline, or list it yourself in our used parts shop.
             </p>
           ),
         },

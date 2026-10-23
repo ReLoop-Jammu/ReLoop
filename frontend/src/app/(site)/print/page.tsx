@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const SHEETS = [
   {
     title: "Shopkeeper counter card",
-    body: "The rate card per kilo with its date, the weekly pickup days, what we don't take, and a QR code to the live rate card. For the shop counter.",
+    body: "The scrap prices per kg with its date, the weekly pickup days, what we don't take, and a QR code to our scrap prices today. For the shop counter.",
     pdf: "/print/counter-card.pdf",
     page: "/print/counter-card",
   },
@@ -26,7 +26,7 @@ const SHEETS = [
   },
   {
     title: "ReLoop Partner window badge (A5)",
-    body: 'For a partner shop\'s window: "Tested parts from ReLoop", with a QR code to the hub and the routes.',
+    body: 'For a partner shop\'s window: "Used parts, tested and working, from ReLoop", with a QR code to the hub and the routes.',
     pdf: "/print/partner-badge.pdf",
     page: "/print/partner-badge",
   },

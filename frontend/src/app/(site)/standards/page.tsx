@@ -6,23 +6,23 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 export const metadata: Metadata = {
   title: "Our standards",
   description:
-    "The rules ReLoop works to: grading, data wiping, pricing, the rate card, warranty and returns, and ownership.",
+    "The rules ReLoop works to: grading, data wiping, pricing, our scrap prices, warranty and returns, and ownership.",
 };
 
 const STANDARDS = [
-  ["/standards/grading", "Grading", "What grades A to D mean, and what a tested part is."],
+  ["/standards/grading", "Grading", "What grades A to D mean, and how used parts are tested."],
   [
     "/standards/data-wipe",
     "Data wipe",
     "How storage is wiped, or destroyed, before anything moves on.",
   ],
-  ["/how-we-price", "How we price", "Grades, fair-price ranges and what happens to unsold stock."],
+  ["/how-we-price", "How we price", "Grades, usual price ranges and what happens to unsold stock."],
   [
     "/standards/rate-card",
-    "Rate card",
+    "Our scrap prices (per kg)",
     "What we pay per kilo, how we weigh, and what we don't take.",
   ],
-  ["/warranty", "Warranty and returns", "30 days on devices, 7 days on tested parts."],
+  ["/warranty", "Warranty and returns", "30 days on devices, 7 days on used parts."],
   ["/standards/ownership", "Ownership", "We buy only from people who own what they sell."],
   ["/compliance", "Compliance and partners", "The E-Waste Rules in plain words, and VRRG Group."],
 ] as const;

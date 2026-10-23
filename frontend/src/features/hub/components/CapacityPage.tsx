@@ -130,7 +130,9 @@ function Capacities() {
         </Panel>
         <Panel title="Parts shelf">
           <p className="text-3xl font-bold tabular-nums">{cap.parts_shelf.count}</p>
-          <p className="text-sm text-muted">tested parts on the shelf (a count, no limit)</p>
+          <p className="text-sm text-muted">
+            used parts (tested and working) on the shelf (a count, no limit)
+          </p>
         </Panel>
         <Panel title="Age of stock">
           <dl className="space-y-1 text-sm">

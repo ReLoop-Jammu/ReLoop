@@ -56,7 +56,7 @@ export async function handoverRecordPdf(r: HandoverRecord): Promise<Uint8Array> 
   if (t.bought.length) for (const line of t.bought) write(line, 10);
   else write(t.boughtNone, 10, regular, MUTED);
   y -= 8;
-  write("Handed to our dismantling partner", 12, bold, INK, 6);
+  write("Handed to our licensed recycler", 12, bold, INK, 6);
   write(t.handedOver, 10);
   for (const line of t.kg) write(line, 10);
   if (t.total) write(t.total, 10, bold);

@@ -63,7 +63,7 @@ export const TRACKED_LINKS: readonly TrackedLink[] = [
   },
   {
     slug: "rate-card",
-    use: "Printed rate card and shopkeeper counter card (QR code)",
+    use: "Printed scrap prices and shopkeeper counter card (QR code)",
     source: "qr",
     medium: "print",
     campaign: "rate-card-print",

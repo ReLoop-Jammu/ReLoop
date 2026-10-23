@@ -77,7 +77,7 @@ export type HubClaim = {
   item_id: string;
   buyer_id: string | null;
   opened_by: "buyer" | "staff";
-  /** "part_return": a Parts Exchange part, 7-day return window. */
+  /** "part_return": a used parts shop part, 7-day return window. */
   kind?: "warranty" | "part_return";
   contact_name: string;
   contact_phone: string;

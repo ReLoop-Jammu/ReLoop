@@ -86,7 +86,7 @@ export function Dashboard() {
           target="100% on a weight receipt"
         />
         <Stat
-          label="Tested parts sold (staff only)"
+          label="Used parts sold (staff only)"
           value={kpis ? formatPrice(kpis.parts_sold_paise) : "–"}
           target={
             partsTarget === null

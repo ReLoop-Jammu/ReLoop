@@ -33,15 +33,8 @@ const emptyItem = (): ItemDraft => ({
   description: "",
 });
 
-const categories = [
-  "Phones & tablets",
-  "Laptops",
-  "Desktops",
-  "Monitors",
-  "Printers",
-  "Accessories & parts",
-  "Other electronics",
-];
+// Only what ReLoop buys (src/config/items.ts); guessCategory() in the hub maps each one.
+const categories = ["Mobile phones", "Laptops", "Desktop computers", "Computer monitors", "Parts"];
 
 const noSubscribe = () => () => {};
 

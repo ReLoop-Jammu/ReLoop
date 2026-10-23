@@ -30,7 +30,7 @@ export function Sheet({
   );
 }
 
-/** The rate-card QR code: /go/rate-card, counted, then the live rate card page. */
+/** The rate-card QR code: /go/rate-card, counted, then our scrap prices today page. */
 export function RateCardQr({ size }: { size: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element

@@ -1,7 +1,7 @@
 import { BUSINESS_RULES } from "@/config/business-rules";
 import { SITE } from "@/lib/site";
 
-/** The public rate card per kg (published terms); the database setting overrides it. */
+/** The public scrap prices per kg (published terms); the database setting overrides it. */
 const RATE_CARD_DEFAULT = {
   screens: 17_000,
   batteries: 80_000,
@@ -30,13 +30,13 @@ export type SiteSettings = {
   hours: string | null;
   hubAddress: string | null;
   hubOpens: string;
-  /** The public rate card, paise per kg (a published term; see /rate-card). */
+  /** The public scrap prices, paise per kg (a published term; see /rate-card). */
   rateScreensPaise: number;
   rateBatteriesPaise: number;
   rateBoardsPaise: number;
   rateOtherPaise: number;
   rateCardAsOf: string;
-  /** Parts Exchange commission, percent: shown to shops, never to buyers. */
+  /** used parts shop commission, percent: shown to shops, never to buyers. */
   commissionPct: number;
   /** Institution lot fee, paise. */
   lotFeePaise: number;

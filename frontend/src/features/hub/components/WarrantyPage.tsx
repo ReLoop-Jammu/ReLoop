@@ -40,7 +40,7 @@ export function WarrantyPage() {
     <>
       <PageTitle
         title="Warranty claims"
-        description={`Grade A and B devices have a ${BUSINESS_RULES.warrantyDays}-day warranty from the sale, for faults present at sale (not physical or liquid damage, misuse or third-party repairs). ReLoop chooses the remedy: repair first, then replacement, then refund. Tested parts have a 7-day return window instead; a refunded part return reverses the shop's share. Closed claims are deleted 12 months after closing.`}
+        description={`Grade A and B devices have a ${BUSINESS_RULES.warrantyDays}-day warranty from the sale, for faults present at sale (not physical or liquid damage, misuse or third-party repairs). ReLoop chooses the remedy: repair first, then replacement, then refund. Used parts, tested and working, have a 7-day return window instead; a refunded part return reverses the shop's share. Closed claims are deleted 12 months after closing.`}
       />
       {SHARED_DATABASE ? (
         <Claims />

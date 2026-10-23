@@ -66,7 +66,7 @@ test.describe("warranty", () => {
   });
 });
 
-test("an unknown item passport is a not-found page", async ({ page }) => {
+test("an unknown item history is a not-found page", async ({ page }) => {
   const res = await page.goto("/passport/RL-JMU-9999");
   expect(res?.status()).toBe(404);
 });

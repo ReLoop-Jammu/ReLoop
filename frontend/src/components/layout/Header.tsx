@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { LanguageSwitch } from "@/components/i18n/LanguageSwitch";
+import { T } from "@/components/i18n/T";
 import { NAV_GROUPS } from "@/config/navigation";
 import { getSiteSettings } from "@/features/settings/server";
 import { IS_SIMULATION } from "@/lib/environment";
@@ -17,21 +19,27 @@ export async function Header() {
     <>
       <div className="bg-mesh text-sm text-white/80">
         <Container className="flex min-h-9 items-center justify-between gap-4 py-1.5">
-          <p className="flex items-center gap-2">
+          <p className="flex min-w-0 items-center gap-2">
             <span className="relative flex size-2" aria-hidden="true">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-gold-400 opacity-60 motion-reduce:hidden" />
               <span className="relative inline-flex size-2 rounded-full bg-gold-400" />
             </span>
-            Jammu pilot · weekly pickups from partner shops
+            <T
+              en="Jammu pilot · weekly pickups from partner shops"
+              hi="जम्मू पायलट · पार्टनर दुकानों से हर हफ़्ते पिकअप"
+            />
           </p>
-          {site.supportPhone && site.whatsapp && !IS_SIMULATION && (
-            <a
-              href={`https://wa.me/${site.whatsapp}`}
-              className="hidden font-medium whitespace-nowrap text-white hover:underline sm:inline"
-            >
-              WhatsApp {site.supportPhone}
-            </a>
-          )}
+          <div className="flex items-center gap-3">
+            {site.supportPhone && site.whatsapp && !IS_SIMULATION && (
+              <a
+                href={`https://wa.me/${site.whatsapp}`}
+                className="hidden font-medium whitespace-nowrap text-white hover:underline md:inline"
+              >
+                WhatsApp {site.supportPhone}
+              </a>
+            )}
+            <LanguageSwitch />
+          </div>
         </Container>
       </div>
       <header className="sticky top-0 z-40 border-b border-line/70 bg-surface/80 shadow-[0_1px_0_rgb(255_255_255/0.6)_inset] backdrop-blur-xl backdrop-saturate-150">

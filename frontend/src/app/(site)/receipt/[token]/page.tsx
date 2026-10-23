@@ -44,7 +44,7 @@ async function load(token: string): Promise<TokenReceipt | null> {
 const TITLE: Record<string, string> = {
   scrap: "Scrap weighed at the counter",
   tested_parts: "Tested working parts",
-  part_sale: "Your share of a Parts Exchange sale",
+  part_sale: "Your share of a used parts shop sale",
   lot: "Items bought by ReLoop",
   lot_equipment: "Equipment bought from an institution lot",
 };

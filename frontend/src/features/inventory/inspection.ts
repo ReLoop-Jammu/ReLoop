@@ -5,7 +5,7 @@ import type { Category, PartType } from "./model";
 export type CheckResult = "pass" | "fail" | "na";
 
 /**
- * The ReLoop Checked record for an item (stored as items.inspection, version
+ * The test report record for an item (stored as items.inspection, version
  * 1). Faults and notes are kept elsewhere: this record is public once listed.
  */
 export type Inspection = {

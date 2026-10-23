@@ -106,7 +106,7 @@ describe("summaries", () => {
     const items = impactLinks(impact, "items");
     expect(items.map((l) => l.target).sort()).toEqual([
       "Resold as devices",
-      "Sold as tested parts",
+      "Sold as used parts (tested and working)",
     ]);
   });
 

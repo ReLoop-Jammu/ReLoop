@@ -22,8 +22,8 @@ export default async function AboutPage() {
             <p>
               We buy repair leftovers and used devices from Jammu&apos;s repair shops, retailers and
               exchange stores, and from colleges, schools, banks and offices. At one hub in Gandhi
-              Nagar we test and grade everything, resell what works, sell tested parts to
-              technicians, and hand what is dead to VRRG Group by weight.{" "}
+              Nagar we test and grade everything, resell what works, sell used parts (tested and
+              working) to technicians, and hand what is dead to VRRG Group by weight.{" "}
               <Link href="/how-it-works" className="font-semibold text-brand-600 underline">
                 How it works
               </Link>

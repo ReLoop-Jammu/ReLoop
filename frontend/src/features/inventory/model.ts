@@ -2,7 +2,7 @@
  * Inventory domain model, following Business Plan v2: ReLoop buys devices and
  * parts, tags each one (RL-JMU-0001), grades devices A–D at the hub, then
  * resells, repairs or strips them for parts. Scrap is weighed by category and
- * handed to the dismantling partner, VRRG Group, Gangyal.
+ * handed to the licensed recycler, VRRG Group, Gangyal.
  * Money is integer paise; dates are ISO strings.
  */
 
@@ -30,17 +30,17 @@ export const GRADE_INFO: Record<
   },
   C: {
     label: "Grade C",
-    short: "Tested part",
+    short: "Sold for parts",
     outcome: "Stripped for parts",
     description:
-      "Not worth repairing as a whole, so its good parts are removed, tested and sold separately as tested parts.",
+      "Not worth repairing as a whole, so its good parts are removed and sold separately as used parts, each one tested and working.",
   },
   D: {
     label: "Grade D",
     short: "Dead, by weight",
     outcome: "Handed to VRRG Group by weight",
     description:
-      "Dead or hazardous: not resold for use. Its storage is wiped or destroyed, then it goes into a scrap bin and is handed to VRRG Group, our dismantling partner, by weight.",
+      "Dead or hazardous: not resold for use. Its storage is wiped or destroyed, then it goes into a scrap bin and is handed to VRRG Group, our licensed recycler, by weight.",
   },
 };
 
@@ -167,7 +167,7 @@ export type Item = {
   newPricePaise?: number;
   newPriceSource?: string;
   newPriceCheckedOn?: string;
-  /** The ReLoop Checked record; required before the item goes on sale. */
+  /** The test report record; required before the item goes on sale. */
   inspection?: Inspection;
   inspectedAt?: string;
   /** Kept off the public shop and every public page, whatever the status. */
@@ -177,7 +177,7 @@ export type Item = {
   ownershipConfirmedAt?: string;
   /** A locked device is only ever C or D, never resold whole. */
   lockedDevice?: boolean;
-  /** Set on a part a partner shop listed on the Parts Exchange (commission applies). */
+  /** Set on a part a partner shop listed in our used parts shop (commission applies). */
   listedByPartnerId?: string;
   commissionPct?: number;
   /** The weigh-in whose to-test bag this part came from. */

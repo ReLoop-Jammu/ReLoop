@@ -33,7 +33,7 @@ const intake = (overrides: Partial<NewItem> = {}): NewItem => ({
 beforeEach(() => localStorage.clear());
 
 describe("hub data layer (browser storage)", () => {
-  it("assigns RL-JMU tags in order", async () => {
+  it("assigns item numbers in order", async () => {
     const a = await createItem(intake());
     const b = await createItem(intake({ grade: "A" }));
     expect([a.id, b.id]).toEqual(["RL-JMU-0001", "RL-JMU-0002"]);

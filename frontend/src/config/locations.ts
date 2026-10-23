@@ -1,13 +1,13 @@
 /**
  * Everything the /locations page and its map show. Edit this one file to
- * update the hub, partner shops, the pickup routes or the dismantling partner.
+ * update the hub, partner shops, the pickup routes or the licensed recycler.
  *
  * Rules:
  * - Only list a partner shop with agreedToBeShown: true, after the shop owner
  *   has said yes to being on the public map.
  * - Keep approximate: true until a location is an exact, confirmed address.
  *   Approximate places are drawn as an area, not a pin.
- * - The dismantling partner's details are public information only; no phone
+ * - The licensed recycler's details are public information only; no phone
  *   numbers or exact addresses.
  */
 
@@ -101,7 +101,7 @@ export const LOCATIONS = {
   recycler: {
     name: "VRRG Group, Gangyal",
     description:
-      "Our dismantling partner, a JKPCC-authorised e-waste dismantler. Every kilo of scrap and every battery is handed to them by weight, on a weight receipt.",
+      "Our licensed recycler. Every kilo of scrap and every battery is handed to them by weight, on a weight receipt.",
     lat: 32.6873,
     lng: 74.8794,
     approximate: true,

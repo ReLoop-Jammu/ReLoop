@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: PageProps<"/shop/[itemId]">):
   const item = await getShopItem((await params).itemId);
   if (!item) return { title: "Item not found" };
   return {
-    title: `${item.title} (${item.category === "part" ? "Tested part" : `Grade ${item.grade}`})`,
-    description: `${item.category === "part" ? "Tested part" : GRADE_INFO[item.grade].label} · ${formatPrice(item.pricePaise)} · ${item.id}. ${item.description}`,
+    title: `${item.title} (${item.category === "part" ? "Used part, tested and working" : `Grade ${item.grade}`})`,
+    description: `${item.category === "part" ? "Used part, tested and working" : GRADE_INFO[item.grade].label} · ${formatPrice(item.pricePaise)} · ${item.id}. ${item.description}`,
     alternates: { canonical: `/shop/${item.id}` },
   };
 }
@@ -179,7 +179,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
           {item.category === "part" ? (
             <>
               <h2 className="mt-10 font-sans text-sm font-semibold tracking-normal text-muted">
-                A tested part
+                A used part, tested and working
               </h2>
               <p className="mt-2 leading-relaxed text-ink-soft">
                 Parts are not graded: each one is tested at our hub before it is listed, and the
@@ -256,7 +256,7 @@ export default async function ShopItemPage({ params }: PageProps<"/shop/[itemId]
                   href={`/passport/${item.id}`}
                   className="font-semibold text-brand-600 underline"
                 >
-                  See its passport
+                  See its item history
                 </Link>
               </>
             )}

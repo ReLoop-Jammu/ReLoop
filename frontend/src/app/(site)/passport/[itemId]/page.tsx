@@ -13,7 +13,7 @@ export async function generateMetadata({
 }: PageProps<"/passport/[itemId]">): Promise<Metadata> {
   const { itemId } = await params;
   return {
-    title: `Item passport ${itemId}`,
+    title: `Item history ${itemId}`,
     description: `Where ReLoop item ${itemId} has been: from the hub to its next life.`,
     // One page per tag: useful from the QR code, not as search results.
     robots: { index: false, follow: true },
@@ -42,7 +42,7 @@ export default async function PassportPage({ params }: PageProps<"/passport/[ite
   return (
     <Container className="py-12 sm:py-16">
       <div className="mx-auto max-w-2xl">
-        <Eyebrow>Item passport</Eyebrow>
+        <Eyebrow>Item history</Eyebrow>
         <h1 className="mt-2 font-mono text-3xl font-bold sm:text-4xl">{itemId}</h1>
         <p className="mt-2 text-lg text-ink-soft">
           {kind} · <strong className="text-ink">{whereNow(rows)}</strong>
@@ -59,8 +59,9 @@ export default async function PassportPage({ params }: PageProps<"/passport/[ite
         />
         <div className="mt-10 grid gap-3 rounded-card border border-line bg-surface p-5 text-sm text-ink-soft">
           <p>
-            Every item ReLoop buys gets a tag like this one at the Jammu hub. Its passport shows
-            each step and its date, and nothing about who sold or bought it, or for how much.
+            Every item ReLoop buys gets an item number like this one at the Jammu hub. Its item
+            history shows each step and its date, and nothing about who sold or bought it, or for
+            how much.
           </p>
           <p className="flex flex-wrap gap-x-4 gap-y-1">
             {onSale && (

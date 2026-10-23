@@ -10,9 +10,9 @@ const PUBLIC_PHONE = "+91 98712 76179";
 export const SITE = {
   name: "ReLoop Jammu",
   shortName: "ReLoop",
-  tagline: "Jammu's local loop for used electronics",
+  tagline: "Tested used phones, laptops and parts in Jammu",
   description:
-    "ReLoop buys used and broken electronics from Jammu's repair shops, retailers and institutions, tests and grades them at one hub, resells what still works and hands scrap to VRRG Group, our dismantling partner.",
+    "ReLoop buys used mobile phones, laptops, desktop computers and monitors from Jammu's repair shops, retailers and institutions, tests them at one hub and resells what works, with used parts (screens, batteries, boards, cameras, charging ports, keyboards) tested and working. Scrap goes to VRRG Group, Gangyal, our licensed recycler.",
   city: "Jammu, Jammu & Kashmir, India",
   /** Registered legal name of the business or organisation. */
   legalName: null as string | null,

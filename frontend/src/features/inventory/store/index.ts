@@ -87,7 +87,7 @@ export type NewItem = Omit<
 > &
   Partial<Pick<Item, "grade" | "checklist">>;
 
-/** Logs a new item at intake and assigns the next RL-JMU tag. */
+/** Logs a new item at intake and assigns the next item number. */
 export async function createItem(input: NewItem): Promise<Item> {
   // Grade A at intake means every check passed (CHECKLISTS), so that is its inspection.
   const inspected =

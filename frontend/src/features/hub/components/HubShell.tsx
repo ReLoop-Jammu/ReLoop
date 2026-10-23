@@ -141,7 +141,7 @@ function HubMenu({ pathname }: { pathname: string }) {
   );
 }
 
-/** Find an item by its RL-JMU tag, a shop or (admins) an account. */
+/** Find an item by its item number, a shop or (admins) an account. */
 function HubSearch() {
   // "/" jumps to the search box, unless the person is already typing somewhere.
   useEffect(() => {
@@ -171,7 +171,7 @@ function HubSearch() {
           id="hub-search"
           name="q"
           type="search"
-          placeholder="RL-JMU tag, shop or person (press /)"
+          placeholder="Item number, shop or person (press /)"
           className="min-h-10 w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
         />
       </div>

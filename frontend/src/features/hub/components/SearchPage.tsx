@@ -18,7 +18,7 @@ export function SearchPage() {
     <>
       <PageTitle
         title="Search"
-        description="Find an item by its RL-JMU tag, a shop, an institution or an account."
+        description="Find an item by its item number, a shop, an institution or an account."
       />
       <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
         <Search />

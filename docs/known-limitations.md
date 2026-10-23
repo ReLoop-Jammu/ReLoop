@@ -102,7 +102,10 @@ The hub (`/hub`) now runs on the shared Supabase database, behind a staff login.
 - **Tracked links** (`/go/ig-bio`, `/go/ig-post`, `/go/ig-story`, `/go/wa`, `/go/drive`) are counted in `link_visits` and shown to admins on `/hub/links`, per day or week, with a CSV. Vercel Analytics receives the UTM tags, but the free Hobby plan can't break visits down by them (that needs Web Analytics Plus). See `docs/report/tracked-links.md`.
 - **The impact counter** on the home page reads the `impact_totals` view. "Active partner shops" counts hub partners marked active, not verified website accounts.
 - **What we don't take** (large appliances, non-electronics, leaking batteries except at the hub) is a team policy choice; the business plan doesn't list exclusions.
-- **Hindi** on `/help` and in `docs/report/shop-owner-guide.md` hasn't been checked by a native speaker yet. The printables are English-only until it has.
+- **Hindi** on `/help`, in `docs/report/shop-owner-guide.md` and on the translated pages (home, `/sell`, `/sell/shops`, `/sell/institutions`, How to buy on `/shop`) hasn't been checked by a native speaker yet. The printables are English-only until it has.
+  - The language switch only changes page text. Page titles, link previews, the forms on the sell pages, item names, the activity feed and the impact numbers stay English; Hindi readers see a note on the forms and on untranslated pages.
+  - The choice is kept in the visitor's browser (`localStorage`), so it doesn't follow them to another device.
+- **Old names still inside the database:** the in-app notices "Tested parts paid as parts" and "It is now on the Jammu Parts Exchange" are written by SQL functions, so they need a migration to change. The public impact labels from the `impact_flows` view are renamed on the site instead.
 - **Printables** (`/print`): regenerate the PDFs with `npm run build -w frontend && npm run print -w frontend` after editing the sheet pages. The flyer uses national figures only; no official Jammu figure exists for those years.
 
 ## Business Plan v2 (batch 15b onwards)

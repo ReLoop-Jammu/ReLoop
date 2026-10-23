@@ -130,7 +130,7 @@ export function HandoversPage() {
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
               />
             </Field>
-            <Field label="Dismantling partner">
+            <Field label="Licensed recycler">
               <Input
                 value={form.recycler}
                 onChange={(e) => setForm({ ...form, recycler: e.target.value })}

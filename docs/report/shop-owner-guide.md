@@ -14,7 +14,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 | --- | --- |
 | Every week ReLoop's e-rickshaw visits your market on its fixed day. Your day is on `/locations`; the rates are on `/rate-card`. | हर हफ़्ते ReLoop की ई-रिक्शा आपके बाज़ार में तय दिन पर आती है। आपका दिन `/locations` पर है; रेट `/rate-card` पर हैं। |
 | We weigh your repair leftovers in front of you, by category: screens and displays, batteries, dead motherboards, and everything else. | हम आपके सामने रिपेयर का बचा सामान श्रेणी के हिसाब से तौलते हैं: स्क्रीन और डिस्प्ले, बैटरी, खराब मदरबोर्ड, और बाकी सब। |
-| You are paid by UPI on the spot at the rate card, and we give you a numbered receipt (RL-PAY-…). Cash is only an exception, and the receipt shows which was used. | रेट कार्ड के हिसाब से आपको उसी समय UPI से भुगतान होता है, और हम क्रमांक वाली रसीद (RL-PAY-…) देते हैं। नकद सिर्फ़ अपवाद है, और रसीद में लिखा होता है कि क्या इस्तेमाल हुआ। |
+| You are paid by UPI on the spot at our scrap prices, and we give you a numbered receipt (RL-PAY-…). Cash is only an exception, and the receipt shows which was used. | हमारे कबाड़ रेट (प्रति किलो) के हिसाब से आपको उसी समय UPI से भुगतान होता है, और हम क्रमांक वाली रसीद (RL-PAY-…) देते हैं। नकद सिर्फ़ अपवाद है, और रसीद में लिखा होता है कि क्या इस्तेमाल हुआ। |
 | Before we take anything you confirm that the scrap is yours to sell. We record it with the date and the staff member present. | कुछ भी लेने से पहले आप पुष्टि करते हैं कि कबाड़ आपका है और आप उसे बेच सकते हैं। हम तारीख़ और मौजूद स्टाफ़ के नाम के साथ इसे दर्ज करते हैं। |
 | We don't take TVs, printers, UPS units, small appliances, lead-acid or leaking batteries, or anything from homes. | हम TV, प्रिंटर, UPS, छोटे घरेलू उपकरण, लेड-एसिड या रिसती बैटरी, और घरों से आया कोई भी सामान नहीं लेते। |
 
@@ -26,7 +26,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 | Within 24 hours each part is tested and tagged. Working parts are paid as parts, not by the kilo, on the next route visit, as their own line on a receipt. You can decline. | 24 घंटे के अंदर हर पार्ट टेस्ट और टैग होता है। चालू पार्ट्स का भुगतान किलो के हिसाब से नहीं, पार्ट के रूप में होता है: अगली रूट विज़िट पर, रसीद की अलग लाइन में। आप मना कर सकते हैं। |
 | Parts that fail the test go to their bin and are paid at the kilo rate. The weight we wrote at your counter is the paid weight: if our hub scale differs a little, it is never charged back. | टेस्ट में फ़ेल पार्ट अपने बिन में जाते हैं और किलो के रेट पर गिने जाते हैं। आपके काउंटर पर लिखा वज़न ही भुगतान वाला वज़न है: हब की तराज़ू में थोड़ा फ़र्क हो तो भी वह कभी आपसे वापस नहीं लिया जाता। |
 
-## 3. Create an account (for devices and the Parts Exchange) / अकाउंट बनाएँ (डिवाइस और पार्ट्स एक्सचेंज के लिए)
+## 3. Create an account (for devices and the used parts shop) / अकाउंट बनाएँ (डिवाइस बेचने और पुराने पार्ट्स की दुकान के लिए)
 
 | English | हिन्दी |
 | --- | --- |
@@ -40,7 +40,7 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 | English | हिन्दी |
 | --- | --- |
 | Every new shop starts as "pending". ReLoop's staff check your details and call you on the phone number you gave. | हर नई दुकान पहले "pending" रहती है। ReLoop की टीम आपकी जानकारी जाँचती है और आपके दिए फ़ोन नंबर पर कॉल करती है। |
-| Open `/account` to see your status. When it says "verified", you can submit devices for an offer, and list parts on the Parts Exchange once ReLoop has linked your account to your shop's route stop. | अपना स्टेटस देखने के लिए `/account` खोलें। जब वहाँ "verified" लिखा हो, तो आप डिवाइस ऑफ़र के लिए जमा कर सकते हैं, और जब ReLoop आपका अकाउंट आपकी दुकान के रूट स्टॉप से जोड़ दे, तो पार्ट्स एक्सचेंज पर पार्ट लिस्ट कर सकते हैं। |
+| Open `/account` to see your status. When it says "verified", you can submit devices for an offer, and list parts in our used parts shop once ReLoop has linked your account to your shop's route stop. | अपना स्टेटस देखने के लिए `/account` खोलें। जब वहाँ "verified" लिखा हो, तो आप डिवाइस ऑफ़र के लिए जमा कर सकते हैं, और जब ReLoop आपका अकाउंट आपकी दुकान के रूट स्टॉप से जोड़ दे, तो हमारी पुराने पार्ट्स की दुकान पर पार्ट लिस्ट कर सकते हैं। |
 | A verified account is optional: you are paid for scrap at the counter without one. If verification takes long or was rejected, message us on WhatsApp. | वेरिफ़ाइड अकाउंट ज़रूरी नहीं है: कबाड़ का भुगतान काउंटर पर उसके बिना भी होता है। अगर देर हो रही है या आवेदन रद्द हुआ है, तो हमें WhatsApp करें। |
 
 ## 5. Offer devices (dead handsets, trade-ins) / डिवाइस का ऑफ़र लें (बंद हैंडसेट, ट्रेड-इन)
@@ -74,9 +74,9 @@ How to sell your shop's repair leftovers, working parts and dead devices to ReLo
 | Scrap is paid by UPI on the spot. Devices are paid at the offer you accepted. Parts are paid as parts. Each payment has its own receipt number (RL-PAY-…). | कबाड़ का भुगतान उसी समय UPI से होता है। डिवाइस का भुगतान आपके माने हुए ऑफ़र पर। पार्ट्स का भुगतान पार्ट के रूप में। हर भुगतान की अपनी रसीद संख्या (RL-PAY-…) होती है। |
 | Staff can send you your receipt on WhatsApp as a private link. All your receipts are also on `/account`, where you can download each one. | स्टाफ़ आपको WhatsApp पर रसीद का निजी लिंक भेज सकता है। आपकी सारी रसीदें `/account` पर भी हैं, जहाँ से आप हर रसीद डाउनलोड कर सकते हैं। |
 | You don't wait for items to sell: once we buy them, they are ReLoop's. | सामान बिकने का इंतज़ार नहीं करना पड़ता: खरीदने के बाद सामान ReLoop का हो जाता है। |
-| Your account also shows your partnership in numbers: what you sent, offers, pickups, what we paid you, your weigh-ins in kg and your Parts Exchange sales. Weights we have not measured are marked "estimated". | आपके अकाउंट में आपकी साझेदारी के आँकड़े भी दिखते हैं: आपने क्या भेजा, ऑफ़र, पिकअप, हमने आपको कितना भुगतान किया, किलो में आपके वज़न और पार्ट्स एक्सचेंज की बिक्री। जो वज़न हमने नहीं तौला, उसे "अनुमानित" लिखा जाता है। |
+| Your account also shows your partnership in numbers: what you sent, offers, pickups, what we paid you, your weigh-ins in kg and your used parts shop sales. Weights we have not measured are marked "estimated". | आपके अकाउंट में आपकी साझेदारी के आँकड़े भी दिखते हैं: आपने क्या भेजा, ऑफ़र, पिकअप, हमने आपको कितना भुगतान किया, किलो में आपके वज़न और पुराने पार्ट्स की दुकान की बिक्री। जो वज़न हमने नहीं तौला, उसे "अनुमानित" लिखा जाता है। |
 
-## 9. List parts on the Jammu Parts Exchange / जम्मू पार्ट्स एक्सचेंज पर पार्ट लिस्ट करें
+## 9. List parts in our used parts shop / हमारी पुराने पार्ट्स की दुकान पर पार्ट लिस्ट करें
 
 | English | हिन्दी |
 | --- | --- |

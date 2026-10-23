@@ -50,7 +50,7 @@ export type WeighinInput = {
   pickupId?: string | null;
 };
 
-/** Weighs a shop's scrap and pays the counter weight by the rate card. */
+/** Weighs a shop's scrap and pays the counter weight by our scrap prices. */
 export async function recordWeighin(w: WeighinInput): Promise<Receipt> {
   const rows = await rpc<
     {
@@ -103,7 +103,7 @@ export const listWeighins = () =>
     ),
   );
 
-/** Hands whole bins to the dismantling partner on the partner's weight receipt. */
+/** Hands whole bins to the licensed recycler on the partner's weight receipt. */
 export const recordBinHandover = (bins: Bin[], receiptNo: string, notes = "") =>
   rpc<string>("record_bin_handover", { p_bins: bins, p_receipt_no: receiptNo, p_notes: notes });
 

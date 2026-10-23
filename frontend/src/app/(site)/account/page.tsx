@@ -222,7 +222,7 @@ function ShopOwner({ access }: { access: Access }) {
             <>
               <ButtonLink href="/sell/shops">Offer devices to ReLoop</ButtonLink>
               <ButtonLink href="/account/parts" variant="secondary">
-                Parts Exchange
+                used parts shop
               </ButtonLink>
             </>
           ) : (
@@ -323,7 +323,7 @@ function Buyer() {
       href: "/shop",
       icon: ShoppingBag,
       title: "Browse the shop",
-      body: "Tested, graded and data-wiped electronics from the Jammu hub.",
+      body: "Tested, graded and data-wiped phones, laptops, computers, monitors and parts from the Jammu hub.",
     },
     {
       href: "/warranty",

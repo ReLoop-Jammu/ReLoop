@@ -4,7 +4,7 @@
  * Supabase adapter for the hub's data layer: the same functions as the
  * browser-storage version in ./index.ts, reading and writing the shared
  * database with the signed-in staff member's login. Row Level Security lets
- * only hub staff (and admins) in; the database assigns RL-JMU tags, logs grade,
+ * only hub staff (and admins) in; the database assigns item numbers, logs grade,
  * status and price changes, applies handovers and runs the day-45/75 rules.
  */
 
@@ -350,7 +350,7 @@ export async function createItem(
       listPaise: null,
       currentPaise: null,
     }),
-    // The database assigns the next RL-JMU tag and sets graded_at.
+    // The database assigns the next item number and sets graded_at.
     graded_at: null,
   });
   const id = String(row?.id);

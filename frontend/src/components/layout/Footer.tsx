@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { FOOTER_EXTRA, NAV_GROUPS, type NavGroup } from "@/config/navigation";
 import { getSiteSettings } from "@/features/settings/server";
+import { IS_SIMULATION } from "@/lib/environment";
 import { ReportProblem } from "./ReportProblem";
 
 function LinkColumn({ group }: { group: NavGroup }) {
@@ -36,12 +37,13 @@ export async function Footer() {
       <Container className="relative pt-16">
         <div className="flex flex-col gap-8 border-b border-white/10 pb-12 lg:flex-row lg:items-end lg:justify-between">
           <p className="max-w-2xl font-display text-3xl leading-tight font-bold tracking-tight text-white sm:text-5xl">
-            Jammu&apos;s loop for used electronics.{" "}
+            Used phones, laptops and parts, tested in Jammu.{" "}
             <span className="text-gold-400">Tested, graded, kept in use.</span>
           </p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/shop" variant="gold" size="lg">
-              Shop graded stock <ArrowRight className="size-4" aria-hidden="true" />
+              Shop tested phones, laptops and parts{" "}
+              <ArrowRight className="size-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink
               href="/sell"
@@ -59,12 +61,27 @@ export async function Footer() {
             <Logo id="footer" inverted />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed">
-            ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers and
-            institutions, tests and grades them at one hub, resells what still works and hands scrap
-            to VRRG Group, our dismantling partner, by weight.
+            ReLoop buys used mobile phones, laptops, desktop computers and monitors from
+            Jammu&apos;s repair shops, retailers and institutions, tests them at one hub and resells
+            what works, along with used parts, tested and working. Scrap goes to VRRG Group, our
+            licensed recycler, by weight.
           </p>
           {site.supportPhone && (
-            <p className="mt-4 text-sm text-white">WhatsApp {site.supportPhone}</p>
+            <p className="mt-4 text-sm text-white">
+              {site.whatsapp && !IS_SIMULATION ? (
+                <a
+                  href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent("Hi ReLoop, I need help")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-gold-400"
+                >
+                  WhatsApp help: {site.supportPhone}
+                  <span className="sr-only"> (opens WhatsApp in a new tab)</span>
+                </a>
+              ) : (
+                <>WhatsApp help: {site.supportPhone}</>
+              )}
+            </p>
           )}
           <p className="mt-2 text-sm">
             <ReportProblem className="underline underline-offset-2 hover:text-white" />

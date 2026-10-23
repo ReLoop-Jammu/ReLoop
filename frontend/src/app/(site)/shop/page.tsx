@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { T } from "@/components/i18n/T";
+import { Steps } from "@/components/marketing/Steps";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -12,6 +14,7 @@ import { CompareBar } from "@/features/shop/components/CompareBar";
 import { Pagination } from "@/features/shop/components/Pagination";
 import { RecentlyViewed } from "@/features/shop/components/RecentlyViewed";
 import { parseShopFilters, SHOP_PAGE_SIZE, type ShopFilters } from "@/features/shop/model";
+import { BUY_STEPS } from "@/features/sell/steps";
 import { formatPrice } from "@/lib/utils/money";
 import { getShopItems, isSampleStock } from "@/features/shop/queries";
 
@@ -20,9 +23,9 @@ export async function generateMetadata({ searchParams }: PageProps<"/shop">): Pr
   return {
     title: category
       ? `Used ${categoryLabel(category, true).toLowerCase()}`
-      : "Shop graded electronics",
+      : "Shop tested phones, laptops and parts",
     description:
-      "Tested, graded used electronics and parts from ReLoop's hub in Jammu. Hub pickup or ₹50 delivery in Jammu.",
+      "Tested used mobile phones, laptops, desktop computers, monitors and parts from ReLoop's hub in Jammu. Hub pickup or ₹50 delivery in Jammu.",
     alternates: { canonical: category ? `/shop?category=${category}` : "/shop" },
   };
 }
@@ -31,7 +34,7 @@ function describe(f: ShopFilters): string[] {
   return [
     f.q && `“${f.q}”`,
     f.grade && `grade ${f.grade}`,
-    f.kind === "parts" && "tested parts",
+    f.kind === "parts" && "used parts, tested and working",
     f.category && categoryLabel(f.category, true),
     f.brand,
     f.min !== undefined && `from ${formatPrice(f.min * 100)}`,
@@ -54,15 +57,15 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
         as="h1"
         title={
           filters.kind === "parts"
-            ? "Jammu Parts Exchange"
+            ? "Used parts shop"
             : filters.category
               ? `Used ${categoryLabel(filters.category, true).toLowerCase()}`
               : "Shop"
         }
         description={
           filters.kind === "parts"
-            ? "Tested parts for Jammu's technicians: boards, screens, cameras, charging ports, batteries, RAM and SSDs, with a 7-day return. Collect from the hub or get them delivered in Jammu city for ₹50."
-            : "Every device is tagged, tested and graded at our Jammu hub. Pick up free from the hub or get it delivered in Jammu city for ₹50. Tested parts are on the Parts Exchange."
+            ? "Used parts, tested and working, for Jammu's technicians: boards, screens, cameras, charging ports, batteries, RAM and SSDs, with a 7-day return. Collect from the hub or get them delivered in Jammu city for ₹50."
+            : "Used mobile phones, laptops, desktop computers and monitors, each with an item number, tested and graded at our Jammu hub. Pick up free from the hub or get it delivered in Jammu city for ₹50. Parts are in our used parts shop. See how to buy below."
         }
       />
       {sample && <SampleStockNotice />}
@@ -98,6 +101,12 @@ export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
         }
       />
       {pages > 1 && <Pagination filters={filters} page={page} pages={pages} />}
+      <section id="how-to-buy" aria-labelledby="how-to-buy-heading" className="mt-16 scroll-mt-24">
+        <h2 id="how-to-buy-heading" className="text-2xl font-bold sm:text-3xl">
+          <T en="How to buy" hi="कैसे ख़रीदें" />
+        </h2>
+        <Steps steps={BUY_STEPS} columns={5} className="mt-6" />
+      </section>
       <CompareBar />
     </Container>
   );

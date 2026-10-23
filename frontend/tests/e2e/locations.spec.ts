@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("map & locations", () => {
-  test("shows the hub in Gandhi Nagar, both routes, shops and the dismantling partner", async ({
+  test("shows the hub in Gandhi Nagar, both routes, shops and the licensed recycler", async ({
     page,
   }) => {
     await page.goto("/locations");
