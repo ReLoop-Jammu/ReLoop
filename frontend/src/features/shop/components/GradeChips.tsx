@@ -11,17 +11,17 @@ const CHIPS: {
   { key: "all", label: "All devices" },
   { key: "A", grade: "A", label: "A · Works, clean" },
   { key: "B", grade: "B", label: "B · Repaired" },
-  { key: "parts", kind: "parts", label: "Tested parts" },
+  { key: "parts", kind: "parts", label: "Used parts" },
 ];
 
 /**
- * Devices by grade, and the Parts Exchange (tested parts are not graded and
+ * Devices by grade, and the used parts shop (used parts are tested and working, not graded, and
  * are shown apart from devices). Keeps the current search, category and sort.
  */
 export function GradeChips({ filters }: { filters: ShopFilters }) {
   return (
     <nav
-      aria-label="Devices by grade, or tested parts"
+      aria-label="Devices by grade, or used parts"
       className="-mx-4 mb-4 overflow-x-auto px-4 sm:mx-0 sm:px-0"
     >
       <ul className="flex w-max gap-2">

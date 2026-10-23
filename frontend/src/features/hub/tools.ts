@@ -82,7 +82,7 @@ export const HUB_TOOLS: readonly HubTool[] = [
   {
     href: "/hub/intake",
     label: "Intake",
-    description: "Log an item that arrived and give it its RL-JMU tag.",
+    description: "Log an item that arrived and give it its item number.",
     icon: PackagePlus,
     role: "staff",
     group: "Daily work",
@@ -133,7 +133,7 @@ export const HUB_TOOLS: readonly HubTool[] = [
   {
     href: "/hub/weighins",
     label: "Weigh-ins",
-    description: "Weigh a shop's scrap, pay by the rate card, share the receipt.",
+    description: "Weigh a shop's scrap, pay by our scrap prices, share the receipt.",
     icon: Scale,
     role: "staff",
     group: "Daily work",
@@ -148,7 +148,7 @@ export const HUB_TOOLS: readonly HubTool[] = [
   },
   {
     href: "/hub/exchange",
-    label: "Parts Exchange",
+    label: "Used parts shop",
     description: "Receive, test and approve shops' part listings; pay their share.",
     icon: Store,
     role: "staff",
@@ -200,7 +200,8 @@ export const HUB_TOOLS: readonly HubTool[] = [
   {
     href: "/hub/pricing/references",
     label: "Price references",
-    description: "Used-market prices with their source and date, for the shop's fair-price bands.",
+    description:
+      "Used-market prices with their source and date, for the shop's usual price ranges.",
     icon: Tags,
     role: "staff",
     group: "Records",

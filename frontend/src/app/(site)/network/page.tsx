@@ -11,7 +11,7 @@ import { NetworkMap } from "@/features/network/NetworkMap";
 export const metadata: Metadata = {
   title: "The network",
   description:
-    "Where Jammu's used electronics and scrap come from, which areas buy tested stock, and how much goes to VRRG Group, shown as totals only.",
+    "Where Jammu's used phones, laptops, computers and scrap come from, which areas buy tested stock, and how much goes to VRRG Group, shown as totals only.",
 };
 
 // The flows come from a public view and are cached for five minutes.

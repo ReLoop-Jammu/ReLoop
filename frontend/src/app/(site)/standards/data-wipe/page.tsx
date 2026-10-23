@@ -53,7 +53,7 @@ export default async function DataWipePage() {
           title: "Logged against the tag",
           body: (
             <p>
-              The method and the date are recorded on the item&apos;s RL-JMU tag, and shown on its
+              The method and the date are recorded on the item&apos;s item number, and shown on its
               shop page. The hub&apos;s software will not list a device that needs a wipe until the
               wipe is recorded, and a device is wiped before it is stripped for parts.
             </p>

@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/features/settings/server";
 export const metadata: Metadata = {
   title: "How we price",
   description:
-    "How ReLoop sets prices: the grade, an estimated fair-price range from published listings, the Parts Exchange commission, and what happens to stock that does not sell.",
+    "How ReLoop sets prices: the grade, the usual price range for the model from published listings, the used parts shop commission, and what happens to stock that does not sell.",
   alternates: { canonical: "/how-we-price" },
 };
 
@@ -20,23 +20,25 @@ export default async function HowWePricePage() {
       <article className="mx-auto max-w-3xl">
         <Eyebrow>How we price</Eyebrow>
         <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
-          A fair price, and why it is that price
+          Our prices, and why each item costs what it does
         </h1>
         <div className="mt-8 grid gap-6 leading-relaxed text-ink-soft">
           <section>
             <h2 className="text-xl font-semibold text-ink">1. The grade</h2>
             <p className="mt-2">
               Every device is inspected and graded at the Jammu hub. Grade A works fully; grade B
-              had one fault, now repaired; grade C items are sold as tested parts. Each item page
-              shows its{" "}
+              had one fault, now repaired; grade C items are sold for parts, each one tested and
+              working. Each item page shows{" "}
               <Link href="/shop" className="font-semibold text-brand-600 underline">
-                ReLoop Checked
-              </Link>{" "}
-              report.
+                our test report
+              </Link>
+              .
             </p>
           </section>
           <section>
-            <h2 className="text-xl font-semibold text-ink">2. An estimated fair-price range</h2>
+            <h2 className="text-xl font-semibold text-ink">
+              2. The usual price range for this model
+            </h2>
             <p className="mt-2">
               For a model or a kind of item we note what working units sell for used (a low, a
               typical and a high price), where we found them, and the date we checked. A grade B
@@ -66,7 +68,7 @@ export default async function HowWePricePage() {
           <section>
             <h2 className="text-xl font-semibold text-ink">5. Parts listed by partner shops</h2>
             <p className="mt-2">
-              On the Parts Exchange a partner shop sets the price of a part it lists. ReLoop tests
+              On the used parts shop a partner shop sets the price of a part it lists. ReLoop tests
               the part, sells it and keeps a {site.commissionPct}% commission; the rest goes to the
               shop after the {BUSINESS_RULES.partReturnDays}-day return window.
             </p>
@@ -76,10 +78,10 @@ export default async function HowWePricePage() {
             <p className="mt-2">
               Scrap is paid by the kilo at the{" "}
               <Link href="/standards/rate-card" className="font-semibold text-brand-600 underline">
-                rate card
+                scrap prices
               </Link>
               . Working parts are priced one by one after testing; a shop can decline, or list the
-              part itself on the Parts Exchange.
+              part itself in our used parts shop.
             </p>
           </section>
         </div>

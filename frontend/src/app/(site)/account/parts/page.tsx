@@ -30,7 +30,7 @@ export default function MyPartsPage() {
         <Container className="py-12 sm:py-16">
           <div className="mx-auto max-w-3xl">
             <Eyebrow>My ReLoop</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Jammu Parts Exchange</h1>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Used parts shop</h1>
             <p className="mt-2 text-muted">
               List tested-working parts you harvest. Bring each one to us on the route: staff test
               it, tag it, wipe it where needed and approve the listing.

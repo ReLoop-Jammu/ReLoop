@@ -136,6 +136,29 @@
   }
 }
 
+/*
+ * English / हिन्दी (lib/lang.ts): translated text is rendered in both languages
+ * and one is hidden. Devanagari needs normal letter spacing and a little more
+ * line height than the Latin display type.
+ */
+:root:not([data-lang="hi"]) [data-l="hi"],
+:root[data-lang="hi"] [data-l="en"] {
+  display: none !important;
+}
+[lang="hi"] {
+  letter-spacing: normal;
+}
+:is(h1, h2, h3) [lang="hi"] {
+  line-height: 1.25;
+}
+/* "This page is in English only" shows only for Hindi readers on untranslated pages. */
+.hi-missing {
+  display: none;
+}
+:root[data-lang="hi"] body:not(:has([data-hi-page])) .hi-missing {
+  display: block;
+}
+
 /* The brand mesh: deep navy with a warm amber glow, for hero and feature panels. */
 @utility bg-mesh {
   background-color: var(--color-brand-950);

@@ -68,7 +68,7 @@ test.describe("hub (staff tool)", () => {
 
     await page.goto("/hub/handovers");
     await expect(page.getByText(/1 items, 14.0 kg/)).toBeVisible();
-    await page.getByLabel("Dismantling partner").fill("VRRG Group, Gangyal");
+    await page.getByLabel("Licensed recycler").fill("VRRG Group, Gangyal");
     await page.getByLabel("Receipt number").fill("R-001");
     await page.getByLabel("Total weight on receipt (kg)").fill("14");
     await page.getByRole("button", { name: /Save handover/ }).click();
@@ -320,7 +320,7 @@ test.describe("listing controls", () => {
   });
 });
 
-test.describe("ReLoop Checked", () => {
+test.describe("Our test report", () => {
   test("a grade B item is inspected before it can be listed", async ({ page }) => {
     await page.goto("/hub/intake");
     await page.getByLabel("Source").selectOption("repair_shop");
@@ -351,7 +351,7 @@ test.describe("ReLoop Checked", () => {
 
   test("sample items say they weren't inspected", async ({ page }) => {
     await page.goto("/shop/RL-JMU-0001");
-    await expect(page.getByRole("heading", { name: "ReLoop Checked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Our test report" })).toBeVisible();
     await expect(page.getByText(/Sample, not inspected/)).toBeVisible();
   });
 });

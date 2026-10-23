@@ -95,7 +95,7 @@ export default function RegisterPage() {
           >
             <span className="font-semibold">I&apos;m a shop owner</span>
             <p className="mt-1 text-sm text-muted">
-              Buy products and apply to submit electronics for review.
+              Buy products and apply to submit phones, laptops, computers and parts for review.
             </p>
           </button>
         </div>

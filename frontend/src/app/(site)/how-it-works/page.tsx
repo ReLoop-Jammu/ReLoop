@@ -21,7 +21,7 @@ import { BUSINESS_RULES } from "@/config/business-rules";
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "How ReLoop collects, weighs, tags, tests, grades and resells used electronics at its Jammu hub, and hands scrap to VRRG Group.",
+    "How ReLoop collects, weighs, tags, tests, grades and resells used phones, laptops, computers, monitors and parts at its Jammu hub, and hands scrap to VRRG Group.",
 };
 
 const R = BUSINESS_RULES;
@@ -35,7 +35,7 @@ const HUB_STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ClipboardCheck,
     title: "Test and grade",
-    body: `Checked against a test list within ${R.gradeWithinHours} hours; devices are graded A to D, parts are labelled tested parts.`,
+    body: `Checked against a test list within ${R.gradeWithinHours} hours; devices are graded A to D, and parts are marked tested and working.`,
   },
   {
     icon: Eraser,
@@ -45,12 +45,12 @@ const HUB_STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Layers,
     title: "Rack by grade",
-    body: "Devices are racked by grade, tested parts go on the Parts Exchange shelf, and scrap goes into four bins. Batteries are kept apart in a closed metal cabinet.",
+    body: "Devices are racked by grade, working used parts go on the used parts shelf, and scrap goes into four bins. Batteries are kept apart in a closed metal cabinet.",
   },
   {
     icon: Camera,
     title: "List online",
-    body: `Tested parts and grade A and B devices are photographed and listed within ${R.listWithinHours} hours.`,
+    body: `Working used parts and grade A and B devices are photographed and listed within ${R.listWithinHours} hours.`,
   },
   {
     icon: Send,
@@ -78,7 +78,7 @@ const FAQS = [
   },
   {
     q: "Who takes the scrap?",
-    a: "VRRG Group, Gangyal, our dismantling partner, a JKPCC-authorised e-waste dismantler. Every kilo of scrap and every battery is handed to them on a weight receipt.",
+    a: "VRRG Group, Gangyal, our licensed recycler. Every kilo of scrap and every battery is handed to them on a weight receipt.",
   },
 ];
 
@@ -90,7 +90,7 @@ export default function HowItWorksPage() {
           <div className="mx-auto mb-14 max-w-2xl text-center">
             <Eyebrow>How it works</Eyebrow>
             <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">
-              Collect. Grade. Resell. Hand over.
+              Collect, test, resell, recycle.
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-muted">
               Every item passes through one hub in Jammu before it leaves. That&apos;s how we know
@@ -150,7 +150,7 @@ export default function HowItWorksPage() {
             </h2>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href="/shop">
-                Shop graded stock
+                Open the shop
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
               <ButtonLink href="/sell" variant="secondary">

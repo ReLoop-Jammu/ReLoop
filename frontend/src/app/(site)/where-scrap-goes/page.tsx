@@ -17,7 +17,7 @@ import { GradeBadge } from "@/features/inventory/components/GradeBadge";
 export const metadata: Metadata = {
   title: "Where scrap goes",
   description:
-    "All scrap and every battery from ReLoop goes to VRRG Group, Gangyal, our dismantling partner, by weight, with a weight receipt for every handover.",
+    "All scrap and every battery from ReLoop goes to VRRG Group, Gangyal, our licensed recycler, by weight, with a weight receipt for every handover.",
 };
 
 const R = BUSINESS_RULES;
@@ -26,7 +26,7 @@ const RULES: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ShieldCheck,
     title: "One partner: VRRG Group, Gangyal",
-    body: "Our dismantling partner, a JKPCC-authorised e-waste dismantler. 100% of scrap goes to them on a weight receipt: that is ReLoop's standard. Nothing goes to informal dealers.",
+    body: "Our licensed recycler. 100% of scrap goes to them on a weight receipt: that is ReLoop's standard. Nothing goes to informal dealers.",
   },
   {
     icon: Scale,
@@ -94,11 +94,11 @@ export default function WhereScrapGoesPage() {
         </div>
         <div className="space-y-3 leading-relaxed text-white/75">
           <p>
-            ReLoop buys, weighs, sorts, tests and resells, and removes working parts for reuse. The
-            dismantling of scrap is done by VRRG Group.
+            ReLoop buys, weighs, sorts, tests and resells, and removes working parts for reuse.
+            Taking scrap apart and recycling it is done by VRRG Group, our licensed recycler.
           </p>
           <p>
-            Working parts are tested and sold as tested parts; only tested-working parts go to labs
+            Working parts are tested and sold as used parts; only parts tested as working go to labs
             and makers. Anything dead goes only to VRRG Group.
           </p>
         </div>

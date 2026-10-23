@@ -17,7 +17,7 @@ writeFileSync(out("awareness-drive.svg"), await QRCode.toString(url, { ...option
 await QRCode.toFile(out("awareness-drive.png").pathname, url, { ...options, width: 1200 });
 console.log(`QR code for ${url} written to public/qr/`);
 
-// The printed rate card and counter card point at /go/rate-card (counted, then
+// The printed scrap prices and counter card point at /go/rate-card (counted, then
 // redirected to /rate-card). The public site address is the same as the drive link's.
 const origin = new URL(url).origin;
 const rateUrl = `${origin}/go/rate-card`;

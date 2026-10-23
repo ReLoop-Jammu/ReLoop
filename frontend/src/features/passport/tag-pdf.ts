@@ -14,7 +14,7 @@ export const passportUrl = (id: string) => `${PUBLIC_SITE}/passport/${id}`;
 
 /**
  * One 62 × 29 mm label (one per page, for a label printer): the QR code to
- * the item's passport, the RL-JMU tag in large type, and what the item is.
+ * the item's passport, the item number in large type, and what the item is.
  */
 export async function tagPdf(id: string, kind: string): Promise<Uint8Array> {
   const doc = await PDFDocument.create();

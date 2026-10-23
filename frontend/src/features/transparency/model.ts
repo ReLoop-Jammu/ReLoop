@@ -55,7 +55,7 @@ export const MONTH_COLUMNS = [
   ["kg_to_vrrg", "Handed to VRRG Group, kg (from the ledger)"],
   ["devices_received", "Devices tagged at the hub"],
   ["devices_resold", "Devices sold"],
-  ["parts_sold", "Tested parts sold"],
+  ["parts_sold", "Used parts sold (tested and working)"],
   ["institution_lots", "Institution lots collected"],
   ["partner_shops", "Active partner shops by the end of the month"],
 ] as const;
@@ -95,7 +95,7 @@ const CATEGORY_WORD: Record<string, string> = {
   monitor: "monitor",
   tablet: "tablet",
   accessory: "accessory",
-  part: "tested part",
+  part: "used part (tested and working)",
 };
 
 /** One plain sentence per event: no shop, person or price. */

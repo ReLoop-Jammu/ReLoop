@@ -29,15 +29,15 @@ const STORY = [
   },
   {
     title: "Weighed and paid",
-    body: "On the weekly pickup day ReLoop weighs the shop's leftovers in front of the owner and pays by UPI at the rate card. The board goes in the to-test bag.",
+    body: "On the weekly pickup day ReLoop weighs the shop's leftovers in front of the owner and pays by UPI at our scrap prices. The board goes in the to-test bag.",
   },
   {
     title: "Tested at the hub",
-    body: "At the hub the board is tagged, tested and wiped. A part that works is listed on the Parts Exchange; one that does not goes into a scrap bin.",
+    body: "At the hub the board is tagged, tested and wiped. A part that works is listed in our used parts shop; one that does not goes into a scrap bin.",
   },
   {
     title: "Another useful life",
-    body: "A technician in Jammu buys the tested part. What is dead is handed to VRRG Group by weight, on a weight receipt.",
+    body: "A technician in Jammu buys the used part, tested and working. What is dead is handed to VRRG Group by weight, on a weight receipt.",
   },
 ];
 
@@ -55,12 +55,12 @@ const ROUTES = [
   {
     icon: Recycle,
     title: "Handed over by weight",
-    body: "When reuse or repair is no longer suitable, scrap and batteries go to VRRG Group, our dismantling partner, on a weight receipt.",
+    body: "When reuse or repair is no longer suitable, scrap and batteries go to VRRG Group, our licensed recycler, on a weight receipt.",
   },
 ];
 
 const GOALS = [
-  "Make used and repairable electronics easier to identify and assess.",
+  "Make used and repairable phones, laptops and computers easier to identify and assess.",
   "Bring condition, quantity, category and location into one managed inventory process.",
   "Help buyers find tested used devices and parts, with an honest grade on every item.",
   "Keep reuse and repair opportunities separate from genuine end-of-life material.",
@@ -86,7 +86,7 @@ export default async function ImpactPage() {
     { label: "Scrap weighed", value: `${formatKg(summary.scrapKg)} kg` },
     { label: "Handed to VRRG Group", value: `${formatKg(summary.scrapToVrrgKg)} kg` },
     { label: "Devices on sale or resold", value: formatKg(summary.devices) },
-    { label: "Tested parts", value: formatKg(summary.parts) },
+    { label: "Used parts (tested and working)", value: formatKg(summary.parts) },
   ];
   return (
     <>
@@ -102,9 +102,9 @@ export default async function ImpactPage() {
               Jammu&apos;s e-waste, <span className="text-gold-700">kept in Jammu.</span>
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-ink-soft">
-              Electronics do not become worthless the moment someone stops using them. A phone may
-              need a repair, a monitor may still work, and a dead board may hold a part a technician
-              can use.{" "}
+              Old phones, laptops and computers do not become worthless the moment someone stops
+              using them. A phone may need a repair, a monitor may still work, and a dead board may
+              hold a part a technician can use.{" "}
               <strong className="text-ink">The first question is: what useful life is next?</strong>{" "}
               Everything below is counted from what we weigh and tag at the hub.
             </p>
@@ -152,7 +152,7 @@ export default async function ImpactPage() {
                 id="flows-heading"
                 eyebrow={<Eyebrow>Where it goes</Eyebrow>}
                 title="From a shop's counter to its next use"
-                description="Scrap is weighed at the counter and ends at VRRG Group, our dismantling partner. Devices and parts are tested at the hub and sold in Jammu."
+                description="Scrap is weighed at the counter and ends at VRRG Group, our licensed recycler. Devices and parts are tested at the hub and sold in Jammu."
               />
               <div className="grid gap-8 rounded-panel border border-line bg-surface p-4 shadow-soft sm:p-8 lg:grid-cols-2">
                 <div>
@@ -164,7 +164,7 @@ export default async function ImpactPage() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold">Devices and tested parts, by count</h3>
+                  <h3 className="text-sm font-semibold">Devices and used parts, by count</h3>
                   <SankeyChart
                     title="Devices and parts in items, from source to outcome"
                     links={impactLinks(flows, "items")}
@@ -309,13 +309,13 @@ export default async function ImpactPage() {
                 Start local, in Jammu.
               </h2>
               <p className="mt-4 leading-relaxed text-white/70">
-                A managed route for used electronics: local collection, clearer inventory
-                information, condition assessment, buyer discovery and responsible downstream
-                handling.
+                A managed route for used phones, laptops and computers: local collection, clearer
+                inventory information, condition assessment, buyer discovery and responsible
+                downstream handling.
               </p>
             </div>
             <ButtonLink href="/shop" variant="gold" className="mt-8 self-start">
-              Shop graded stock
+              Open the shop
               <ArrowRight className="size-4" aria-hidden="true" />
             </ButtonLink>
           </div>

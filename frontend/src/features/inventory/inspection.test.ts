@@ -8,7 +8,7 @@ import {
   measuresFor,
 } from "./inspection";
 
-describe("ReLoop Checked inspections", () => {
+describe("test report inspections", () => {
   it("grade A at intake is every check passing", () => {
     expect(allPass("monitor")).toEqual({
       version: 1,

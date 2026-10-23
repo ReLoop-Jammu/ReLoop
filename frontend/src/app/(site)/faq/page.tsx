@@ -25,8 +25,8 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "What do the grades mean?",
     a: (
       <>
-        A works and is clean; B had one fault that was repaired; C is sold as tested parts; D is
-        handed over by weight.{" "}
+        A works and is clean; B had one fault that was repaired; C is sold for parts, each one
+        tested and working; D is handed over by weight.{" "}
         <Link href="/standards/grading" className="font-semibold text-brand-600 underline">
           The grading standard
         </Link>
@@ -39,7 +39,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         {BUSINESS_RULES.warrantyDays} days on grade A and B devices, and a{" "}
-        {BUSINESS_RULES.partReturnDays}-day return on tested parts.{" "}
+        {BUSINESS_RULES.partReturnDays}-day return on used parts, tested and working.{" "}
         <Link href="/warranty" className="font-semibold text-brand-600 underline">
           Warranty and returns
         </Link>
@@ -64,7 +64,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "I run a repair shop. How do I sell to you?",
     a: (
       <>
-        We visit on a fixed weekly day, weigh your leftovers in front of you at the rate card and
+        We visit on a fixed weekly day, weigh your leftovers in front of you at our scrap prices and
         pay by UPI on the spot.{" "}
         <Link href="/sell/shops" className="font-semibold text-brand-600 underline">
           For repair shops and retailers
@@ -81,10 +81,10 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "Where does the scrap go?",
     a: (
       <>
-        To VRRG Group, our dismantling partner in Gangyal, on a weight receipt. Every handover is in
+        To VRRG Group, our licensed recycler in Gangyal, on a weight receipt. Every handover is in
         the{" "}
         <Link href="/ledger" className="font-semibold text-brand-600 underline">
-          handover ledger
+          list of scrap sent for recycling
         </Link>
         .
       </>

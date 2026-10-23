@@ -107,7 +107,7 @@ export function LocationsMap({ partnerShops }: { partnerShops: readonly PartnerS
     <div
       ref={container}
       role="region"
-      aria-label="Map of the ReLoop hub area, pickup routes and dismantling partner"
+      aria-label="Map of the ReLoop hub area, pickup routes and licensed recycler"
       className="h-[22rem] w-full overflow-hidden rounded-2xl border border-line bg-sunken sm:h-[28rem]"
     />
   );

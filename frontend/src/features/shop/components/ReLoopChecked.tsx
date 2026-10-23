@@ -23,7 +23,7 @@ const day = (iso: string) =>
   });
 
 /**
- * The ReLoop Checked report: what the hub's inspection found, the data wipe
+ * Our test report: what the hub's inspection found, the data wipe
  * and the warranty. Samples say plainly that they weren't inspected.
  */
 export function ReLoopChecked({ item }: { item: ShopItem }) {
@@ -37,7 +37,7 @@ export function ReLoopChecked({ item }: { item: ShopItem }) {
           id="checked-heading"
           className="font-sans text-sm font-semibold tracking-normal text-muted"
         >
-          ReLoop Checked
+          Our test report
         </h2>
         <p className="mt-2 text-sm text-ink-soft">
           Sample, not inspected: this item shows how stock will look. Real items carry the report of
@@ -58,7 +58,7 @@ export function ReLoopChecked({ item }: { item: ShopItem }) {
         className="flex items-center gap-2 font-display text-lg font-semibold text-ink"
       >
         <ShieldCheck className="size-5 text-brand-600" aria-hidden="true" />
-        ReLoop Checked
+        Our test report
       </h2>
       <p className="mt-1 text-xs text-muted">
         Inspected at the Jammu hub on {day(r.inspectedAt)}

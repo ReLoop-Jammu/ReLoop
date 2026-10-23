@@ -2,6 +2,16 @@
 
 All notable changes to ReLoop, the used-electronics loop for the Jammu pilot. Dates are in India time.
 
+## v1.1.0 (2026-10-23): faculty feedback, plain language and Hindi
+
+- **Items named everywhere** instead of "electronics": mobile phones, laptops, desktop computers and computer monitors; parts (screens, lithium batteries, motherboards and phone boards, cameras, charging ports, keyboards); not accepted (TVs, printers, UPS units, small appliances, lead-acid batteries). One list in `frontend/src/config/items.ts`. The shop-submission form offers only what we buy.
+- **Home:** one plain sentence as the heading, two choices ("Buy a tested phone or laptop", "Sell your shop's old devices and parts"), and item-category cards (Lucide icons, ISC licence) that open the shop filtered.
+- **One numbered-steps component** (`components/marketing/Steps.tsx`) on `/sell`, `/sell/shops`, `/sell/institutions`, a "How to buy" block on `/shop` and the home loop. The shop steps show when each payment is made: scrap on the spot (UPI), devices after testing (offer), working parts after testing (next visit).
+- **Plain words:** licensed recycler (VRRG Group, Gangyal), item number, item history, our test report, used part (tested and working), used parts shop, our scrap prices (per kg), list of scrap sent for recycling, download our figures, usual price range for this model. No URL, `/go/*` link or printed QR target changed.
+- **English / हिन्दी switch** in the top bar, remembered in the visitor's browser; Hindi versions of the home page, `/sell`, `/sell/shops`, `/sell/institutions` and the How to buy steps. Other pages show a short Hindi note that they are mostly in English.
+- WhatsApp help is a link in the footer of every page, next to Report a problem.
+- Tests: new `tests/e2e/plain-language.spec.ts` (switch, Hindi claims scan, steps, help links on every page); unit tests for the item lists, the switch and the steps.
+
 ## v1.0.0 (2026-10-15, release candidate on `release/v1`)
 
 The release that brings the site and hub to Business Plan v2. It is built and tested as code; applying the migrations, merging to `main` and tagging are done from a local session (`scripts/finish-v1-local.md`).

@@ -225,7 +225,7 @@ export function IntakeForm() {
     <>
       <PageTitle
         title="Intake"
-        description="Log each item as it arrives. It gets the next RL-JMU tag automatically."
+        description="Log each item as it arrives. It gets the next item number automatically."
       />
 
       {saved && (

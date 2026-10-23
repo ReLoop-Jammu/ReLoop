@@ -4,6 +4,12 @@ Updated at the end of every task. Status is one of: done, in progress or not sta
 
 **Earlier stages (A–E, 2026-10-13) are all done:** health check, analytics, the database baseline and fixes, the map page and QR code (`/locations`, `/go/drive`), and the hub on Supabase with staff login and KPIs. The reports are in `docs/health-check-2026-10-13.md` and `docs/live-check-2026-10-13.md`. Rounds 1–4 are summarised below.
 
+## Faculty feedback (2026-10-23, local session): plain language and Hindi
+
+| Step                                          | Branch                      | Status      | Note                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------------------------- | --------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Items named, plain words, steps, Hindi switch | `feat/plain-language-hindi` | in progress | Off `main`. See CHANGELOG v1.1.0. `npm run check -w frontend` green (252 unit tests); backend 253/254 from a space-free copy (the one failure, `sim.test.mjs` "waiting listings", is date-dependent and fails on `main` too; `backend/tests/db.mjs` can't run from a path with spaces). e2e in CI mode: 380 passed before the last fixes, the new `plain-language.spec.ts` 16/16. No database change. |
+
 ## RESUME POINT (cloud session, updated after every commit)
 
 - **Branch:** `release/v1` (from `feat/business-plan-v2` at bb40f7d). All work is on it or on branches merged into it. Never merge to `main`. Pushes go to `origin` (ReLoop-Jammu/ReLoop); a local post-commit hook pushes and a background job snapshots to `autosave/cloud`.

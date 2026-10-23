@@ -32,10 +32,10 @@ export const BUSINESS_RULES = {
   /** Items already past a threshold when the rules start get this many days' grace. */
   switchOverGraceDays: 7,
 
-  /** Scrap bins: handed to the dismantling partner on a weight receipt. */
+  /** Scrap bins: handed to the licensed recycler on a weight receipt. */
   bins: { handoverKg: 100, alertKg: 80, handoverDays: 14, batteryHandoverDays: 7 },
 
-  /** The Parts Exchange commission, a published term shown to shops (never to buyers). */
+  /** The used parts shop commission, a published term shown to shops (never to buyers). */
   partCommissionShare: 0.12,
   /** The institution lot fee (published): pickup, sorting on site and a handover record. */
   institutionLotFeePaise: 300_000,
@@ -44,7 +44,7 @@ export const BUSINESS_RULES = {
   targets: {
     partnerShops: 40,
     kgPerMonth: 500,
-    /** ReLoop's standard: every kilo of scrap goes to the dismantling partner on a weight receipt. */
+    /** ReLoop's standard: every kilo of scrap goes to the licensed recycler on a weight receipt. */
     shareOfScrapToVrrg: 1,
     /** Staff-only, from a monthly shop self-report. */
     kgToUnregisteredDealers: 0,

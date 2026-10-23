@@ -52,9 +52,9 @@ export default async function WhatWeAcceptPage() {
           What shops and institutions can sell us.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">
-          Scrap is weighed and paid by the kilo at the rate card. Working devices are tagged, tested
-          and graded A to D at our Jammu hub: what works is resold, what can be fixed is repaired,
-          good parts are tested and reused, and what is dead goes to VRRG Group by weight.{" "}
+          Scrap is weighed and paid by the kilo at our scrap prices. Working devices are tagged,
+          tested and graded A to D at our Jammu hub: what works is resold, what can be fixed is
+          repaired, good parts are tested and reused, and what is dead goes to VRRG Group by weight.{" "}
           <Link className="font-semibold text-brand-600 underline" href="/how-it-works">
             How grading works
           </Link>
@@ -98,7 +98,7 @@ export default async function WhatWeAcceptPage() {
           We buy from shops, retailers and institutions only, not from homes. Anyone can buy from
           us. Not sure about an item? Ask us on WhatsApp first.{" "}
           <Link className="font-semibold text-brand-600 underline" href="/rate-card">
-            See the rate card
+            See our scrap prices (per kg)
           </Link>
           .
         </p>
@@ -115,7 +115,7 @@ export default async function WhatWeAcceptPage() {
           <p className="mt-3 leading-relaxed text-muted">
             Scrap does not go to informal dealers. Dead devices are graded{" "}
             <GradeBadge grade="D" size="sm" className="align-middle" /> and, with the scrap, handed
-            to {LOCATIONS.recycler.name}, our dismantling partner, by weight.{" "}
+            to {LOCATIONS.recycler.name}, our licensed recycler, by weight.{" "}
             <Link className="font-semibold text-brand-600 underline" href="/where-scrap-goes">
               Where scrap goes
             </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
+import type { ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { IS_SIMULATION } from "@/lib/environment";
 import { useSiteSettings } from "@/features/settings/context";
@@ -13,7 +14,7 @@ export function whatsappChatUrl(message: string, whatsapp: string | null) {
 
 type Props = {
   message: string;
-  label?: string;
+  label?: ReactNode;
   variant?: "primary" | "secondary";
   className?: string;
 };

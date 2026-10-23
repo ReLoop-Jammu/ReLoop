@@ -40,7 +40,7 @@ export default function OpengraphImage() {
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ fontSize: 84, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
-          Collect. Grade.
+          Tested used phones,
         </div>
         <div
           style={{
@@ -51,10 +51,10 @@ export default function OpengraphImage() {
             color: "#e9b26e",
           }}
         >
-          Resell what still works.
+          laptops and parts.
         </div>
         <div style={{ marginTop: 28, fontSize: 30, color: "rgba(255,255,255,0.8)" }}>
-          Tested and graded A–D at our Jammu hub
+          Bought, tested and resold at our Jammu hub
         </div>
       </div>
     </div>,

@@ -165,10 +165,7 @@ export function listingToShopItem(
   const category = categoryFromDatabase(listing.category_id, categories);
   return {
     id: `RL-JMU-${String(listing.id).padStart(4, "0")}`,
-    title:
-      listing.title ||
-      [listing.brand, listing.model].filter(Boolean).join(" ") ||
-      "Electronics item",
+    title: listing.title || [listing.brand, listing.model].filter(Boolean).join(" ") || "Used item",
     category,
     grade: listing.grade as "A" | "B" | "C",
     pricePaise: Math.round(Number(listing.price) * 100),

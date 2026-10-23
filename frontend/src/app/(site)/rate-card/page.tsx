@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/features/settings/server";
 import { formatPrice } from "@/lib/utils/money";
 
 export const metadata: Metadata = {
-  title: "Rate card",
+  title: "Our scrap prices (per kg)",
   description:
     "What ReLoop pays per kilo for scrap from shops in Jammu: screens, batteries, dead motherboards and everything else. Weighed in front of you, paid by UPI on the spot.",
   alternates: { canonical: "/rate-card" },
@@ -55,7 +55,7 @@ export default async function RateCardPage() {
   return (
     <Container className="py-12 sm:py-20">
       <div className="max-w-3xl">
-        <Eyebrow>Rate card</Eyebrow>
+        <Eyebrow>Our scrap prices (per kg)</Eyebrow>
         <h1 className="mt-5 text-4xl leading-[1.02] font-bold sm:text-6xl">What we pay per kilo</h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">
           For scrap from repair shops, retailers and exchange stores. Weighed in front of you and
@@ -66,11 +66,11 @@ export default async function RateCardPage() {
       <div
         tabIndex={0}
         role="region"
-        aria-label="Rate card table"
+        aria-label="Our scrap prices (per kg)"
         className="mt-10 overflow-x-auto rounded-card border border-line bg-surface shadow-soft"
       >
         <table className="w-full min-w-[40rem] text-left text-sm">
-          <caption className="sr-only">ReLoop rate card per kilo</caption>
+          <caption className="sr-only">ReLoop scrap prices per kg</caption>
           <thead className="bg-sunken text-xs text-muted">
             <tr>
               <th scope="col" className="px-5 py-3 font-semibold">
@@ -155,7 +155,7 @@ export default async function RateCardPage() {
             <span>
               Boards and storage you hand over are wiped, or the storage chip destroyed, before any
               part is listed. Only tested-working parts go to labs and makers; anything dead goes
-              only to VRRG Group, our dismantling partner.
+              only to VRRG Group, our licensed recycler.
             </span>
           </li>
         </ul>

@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Business Plan v2 pages", () => {
-  test("the rate card lists every scrap category with a price per kilo", async ({ page }) => {
+  test("our scrap prices list every scrap category with a price per kilo", async ({ page }) => {
     await page.goto("/rate-card");
     await expect(
       page.getByRole("heading", { level: 1, name: "What we pay per kilo" }),
     ).toBeVisible();
-    const table = page.getByRole("region", { name: "Rate card table" });
+    const table = page.getByRole("region", { name: "Our scrap prices (per kg)" });
     for (const name of [/Screens/, /Batteries/, /boards/i, /Everything else|Other/])
       await expect(table.getByText(name).first()).toBeVisible();
   });
@@ -24,7 +24,7 @@ test.describe("Business Plan v2 pages", () => {
 
   for (const [path, text] of [
     ["/hub/weighins", "Weigh-ins are kept in the shared database."],
-    ["/hub/exchange", "The Parts Exchange is kept in the shared database."],
+    ["/hub/exchange", "The used parts shop is kept in the shared database."],
     ["/hub/lots", "Institution lots are kept in the shared database."],
   ] as const) {
     test(`${path} says it needs the shared database when run without one`, async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe("Business Plan v2 pages", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Faccount%2Fparts$/);
   });
 
-  test("the shop shows tested parts apart from devices", async ({ page }) => {
+  test("the shop shows used parts apart from devices", async ({ page }) => {
     await page.goto("/shop?kind=parts");
     await expect(page.locator("main article").first()).toBeVisible();
     await expect(page.locator("main article [data-part='tested']").first()).toBeVisible();
@@ -89,9 +89,13 @@ test.describe("partners", () => {
     );
   });
 
-  test("the window badge reads Tested parts from ReLoop, with its QR code", async ({ page }) => {
+  test("the window badge reads Used parts, tested and working, from ReLoop, with its QR code", async ({
+    page,
+  }) => {
     await page.goto("/print/partner-badge");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tested parts from ReLoop");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Used parts, tested and working, from ReLoop",
+    );
     await expect(
       page.getByRole("img", {
         name: "QR code linking to https://re-loop-ochre.vercel.app/go/partner-badge",
@@ -108,7 +112,9 @@ test.describe("transparency", () => {
     page,
   }) => {
     await page.goto("/ledger");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Handover ledger");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "List of scrap sent for recycling",
+    );
     await expect(page.getByRole("status")).toContainText("No handover yet");
     await page.goto("/reports");
     await expect(page.getByRole("status")).toContainText("The pilot is starting");
@@ -141,9 +147,9 @@ test.describe("transparency", () => {
     await page.goto("/");
     const footer = page.getByRole("contentinfo");
     for (const [name, href] of [
-      ["Handover ledger", "/ledger"],
+      ["List of scrap sent for recycling", "/ledger"],
       ["Monthly reports", "/reports"],
-      ["Open data", "/data"],
+      ["Download our figures", "/data"],
     ])
       await expect(footer.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   });
@@ -157,25 +163,25 @@ test.describe("standards pages", () => {
     for (const [name, href, heading] of [
       ["Grading", "/standards/grading", "Grading standard"],
       ["Data wipe", "/standards/data-wipe", "Data-wipe standard"],
-      ["Rate card", "/standards/rate-card", "Rate card standard"],
+      ["Our scrap prices (per kg)", "/standards/rate-card", "Scrap prices standard"],
       ["Ownership", "/standards/ownership", "Ownership rule"],
       ["Compliance and partners", "/compliance", "The rules, and who we work with"],
     ]) {
       await page.goto("/standards");
       await page
         .getByRole("main")
-        .getByRole("link", { name: new RegExp(`^${name}`) })
+        .getByRole("link", { name: new RegExp(`^${name.replace(/[()]/g, "\\$&")}`) })
         .click();
       await expect(page).toHaveURL(new RegExp(`${href}$`));
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
     }
   });
 
-  test("compliance names one dismantling partner and links the CPCB portal", async ({ page }) => {
+  test("compliance names one licensed recycler and links the CPCB portal", async ({ page }) => {
     await page.goto("/compliance");
     await expect(
       page.getByText(
-        /Our dismantling partner: VRRG Group, Gangyal, a JKPCC-authorised e-waste dismantler/,
+        /Our licensed recycler: VRRG Group, Gangyal, a JKPCC-authorised e-waste dismantler/,
       ),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: /CPCB E-Waste portal/ })).toHaveAttribute(

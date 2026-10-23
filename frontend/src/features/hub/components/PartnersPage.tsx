@@ -214,7 +214,7 @@ export function PartnersPage() {
               {SHARED_DATABASE && (
                 <Field
                   label="Linked shop account"
-                  hint="Needed to list parts on the Parts Exchange. Verified shops only."
+                  hint="Needed to list parts in our used parts shop. Verified shops only."
                 >
                   <Select
                     value={p.shopOwnerId ?? ""}

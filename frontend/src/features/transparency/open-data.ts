@@ -4,7 +4,7 @@ import { LEDGER_COLUMNS, MONTH_COLUMNS } from "./model";
 export const OPEN_DATA = [
   {
     file: "ledger.csv",
-    title: "Handover ledger",
+    title: "List of scrap sent for recycling",
     about: "Every handover to VRRG Group, by category, in kg.",
     columns: LEDGER_COLUMNS,
   },
@@ -22,7 +22,7 @@ export const OPEN_DATA = [
       ["month", "First day of the month"],
       [
         "source_group",
-        "Repair shops, retailers, institutions, stripped devices or the Parts Exchange",
+        "Repair shops, retailers, institutions, stripped devices or the used parts shop",
       ],
       ["outcome", "Where it went: resold, stripped for parts, at the hub or handed to VRRG Group"],
       ["kind", "scrap, device or part"],

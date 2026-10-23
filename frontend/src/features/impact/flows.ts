@@ -35,6 +35,13 @@ const KINDS = ["scrap", "device", "part"];
 const NETWORK_KINDS = ["scrap", "device", "part", "handover"];
 const num = (v: unknown) => (Number.isFinite(Number(v)) && Number(v) >= 0 ? Number(v) : NaN);
 
+// The impact_flows view still uses the old names; the site shows the plain ones.
+const PLAIN_LABEL: Record<string, string> = {
+  "Sold as tested parts": "Sold as used parts (tested and working)",
+  "Partner shops (Parts Exchange)": "Partner shops (used parts shop)",
+};
+const plain = (label: string) => PLAIN_LABEL[label] ?? label;
+
 export function parseImpactFlows(rows: unknown): ImpactFlow[] {
   if (!Array.isArray(rows)) return [];
   const out: ImpactFlow[] = [];
@@ -44,8 +51,8 @@ export function parseImpactFlows(rows: unknown): ImpactFlow[] {
     if (!r || !KINDS.includes(r.kind) || Number.isNaN(items) || Number.isNaN(kg)) continue;
     out.push({
       month: String(r.month).slice(0, 7) + "-01",
-      sourceGroup: r.source_group,
-      outcome: r.outcome,
+      sourceGroup: plain(r.source_group),
+      outcome: plain(r.outcome),
       kind: r.kind as FlowKind,
       category: r.category,
       items,

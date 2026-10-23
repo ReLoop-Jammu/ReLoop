@@ -17,9 +17,9 @@ export default async function PrivacyPage() {
         <h2>Who we are</h2>
         <p>
           {SITE.legalName ?? SITE.name} (&quot;ReLoop&quot;, &quot;we&quot;) buys, grades and
-          resells used electronics for used electronics, based in {SITE.city}. This policy explains
-          what personal data we collect, why, and the choices you have. We follow India&apos;s
-          Digital Personal Data Protection Act, 2023 (DPDP Act).
+          resells used phones, laptops, desktop computers, monitors and parts, based in {SITE.city}.
+          This policy explains what personal data we collect, why, and the choices you have. We
+          follow India&apos;s Digital Personal Data Protection Act, 2023 (DPDP Act).
         </p>
       </section>
 
@@ -92,7 +92,7 @@ export default async function PrivacyPage() {
         <p>
           We use trusted service providers to run the site, such as hosting and messaging. They
           process data only on our instructions. For institutions, the institution&apos;s name
-          appears on the weight receipt of our dismantling partner, VRRG Group. A shop&apos;s
+          appears on the weight receipt of our licensed recycler, VRRG Group. A shop&apos;s
           kilograms are shown publicly only in bands (such as &ldquo;25-100 kg&rdquo;), and only
           with its consent. We may disclose data if required by law.
         </p>

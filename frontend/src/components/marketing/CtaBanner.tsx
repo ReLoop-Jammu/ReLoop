@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type Props = { eyebrow?: string; title: string; description: string; actions: ReactNode };
+type Props = { eyebrow?: ReactNode; title: ReactNode; description: ReactNode; actions: ReactNode };
 
 export function CtaBanner({ eyebrow, title, description, actions }: Props) {
   return (

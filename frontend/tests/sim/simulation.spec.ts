@@ -344,11 +344,11 @@ test.describe("warranty claims (real logins)", () => {
   });
 });
 
-test.describe("ReLoop Checked (simulated stock)", () => {
+test.describe("Our test report (simulated stock)", () => {
   test("a listed item shows its inspection report, wipe and warranty", async ({ page }) => {
     await page.goto("/shop?category=laptop");
     await page.locator("main article a").first().click();
-    await expect(page.getByRole("heading", { name: "ReLoop Checked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Our test report" })).toBeVisible();
     await expect(page.getByText(/Inspected at the Jammu hub on \d+ \w+ \d{4}/)).toBeVisible();
     await expect(
       page.getByText(/Personal data wiped on|doesn't store personal data|wiped before sale/),
@@ -357,11 +357,11 @@ test.describe("ReLoop Checked (simulated stock)", () => {
   });
 });
 
-test.describe("item passport (simulated stock)", () => {
-  test("a listed item's passport shows its journey, without prices or people", async ({ page }) => {
+test.describe("item history (simulated stock)", () => {
+  test("a listed item's history shows its journey, without prices or people", async ({ page }) => {
     await page.goto("/shop?category=laptop");
     await page.locator("main article a").first().click();
-    await page.getByRole("link", { name: "See its passport" }).click();
+    await page.getByRole("link", { name: "See its item history" }).click();
     await expect(page).toHaveURL(/\/passport\/RL-JMU-\d+$/);
     await expect(page.getByText("Received at the hub")).toBeVisible();
     await expect(page.getByText("Listed for sale")).toBeVisible();
@@ -384,13 +384,13 @@ test.describe("item passport (simulated stock)", () => {
 });
 
 test.describe("public pricing (simulated references)", () => {
-  test("a listed item shows its estimated fair-price band with source and date", async ({
+  test("a listed item shows the usual price range for its model with source and date", async ({
     page,
   }) => {
     await page.goto("/shop?category=laptop");
     await page.locator("main article a").first().click();
     await expect(
-      page.getByText(/Estimated fair price for this kind of item and\s+grade/),
+      page.getByText(/Usual price range for this kind of item and\s+grade/),
     ).toBeVisible();
     await expect(page.getByText(/Estimate from Simulated reference/)).toBeVisible();
     await expect(page.getByText(/Our price is (below|within|above) the usual range/)).toBeVisible();
@@ -491,10 +491,10 @@ test.describe("saved items (real logins)", () => {
   });
 });
 
-test.describe("scrap ledger, Parts Exchange and lots (real logins)", () => {
+test.describe("scrap ledger, used parts shop and lots (real logins)", () => {
   test.setTimeout(90_000);
 
-  test("the demo rate card is public and the demo admin sees weigh-ins, bins, exchange and lots", async ({
+  test("the demo scrap prices are public and the demo admin sees weigh-ins, bins, exchange and lots", async ({
     page,
     isMobile,
   }) => {
@@ -509,7 +509,7 @@ test.describe("scrap ledger, Parts Exchange and lots (real logins)", () => {
     await expect(page.getByText(/kg/).first()).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/hub/exchange");
-    await expect(page.getByRole("heading", { level: 1, name: "Parts Exchange" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Used parts shop" })).toBeVisible();
 
     await page.goto("/hub/lots");
     await expect(page.getByRole("heading", { level: 1, name: "Institution lots" })).toBeVisible();

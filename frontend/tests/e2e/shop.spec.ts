@@ -4,9 +4,33 @@ import { publicPaths } from "./paths";
 import { fillShopSubmission, mockShopSubmissions, signInAsShopOwner } from "./shop-owner";
 
 test.describe("public shop", () => {
-  test("home explains the loop and shows graded stock", async ({ page }) => {
+  test("home says what ReLoop does, offers buy and sell, and shows graded stock", async ({
+    page,
+  }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Collect. Grade.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(
+      "ReLoop buys used mobile phones, laptops, desktop computers and computer monitors in Jammu, tests them and resells what works.",
+    );
+    const main = page.getByRole("main");
+    await expect(main.getByRole("link", { name: /^Buy a tested phone or laptop/ })).toHaveAttribute(
+      "href",
+      "/shop",
+    );
+    await expect(
+      main.getByRole("link", { name: /^Sell your shop's old devices and parts/ }),
+    ).toHaveAttribute("href", "/sell");
+    for (const [name, href] of [
+      ["Mobile phones", "/shop?category=phone"],
+      ["Laptops", "/shop?category=laptop"],
+      ["Desktop computers", "/shop?category=desktop"],
+      ["Computer monitors", "/shop?category=monitor"],
+      ["Parts", "/shop?kind=parts"],
+    ])
+      await expect(main.getByRole("link", { name: new RegExp(`^${name}`) })).toHaveAttribute(
+        "href",
+        href,
+      );
+    await expect(main.getByText(/We don.t take: TVs, printers, UPS units/)).toBeVisible();
     await expect(page.locator("main article")).toHaveCount(7);
     await expect(page.locator("main article [data-grade]").first()).toBeVisible();
   });
@@ -176,7 +200,11 @@ test.describe("sell to us", () => {
 
   test("every sell path is reachable from /sell", async ({ page }) => {
     await page.goto("/sell");
-    for (const name of ["Become a partner shop", "Book a lot pickup", "The full rate card"]) {
+    for (const name of [
+      "Become a partner shop",
+      "Book a lot pickup",
+      "All our scrap prices \\(per kg\\)",
+    ]) {
       await expect(
         page.getByRole("main").getByRole("link", { name: new RegExp(name) }),
       ).toBeVisible();

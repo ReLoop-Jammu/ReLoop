@@ -1,3 +1,4 @@
+import { T } from "@/components/i18n/T";
 import { Container } from "@/components/ui/Container";
 import { activitySentence } from "./model";
 import { getActivityFeed } from "./queries";
@@ -10,9 +11,14 @@ export async function ActivityFeed() {
     <section aria-labelledby="activity-heading" className="pb-16 sm:pb-20">
       <Container>
         <h2 id="activity-heading" className="text-2xl font-bold">
-          Lately in the loop
+          <T en="Lately in the loop" hi="हाल में क्या हुआ" />
         </h2>
-        <p className="mt-1 text-sm text-muted">At least a day old, by date only.</p>
+        <p className="mt-1 text-sm text-muted">
+          <T
+            en="At least a day old, by date only."
+            hi="कम से कम एक दिन पुराना, सिर्फ़ तारीख़ के साथ।"
+          />
+        </p>
         <ol className="mt-5 grid gap-2 sm:grid-cols-2" role="list">
           {rows.slice(0, 10).map((a, i) => (
             <li

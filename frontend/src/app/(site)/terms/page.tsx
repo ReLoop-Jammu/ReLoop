@@ -25,9 +25,9 @@ export default async function TermsPage() {
       <section>
         <h2>What ReLoop does</h2>
         <p>
-          ReLoop buys used and broken electronics, tests and grades each item at its hub in Jammu,
-          and resells what can be reused. During the pilot, any sample items shown in the shop are
-          samples and no sales are processed.
+          ReLoop buys used and broken phones, laptops, desktop computers and monitors, tests and
+          grades each item at its hub in Jammu, and resells what can be reused. During the pilot,
+          any sample items shown in the shop are samples and no sales are processed.
         </p>
       </section>
 
@@ -54,7 +54,7 @@ export default async function TermsPage() {
       </section>
 
       <section>
-        <h2>Listing parts on the Jammu Parts Exchange</h2>
+        <h2>Listing parts in our used parts shop</h2>
         <ul>
           <li>
             Verified partner shops can list tested-working parts they harvest. A listing is not live
@@ -95,11 +95,11 @@ export default async function TermsPage() {
       <section>
         <h2>E-waste and recycling</h2>
         <p>
-          End-of-life electronics are subject to the E-Waste (Management) Rules, 2022. Scrap and
-          items we can&apos;t reuse (grade D, dead or hazardous), and every battery, are handed to
-          VRRG Group, Gangyal, our dismantling partner, by weight on a weight receipt; they are not
-          resold for reuse. Dead e-waste from an institution goes to VRRG Group on its receipt in
-          the institution&apos;s name.
+          Phones, computers, monitors and parts at the end of their life are subject to the E-Waste
+          (Management) Rules, 2022. Scrap and items we can&apos;t reuse (grade D, dead or
+          hazardous), and every battery, are handed to VRRG Group, Gangyal, our licensed recycler,
+          by weight on a weight receipt; they are not resold for reuse. Dead e-waste from an
+          institution goes to VRRG Group on its receipt in the institution&apos;s name.
         </p>
       </section>
 

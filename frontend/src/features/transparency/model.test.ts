@@ -50,7 +50,7 @@ describe("transparency model", () => {
     ).toBe("Scrap weighed at a repair shop in Bahu Plaza");
     expect(
       activitySentence({ day: "x", kind: "sold", category: "part", place: null, who: null }),
-    ).toBe("A tested part found a new owner");
+    ).toBe("A used part (tested and working) found a new owner");
     expect(
       activitySentence({
         day: "x",

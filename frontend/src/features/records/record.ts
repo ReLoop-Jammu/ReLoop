@@ -39,7 +39,7 @@ export function recordText(r: HandoverRecord) {
   const total = Math.round(kg.reduce((s, x) => s + x.kg, 0) * 10) / 10;
   return {
     title: "Handover record",
-    intro: `This record lists what ReLoop bought from ${r.institution} in the lot of ${date(r.lot_date)}, and what was handed to our dismantling partner as dead electronic waste.`,
+    intro: `This record lists what ReLoop bought from ${r.institution} in the lot of ${date(r.lot_date)}, and what was handed to our licensed recycler as dead electronic waste.`,
     bought: r.bought_items.map(
       (i) =>
         `${i.tag}: ${[i.brand, i.model].filter(Boolean).join(" ") || i.category}${i.grade ? `, grade ${i.grade}` : ""}`,

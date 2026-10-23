@@ -1,14 +1,18 @@
 import {
   ArrowRight,
+  Ban,
   Building2,
   Recycle,
   ShieldCheck,
+  ShoppingBag,
   Store,
   Truck,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { HindiPage, T } from "@/components/i18n/T";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -19,6 +23,8 @@ import { HeroShowcase } from "@/components/marketing/HeroShowcase";
 import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { LoopSteps } from "@/components/marketing/LoopSteps";
 import { BUSINESS_RULES } from "@/config/business-rules";
+import { DEVICES, listOf, NOT_ACCEPTED, PARTS } from "@/config/items";
+import { CategoryCards } from "@/features/shop/components/CategoryCards";
 import { ImpactCounter } from "@/features/impact/ImpactCounter";
 import { getImpactTotals } from "@/features/impact/queries";
 import { ActivityFeed } from "@/features/transparency/ActivityFeed";
@@ -30,43 +36,86 @@ import { env } from "@/lib/env";
 import { SITE } from "@/lib/site";
 import { formatPrice } from "@/lib/utils/money";
 
-const PROMISES: { icon: LucideIcon; title: string; body: string }[] = [
+const PROMISES: { icon: LucideIcon; title: ReactNode; body: ReactNode }[] = [
   {
     icon: ShieldCheck,
-    title: "Tested and graded",
-    body: "Every device carries an RL-JMU tag and grade A or B; every part is a tested part.",
+    title: <T en="Tested and graded" hi="जाँचा हुआ, ग्रेड के साथ" />,
+    body: (
+      <T
+        en="Every device has an item number and a grade; every part is tested and working."
+        hi="हर डिवाइस पर एक नंबर और ग्रेड होता है; हर पार्ट जाँचा हुआ और चालू होता है।"
+      />
+    ),
   },
   {
     icon: Wrench,
-    title: `${BUSINESS_RULES.warrantyDays}-day warranty`,
-    body: "On grade A and B devices.",
+    title: (
+      <T
+        en={`${BUSINESS_RULES.warrantyDays}-day warranty`}
+        hi={`${BUSINESS_RULES.warrantyDays} दिन की वारंटी`}
+      />
+    ),
+    body: <T en="On grade A and B devices." hi="ग्रेड A और B डिवाइस पर।" />,
   },
   {
     icon: Truck,
-    title: "Pickup or delivery",
-    body: `Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} in Jammu city.`,
+    title: <T en="Pickup or delivery" hi="ख़ुद ले जाइए या डिलीवरी" />,
+    body: (
+      <T
+        en={`Free from the hub, or ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)} in Jammu city.`}
+        hi={`हब से मुफ़्त, या जम्मू शहर में ${formatPrice(BUSINESS_RULES.jammuDeliveryPaise)}।`}
+      />
+    ),
   },
   {
     icon: Recycle,
-    title: "Nothing dumped",
-    body: "What can't be reused goes to VRRG Group, our dismantling partner, by weight.",
+    title: <T en="Nothing dumped" hi="कुछ भी फेंका नहीं जाता" />,
+    body: (
+      <T
+        en="What can't be reused goes to VRRG Group, our licensed recycler, by weight."
+        hi="जो दोबारा काम का नहीं, वह तौलकर VRRG Group (हमारे लाइसेंस वाले रीसाइक्लर) को जाता है।"
+      />
+    ),
   },
 ];
 
-const SELL_PATHS: { href: string; icon: LucideIcon; title: string; body: string }[] = [
+const SELL_PATHS: { href: string; icon: LucideIcon; title: ReactNode; body: ReactNode }[] = [
   {
     href: "/sell/shops",
     icon: Store,
-    title: "Repair shops, retailers & exchange stores",
-    body: "Scrap weighed and paid by UPI on the spot, on a fixed weekly pickup day.",
+    title: (
+      <T
+        en="Repair shops, retailers & exchange stores"
+        hi="रिपेयर दुकानें, रिटेलर और एक्सचेंज स्टोर"
+      />
+    ),
+    body: (
+      <T
+        en="Scrap weighed and paid by UPI on the spot, on a fixed weekly pickup day."
+        hi="हर हफ़्ते तय दिन पर पिकअप। कबाड़ आपके सामने तौलकर उसी समय UPI से पैसे।"
+      />
+    ),
   },
   {
     href: "/sell/institutions",
     icon: Building2,
-    title: "Colleges, schools, banks & offices",
-    body: "Booked lot pickups, sorted on site, with a handover record.",
+    title: <T en="Colleges, schools, banks & offices" hi="कॉलेज, स्कूल, बैंक और दफ़्तर" />,
+    body: (
+      <T
+        en="Booked lot pickups, sorted on site, with a handover record."
+        hi="बुक किया हुआ पिकअप, छँटाई आपकी जगह पर, और पूरा रिकॉर्ड।"
+      />
+    ),
   },
 ];
+
+const DEVICE_LIST = {
+  en: listOf(
+    DEVICES.map((d) => ({ ...d, en: d.en.toLowerCase() })),
+    "en",
+  ),
+  hi: listOf(DEVICES, "hi"),
+};
 
 export default async function HomePage() {
   const [latest, sample, impact, site] = await Promise.all([
@@ -106,49 +155,97 @@ export default async function HomePage() {
             className="absolute -right-32 -bottom-40 size-[34rem] rounded-full bg-gold-400/20 blur-3xl"
           />
           <Container className="relative grid items-center gap-12 pt-14 pb-16 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pt-24 lg:pb-28">
-            <div className="animate-rise">
+            <div className="min-w-0 animate-rise">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pr-3 pl-1 text-sm text-white/85 ring-1 ring-white/15 backdrop-blur ring-inset">
                 <span className="rounded-full bg-gold-400 px-2 py-0.5 text-xs font-bold text-brand-950">
-                  New
+                  <T en="New" hi="नया" />
                 </span>
-                Jammu pilot · weekly pickups from partner shops
+                <T
+                  en="Jammu pilot · weekly pickups from partner shops"
+                  hi="जम्मू पायलट · हर हफ़्ते पिकअप"
+                />
               </span>
-              <h1 className="mt-7 text-[2.8rem] leading-[0.98] font-bold text-white sm:text-7xl lg:text-[5.25rem]">
-                Collect. Grade.
-                <br />
-                <span className="text-gold-400">Resell what still works.</span>
+              <h1 className="mt-7 text-[2rem] leading-[1.08] font-bold text-white sm:text-5xl lg:text-[3.25rem]">
+                <T
+                  en={
+                    <>
+                      ReLoop buys used {DEVICE_LIST.en} in Jammu,{" "}
+                      <span className="text-gold-400">tests them and resells what works.</span>
+                    </>
+                  }
+                  hi={
+                    <>
+                      ReLoop जम्मू में पुराने {DEVICE_LIST.hi} ख़रीदता है,{" "}
+                      <span className="text-gold-400">जाँचता है और जो चालू है उसे बेचता है।</span>
+                    </>
+                  }
+                />
               </h1>
-              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl">
-                ReLoop buys used and broken electronics from Jammu&apos;s repair shops, retailers
-                and institutions, tests and grades them at one hub, and resells what still works as
-                graded devices and tested parts. Scrap is weighed and handed to VRRG Group, our
-                dismantling partner.
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
+                <T
+                  en={`We also sell used parts, tested and working: ${listOf(PARTS, "en")}.`}
+                  hi={`हम पुराने पार्ट्स भी बेचते हैं, जाँचे हुए और चालू: ${listOf(PARTS, "hi")}।`}
+                />
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <ButtonLink href="/shop" size="lg" variant="gold">
-                  Shop graded electronics
+              <div className="mt-8 grid max-w-xl gap-3">
+                <ButtonLink
+                  href="/shop"
+                  size="lg"
+                  variant="gold"
+                  className="justify-between py-3 text-left whitespace-normal"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShoppingBag className="size-5" aria-hidden="true" />
+                    <T en="Buy a tested phone or laptop" hi="जाँचा हुआ फ़ोन या लैपटॉप ख़रीदें" />
+                  </span>
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </ButtonLink>
                 <ButtonLink
                   href="/sell"
                   size="lg"
-                  className="bg-white/10 bg-none text-white shadow-none ring-white/25 hover:bg-white/15"
+                  className="justify-between bg-white/10 bg-none py-3 text-left whitespace-normal text-white shadow-none ring-white/25 hover:bg-white/15"
                 >
-                  For shops &amp; institutions
+                  <span className="flex items-center gap-2">
+                    <Store className="size-5" aria-hidden="true" />
+                    <T
+                      en="Sell your shop's old devices and parts"
+                      hi="अपनी दुकान के पुराने डिवाइस और पार्ट्स बेचें"
+                    />
+                  </span>
+                  <ArrowRight className="size-4" aria-hidden="true" />
                 </ButtonLink>
               </div>
               <dl className="mt-12 grid max-w-lg grid-cols-3 gap-4 border-t border-white/15 pt-6">
-                {[
-                  ["A–D", "honest grade on every device"],
-                  [`${BUSINESS_RULES.warrantyDays} days`, "warranty on A and B"],
-                  ["100%", "of scrap to VRRG Group, by weight"],
-                ].map(([value, label]) => (
-                  <div key={label}>
-                    <dt className="sr-only">{label}</dt>
+                {(
+                  [
+                    ["A–D", "grade", "honest grade on every device", "हर डिवाइस पर सही ग्रेड"],
+                    [
+                      `${BUSINESS_RULES.warrantyDays} days`,
+                      "warranty",
+                      "warranty on A and B",
+                      "A और B पर वारंटी",
+                    ],
+                    [
+                      "100%",
+                      "scrap",
+                      "of scrap to VRRG Group, by weight",
+                      "कबाड़ तौलकर VRRG Group को",
+                    ],
+                  ] as const
+                ).map(([value, key, en, hi]) => (
+                  <div key={key}>
+                    <dt className="sr-only">
+                      <T en={en} hi={hi} />
+                    </dt>
                     <dd className="font-display text-2xl font-bold text-white sm:text-3xl">
                       {value}
                     </dd>
-                    <dd className="mt-1 text-xs leading-snug text-white/60 sm:text-sm">{label}</dd>
+                    <dd
+                      className="mt-1 text-xs leading-snug text-white/70 sm:text-sm"
+                      aria-hidden="true"
+                    >
+                      <T en={en} hi={hi} />
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -158,15 +255,54 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <HindiPage />
+
+      {/* What we buy and sell */}
+      <section className="pt-12 sm:pt-16" aria-labelledby="items-heading">
+        <Container>
+          <h2 id="items-heading" className="text-2xl font-bold sm:text-3xl">
+            <T en="What we buy and sell" hi="हम क्या ख़रीदते और बेचते हैं" />
+          </h2>
+          <div className="mt-6">
+            <CategoryCards />
+          </div>
+          <p className="mt-5 flex items-start gap-2 text-sm text-ink-soft">
+            <Ban className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden="true" />
+            <span>
+              <T
+                en={
+                  <>
+                    <strong className="text-ink">We don&apos;t take:</strong>{" "}
+                    {listOf(NOT_ACCEPTED, "en")}.
+                  </>
+                }
+                hi={
+                  <>
+                    <strong className="text-ink">हम नहीं लेते:</strong> {listOf(NOT_ACCEPTED, "hi")}
+                    ।
+                  </>
+                }
+              />{" "}
+              <Link href="/what-we-accept" className="font-semibold text-brand-600 underline">
+                <T en="What we accept" hi="हम क्या लेते हैं" />
+              </Link>
+            </span>
+          </p>
+        </Container>
+      </section>
+
       <TrustStrip />
 
       {/* Promises */}
-      <section aria-label="Why buy from ReLoop" className="py-6">
+      <section aria-labelledby="promises-heading" className="py-6">
+        <h2 id="promises-heading" className="sr-only">
+          <T en="Why buy from ReLoop" hi="ReLoop से क्यों ख़रीदें" />
+        </h2>
         <Container>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" role="list">
-            {PROMISES.map(({ icon: Icon, title, body }) => (
+            {PROMISES.map(({ icon: Icon, title, body }, i) => (
               <li
-                key={title}
+                key={i}
                 className="group rounded-card border border-line bg-surface p-6 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift"
               >
                 <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100 text-brand-600 ring-1 ring-brand-100 transition ring-inset group-hover:scale-105">
@@ -188,19 +324,26 @@ export default async function HomePage() {
         <Container>
           <div className="grid items-center gap-10 overflow-hidden rounded-panel border border-line bg-surface p-6 shadow-soft sm:p-10 lg:grid-cols-2 lg:p-14">
             <div>
-              <Eyebrow>The Jammu loop</Eyebrow>
+              <Eyebrow>
+                <T en="The Jammu loop" hi="जम्मू का चक्र" />
+              </Eyebrow>
               <h2
                 id="network-heading"
                 className="mt-4 text-3xl leading-[1.05] font-bold sm:text-5xl"
               >
-                From the market to the hub, and to VRRG Group
+                <T
+                  en="From the market to the hub, and to VRRG Group"
+                  hi="बाज़ार से हब तक, और फिर VRRG Group तक"
+                />
               </h2>
               <p className="mt-4 leading-relaxed text-ink-soft">
-                Partner shops on our Tuesday and Friday routes sell their scrap by weight. The hub
-                tests what can be reused; whatever is dead goes to VRRG Group on a weight receipt.
+                <T
+                  en="Partner shops on our Tuesday and Friday routes sell their scrap by weight. The hub tests what can be reused; whatever is dead goes to VRRG Group on a weight receipt."
+                  hi="मंगलवार और शुक्रवार के रूट वाली पार्टनर दुकानें अपना कबाड़ तौलकर बेचती हैं। हब में जो दोबारा काम आ सके उसकी जाँच होती है; जो बिल्कुल ख़राब है वह तौल की रसीद के साथ VRRG Group को जाता है।"
+                />
               </p>
               <ButtonLink href="/network" variant="secondary" className="mt-6">
-                See the network
+                <T en="See the network" hi="नेटवर्क देखें" />
               </ButtonLink>
             </div>
             <NetworkPreview />
@@ -213,9 +356,20 @@ export default async function HomePage() {
         <Container>
           <SectionHeading
             id="grades-heading"
-            eyebrow={<Eyebrow>Four grades</Eyebrow>}
-            title="Every device gets an honest grade"
-            description="We test everything at our hub before it goes anywhere. The grade decides a device's next life; a working part is a tested part."
+            eyebrow={
+              <Eyebrow>
+                <T en="Four grades" hi="चार ग्रेड" />
+              </Eyebrow>
+            }
+            title={
+              <T en="Every device gets an honest grade" hi="हर डिवाइस को सही ग्रेड मिलता है" />
+            }
+            description={
+              <T
+                en="We test everything at our hub before it goes anywhere. The grade decides what happens to a device next."
+                hi="हम हर चीज़ को आगे भेजने से पहले अपने हब में जाँचते हैं। ग्रेड से तय होता है कि डिवाइस के साथ आगे क्या होगा।"
+              />
+            }
           />
           <GradeStrip />
         </Container>
@@ -226,16 +380,41 @@ export default async function HomePage() {
         <Container>
           <SectionHeading
             id="stock-heading"
-            eyebrow={<Eyebrow>{sample ? "Preview" : "Fresh from the hub"}</Eyebrow>}
-            title={sample ? "How our stock will look" : "Latest graded stock"}
+            eyebrow={
+              <Eyebrow>
+                {sample ? (
+                  <T en="Preview" hi="झलक" />
+                ) : (
+                  <T en="Fresh from the hub" hi="हब से अभी आया" />
+                )}
+              </Eyebrow>
+            }
+            title={
+              sample ? (
+                <T en="How our stock will look" hi="हमारा सामान ऐसा दिखेगा" />
+              ) : (
+                <T
+                  en="Latest tested phones, laptops and parts"
+                  hi="नए जाँचे हुए फ़ोन, लैपटॉप और पार्ट्स"
+                />
+              )
+            }
             description={
-              sample
-                ? "Sample items for now. Real stock appears here as the hub tests it."
-                : "Tagged, tested and ready for pickup or delivery in Jammu."
+              sample ? (
+                <T
+                  en="Sample items for now. Real stock appears here as the hub tests it."
+                  hi="अभी ये सिर्फ़ नमूने हैं। हब में जाँच के बाद असली सामान यहाँ दिखेगा।"
+                />
+              ) : (
+                <T
+                  en="Each has an item number, a grade and our test report. Pick up or get delivery in Jammu."
+                  hi="हर एक पर नंबर, ग्रेड और हमारी जाँच रिपोर्ट है। हब से लीजिए या जम्मू में डिलीवरी।"
+                />
+              )
             }
             actions={
               <ButtonLink href="/shop" variant="secondary">
-                Open the shop
+                <T en="Open the shop" hi="दुकान खोलें" />
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             }
@@ -250,18 +429,20 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
           <Container className="relative">
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <Eyebrow tone="dark">The loop</Eyebrow>
+              <Eyebrow tone="dark">
+                <T en="The loop" hi="पूरा चक्र" />
+              </Eyebrow>
               <h2
                 id="loop-heading"
                 className="mt-4 text-3xl leading-[1.05] font-bold text-white sm:text-5xl"
               >
-                From the bazaar to its next owner
+                <T en="From the bazaar to its next owner" hi="बाज़ार से उसके नए मालिक तक" />
               </h2>
             </div>
             <LoopSteps tone="dark" />
             <div className="mt-12 text-center">
               <ButtonLink href="/how-it-works" variant="gold">
-                See how the hub works
+                <T en="See how the hub works" hi="हब कैसे काम करता है" />
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             </div>
@@ -274,12 +455,26 @@ export default async function HomePage() {
         <Container>
           <SectionHeading
             id="sell-heading"
-            eyebrow={<Eyebrow>For shops &amp; institutions</Eyebrow>}
-            title="Run a repair shop, store or office?"
-            description="Scrap is paid by the kilo at the rate card. Working devices get an offer after testing. Working parts are priced one by one, or listed by you on the Parts Exchange."
+            eyebrow={
+              <Eyebrow>
+                <T en="For shops & institutions" hi="दुकानों और संस्थाओं के लिए" />
+              </Eyebrow>
+            }
+            title={
+              <T
+                en="Run a repair shop, store or office?"
+                hi="रिपेयर की दुकान, स्टोर या दफ़्तर है?"
+              />
+            }
+            description={
+              <T
+                en="Scrap is paid by the kilo, on the spot. Working devices get an offer after testing. Working parts are paid after testing, on our next visit."
+                hi="कबाड़ का पैसा किलो के हिसाब से, उसी समय। चालू डिवाइस का दाम जाँच के बाद बताते हैं। चालू पार्ट्स का पैसा जाँच के बाद, अगले चक्कर पर।"
+              />
+            }
             actions={
               <ButtonLink href="/rate-card" variant="secondary">
-                The rate card
+                <T en="Our scrap prices (per kg)" hi="कबाड़ के हमारे रेट (प्रति किलो)" />
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             }
@@ -315,12 +510,19 @@ export default async function HomePage() {
       <section className="pb-20">
         <Container>
           <CtaBanner
-            eyebrow="Where scrap goes"
-            title="Nothing dead goes in the bin."
-            description="Dead scrap and every battery go to VRRG Group, Gangyal, by weight, with a weight receipt for each handover."
+            eyebrow={<T en="Where scrap goes" hi="कबाड़ कहाँ जाता है" />}
+            title={
+              <T en="Nothing dead goes in the bin." hi="कोई ख़राब सामान कूड़े में नहीं जाता।" />
+            }
+            description={
+              <T
+                en="Dead scrap and every battery go to VRRG Group, Gangyal, our licensed recycler, by weight, with a weight receipt for each handover."
+                hi="ख़राब कबाड़ और हर बैटरी तौलकर VRRG Group, गंग्याल (हमारे लाइसेंस वाले रीसाइक्लर) को जाती है, हर बार तौल की रसीद के साथ।"
+              />
+            }
             actions={
               <ButtonLink href="/where-scrap-goes" size="lg" variant="dark">
-                Where scrap goes
+                <T en="Where scrap goes" hi="कबाड़ कहाँ जाता है" />
                 <ArrowRight className="size-4" aria-hidden="true" />
               </ButtonLink>
             }

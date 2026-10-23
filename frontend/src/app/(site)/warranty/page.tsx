@@ -55,7 +55,8 @@ export default async function WarrantyPage() {
             we&apos;ll check it at the hub.
           </p>
           <p className="mt-3 leading-relaxed text-ink-soft">
-            Parts are not graded. Each one is a tested part with a {BUSINESS_RULES.partReturnDays}
+            Parts are not graded. Each one is a used part, tested and working, with a{" "}
+            {BUSINESS_RULES.partReturnDays}
             -day return instead of the warranty (below).
           </p>
           <h3 className="mt-6 font-semibold text-ink">What the warranty covers</h3>
@@ -77,7 +78,7 @@ export default async function WarrantyPage() {
         </div>
         <div className="rounded-panel border border-line bg-surface p-7 shadow-soft sm:p-9 lg:col-span-2">
           <h2 className="text-xl font-semibold">
-            {BUSINESS_RULES.partReturnDays}-day return on tested parts
+            {BUSINESS_RULES.partReturnDays}-day return on used parts, tested and working
           </h2>
           <p className="mt-3 leading-relaxed text-ink-soft">
             Within {BUSINESS_RULES.partReturnDays} days of the sale you can return a part if it is

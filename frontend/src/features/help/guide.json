@@ -15,7 +15,7 @@
         "steps": [
           "Every week ReLoop's e-rickshaw visits your market on its fixed day. Your day is on {site}/locations; the rates are on {site}/rate-card.",
           "We weigh your repair leftovers in front of you, by category: screens and displays, batteries, dead motherboards, and everything else.",
-          "You are paid by UPI on the spot at the rate card, and we give you a numbered receipt (RL-PAY-…). Cash is only an exception, and the receipt shows which was used.",
+          "You are paid by UPI on the spot at our scrap prices, and we give you a numbered receipt (RL-PAY-…). Cash is only an exception, and the receipt shows which was used.",
           "Before we take anything you confirm that the scrap is yours to sell. We record it with the date and the staff member present.",
           "We don't take TVs, printers, UPS units, small appliances, lead-acid or leaking batteries, or anything from homes."
         ]
@@ -25,7 +25,7 @@
         "steps": [
           "हर हफ़्ते ReLoop की ई-रिक्शा आपके बाज़ार में तय दिन पर आती है। आपका दिन {site}/locations पर है; रेट {site}/rate-card पर हैं।",
           "हम आपके सामने रिपेयर का बचा सामान श्रेणी के हिसाब से तौलते हैं: स्क्रीन और डिस्प्ले, बैटरी, खराब मदरबोर्ड, और बाकी सब।",
-          "रेट कार्ड के हिसाब से आपको उसी समय UPI से भुगतान होता है, और हम क्रमांक वाली रसीद (RL-PAY-…) देते हैं। नकद सिर्फ़ अपवाद है, और रसीद में लिखा होता है कि क्या इस्तेमाल हुआ।",
+          "हमारे कबाड़ रेट (प्रति किलो) के हिसाब से आपको उसी समय UPI से भुगतान होता है, और हम क्रमांक वाली रसीद (RL-PAY-…) देते हैं। नकद सिर्फ़ अपवाद है, और रसीद में लिखा होता है कि क्या इस्तेमाल हुआ।",
           "कुछ भी लेने से पहले आप पुष्टि करते हैं कि कबाड़ आपका है और आप उसे बेच सकते हैं। हम तारीख़ और मौजूद स्टाफ़ के नाम के साथ इसे दर्ज करते हैं।",
           "हम TV, प्रिंटर, UPS, छोटे घरेलू उपकरण, लेड-एसिड या रिसती बैटरी, और घरों से आया कोई भी सामान नहीं लेते।"
         ]
@@ -53,7 +53,7 @@
     {
       "id": "sign-up",
       "en": {
-        "title": "3. Create an account (for devices and the Parts Exchange)",
+        "title": "3. Create an account (for devices and the used parts shop)",
         "steps": [
           "Open {site}/register and choose \"I'm a shop owner\".",
           "Fill in your shop name, your name, your phone / WhatsApp number and a password of at least 8 characters.",
@@ -62,7 +62,7 @@
         ]
       },
       "hi": {
-        "title": "3. अकाउंट बनाएँ (डिवाइस और पार्ट्स एक्सचेंज के लिए)",
+        "title": "3. अकाउंट बनाएँ (डिवाइस बेचने और पुराने पार्ट्स की दुकान के लिए)",
         "steps": [
           "{site}/register खोलें और \"I'm a shop owner\" चुनें।",
           "अपनी दुकान का नाम, अपना नाम, फ़ोन / WhatsApp नंबर और कम से कम 8 अक्षरों का पासवर्ड भरें।",
@@ -77,7 +77,7 @@
         "title": "4. Wait for verification",
         "steps": [
           "Every new shop starts as \"pending\". ReLoop's staff check your details and call you on the phone number you gave.",
-          "Open {site}/account to see your status. When it says \"verified\", you can submit devices for an offer, and list parts on the Parts Exchange once ReLoop has linked your account to your shop's route stop.",
+          "Open {site}/account to see your status. When it says \"verified\", you can submit devices for an offer, and list parts in our used parts shop once ReLoop has linked your account to your shop's route stop.",
           "A verified account is optional: you are paid for scrap at the counter without one. If verification takes long or was rejected, message us on WhatsApp."
         ]
       },
@@ -85,7 +85,7 @@
         "title": "4. सत्यापन (वेरिफ़िकेशन) का इंतज़ार करें",
         "steps": [
           "हर नई दुकान पहले \"pending\" रहती है। ReLoop की टीम आपकी जानकारी जाँचती है और आपके दिए फ़ोन नंबर पर कॉल करती है।",
-          "अपना स्टेटस देखने के लिए {site}/account खोलें। जब वहाँ \"verified\" लिखा हो, तो आप डिवाइस ऑफ़र के लिए जमा कर सकते हैं, और जब ReLoop आपका अकाउंट आपकी दुकान के रूट स्टॉप से जोड़ दे, तो पार्ट्स एक्सचेंज पर पार्ट लिस्ट कर सकते हैं।",
+          "अपना स्टेटस देखने के लिए {site}/account खोलें। जब वहाँ \"verified\" लिखा हो, तो आप डिवाइस ऑफ़र के लिए जमा कर सकते हैं, और जब ReLoop आपका अकाउंट आपकी दुकान के रूट स्टॉप से जोड़ दे, तो हमारी पुराने पार्ट्स की दुकान पर पार्ट लिस्ट कर सकते हैं।",
           "वेरिफ़ाइड अकाउंट ज़रूरी नहीं है: कबाड़ का भुगतान काउंटर पर उसके बिना भी होता है। अगर देर हो रही है या आवेदन रद्द हुआ है, तो हमें WhatsApp करें।"
         ]
       }
@@ -155,7 +155,7 @@
           "Scrap is paid by UPI on the spot. Devices are paid at the offer you accepted. Parts are paid as parts. Each payment has its own receipt number (RL-PAY-…).",
           "Staff can send you your receipt on WhatsApp as a private link. All your receipts are also on {site}/account, where you can download each one.",
           "You don't wait for items to sell: once we buy them, they are ReLoop's.",
-          "Your account also shows your partnership in numbers: what you sent, offers, pickups, what we paid you, your weigh-ins in kg and your Parts Exchange sales. Weights we have not measured are marked \"estimated\"."
+          "Your account also shows your partnership in numbers: what you sent, offers, pickups, what we paid you, your weigh-ins in kg and your used parts shop sales. Weights we have not measured are marked \"estimated\"."
         ]
       },
       "hi": {
@@ -164,14 +164,14 @@
           "कबाड़ का भुगतान उसी समय UPI से होता है। डिवाइस का भुगतान आपके माने हुए ऑफ़र पर। पार्ट्स का भुगतान पार्ट के रूप में। हर भुगतान की अपनी रसीद संख्या (RL-PAY-…) होती है।",
           "स्टाफ़ आपको WhatsApp पर रसीद का निजी लिंक भेज सकता है। आपकी सारी रसीदें {site}/account पर भी हैं, जहाँ से आप हर रसीद डाउनलोड कर सकते हैं।",
           "सामान बिकने का इंतज़ार नहीं करना पड़ता: खरीदने के बाद सामान ReLoop का हो जाता है।",
-          "आपके अकाउंट में आपकी साझेदारी के आँकड़े भी दिखते हैं: आपने क्या भेजा, ऑफ़र, पिकअप, हमने आपको कितना भुगतान किया, किलो में आपके वज़न और पार्ट्स एक्सचेंज की बिक्री। जो वज़न हमने नहीं तौला, उसे \"अनुमानित\" लिखा जाता है।"
+          "आपके अकाउंट में आपकी साझेदारी के आँकड़े भी दिखते हैं: आपने क्या भेजा, ऑफ़र, पिकअप, हमने आपको कितना भुगतान किया, किलो में आपके वज़न और पुराने पार्ट्स की दुकान की बिक्री। जो वज़न हमने नहीं तौला, उसे \"अनुमानित\" लिखा जाता है।"
         ]
       }
     },
     {
       "id": "exchange",
       "en": {
-        "title": "9. List parts on the Jammu Parts Exchange",
+        "title": "9. List parts in our used parts shop",
         "steps": [
           "Verified shops linked to the route can list parts they harvest: open {site}/account/parts, choose the part type, add brand, model, a description, your asking price and up to three photos.",
           "You agree to be named on the listing (\"Listed by your shop, your market\"). The commission is shown to you on that page; buyers never see it.",
@@ -181,7 +181,7 @@
         ]
       },
       "hi": {
-        "title": "9. जम्मू पार्ट्स एक्सचेंज पर पार्ट लिस्ट करें",
+        "title": "9. हमारी पुराने पार्ट्स की दुकान पर पार्ट लिस्ट करें",
         "steps": [
           "रूट से जुड़ी वेरिफ़ाइड दुकानें अपने निकाले हुए पार्ट लिस्ट कर सकती हैं: {site}/account/parts खोलें, पार्ट का प्रकार चुनें, ब्रांड, मॉडल, विवरण, अपनी माँगी कीमत और तीन तक फ़ोटो जोड़ें।",
           "आप लिस्टिंग पर अपना नाम दिखने की सहमति देते हैं (\"Listed by आपकी दुकान, आपका बाज़ार\")। कमीशन उसी पेज पर आपको दिखता है; खरीदार उसे कभी नहीं देखते।",

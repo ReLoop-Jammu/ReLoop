@@ -117,8 +117,8 @@ export function queueTodos(b: HubBadges | null): Todo[] {
       count: b.part_listings_waiting ?? 0,
       label: plural(
         b.part_listings_waiting ?? 0,
-        "Parts Exchange listing to receive, test or approve",
-        "Parts Exchange listings to receive, test or approve",
+        "Used parts shop listing to receive, test or approve",
+        "Used parts shop listings to receive, test or approve",
       ),
       href: "/hub/exchange",
       level: "act",

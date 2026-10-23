@@ -15,7 +15,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Map & locations",
   description:
-    "Where ReLoop works in Jammu: the hub in Gandhi Nagar, partner shops on our route, the Tuesday and Friday pickup routes and VRRG Group, our dismantling partner.",
+    "Where ReLoop works in Jammu: the hub in Gandhi Nagar, partner shops on our route, the Tuesday and Friday pickup routes and VRRG Group, our licensed recycler.",
   alternates: { canonical: "/locations" },
 };
 
@@ -31,7 +31,7 @@ export default async function LocationsPage() {
         as="h1"
         eyebrow={<Eyebrow>Map & locations</Eyebrow>}
         title="Where ReLoop works in Jammu"
-        description={`One hub in Gandhi Nagar, two weekly pickup routes through the repair markets, and one dismantling partner. The hub opens in ${site.hubOpens}; locations are approximate until then.`}
+        description={`One hub in Gandhi Nagar, two weekly pickup routes through the repair markets, and one licensed recycler. The hub opens in ${site.hubOpens}; locations are approximate until then.`}
       />
 
       {/* The map's tiles are the page's largest paint: connect to the tile server early. */}

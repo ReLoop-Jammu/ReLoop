@@ -13,7 +13,7 @@ describe("locations data", () => {
     }
   });
 
-  it("puts the hub in Gandhi Nagar and names VRRG Group as the dismantling partner", () => {
+  it("puts the hub in Gandhi Nagar and names VRRG Group as the licensed recycler", () => {
     expect(LOCATIONS.hub.description).toMatch(/Gandhi Nagar, between Bahu Plaza and Gole Market/);
     expect(LOCATIONS.recycler.name).toBe("VRRG Group, Gangyal");
   });

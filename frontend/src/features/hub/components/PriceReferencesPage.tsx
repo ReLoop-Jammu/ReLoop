@@ -92,7 +92,7 @@ function References({ fresh }: { fresh: number }) {
         <p className="text-sm text-muted">Loading…</p>
       ) : rows.length === 0 ? (
         <p className="text-sm text-muted">
-          No references yet. Items show no fair-price band until there are.
+          No references yet. Items show no usual price range until there are.
         </p>
       ) : (
         <Table caption="Reference prices">

@@ -6,7 +6,7 @@ import { LOCATIONS } from "@/config/locations";
 export const metadata: Metadata = {
   title: "Compliance and partners",
   description:
-    "The E-Waste (Management) Rules, 2022 in plain words, and VRRG Group, our dismantling partner.",
+    "The E-Waste (Management) Rules, 2022 in plain words, and VRRG Group, our licensed recycler.",
 };
 
 export default function CompliancePage() {
@@ -14,7 +14,7 @@ export default function CompliancePage() {
     <StandardPage
       eyebrow="Compliance and partners"
       title="The rules, and who we work with"
-      lead="ReLoop buys, tests and resells used electronics in Jammu. What cannot be reused is handed to our dismantling partner by weight. ReLoop itself does not dismantle or process e-waste."
+      lead="ReLoop buys, tests and resells used phones, laptops, computers, monitors and parts in Jammu. What cannot be reused is handed to our licensed recycler by weight. ReLoop itself does not dismantle or process e-waste."
       sections={[
         {
           title: "The E-Waste (Management) Rules, 2022, in plain words",
@@ -43,14 +43,14 @@ export default function CompliancePage() {
           ),
         },
         {
-          title: "Our dismantling partner",
+          title: "Our licensed recycler",
           body: (
             <p>
-              Our dismantling partner: VRRG Group, Gangyal, a JKPCC-authorised e-waste dismantler.
+              Our licensed recycler: VRRG Group, Gangyal, a JKPCC-authorised e-waste dismantler.
               Every kilo of scrap and every battery goes to them on a weight receipt. Our standard
               is 100% of scrap to VRRG Group on a weight receipt; each handover is in the{" "}
               <Link href="/ledger" className="font-semibold text-brand-600 underline">
-                handover ledger
+                list of scrap sent for recycling
               </Link>
               .
             </p>

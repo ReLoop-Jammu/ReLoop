@@ -11,11 +11,15 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "buy",
     label: "Buy",
     links: [
-      { href: "/shop", label: "Shop", description: "Tested, graded and data-wiped electronics" },
+      {
+        href: "/shop",
+        label: "Shop",
+        description: "Tested phones, laptops, computers, monitors and parts",
+      },
       {
         href: "/how-we-price",
         label: "How we price",
-        description: "Fair-price ranges, savings against new, price cuts",
+        description: "Usual price ranges, savings against new, price cuts",
       },
       {
         href: "/warranty",
@@ -45,7 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/rate-card",
-        label: "Rate card",
+        label: "Our scrap prices (per kg)",
         description: "What we pay per kilo of scrap",
       },
       {
@@ -82,7 +86,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/ledger",
-        label: "Handover ledger",
+        label: "List of scrap sent for recycling",
         description: "Every handover to VRRG Group, in kg",
       },
       {
@@ -90,11 +94,15 @@ export const NAV_GROUPS: NavGroup[] = [
         label: "Monthly reports",
         description: "Each month of the pilot in numbers",
       },
-      { href: "/data", label: "Open data", description: "The public figures as CSV files" },
+      {
+        href: "/data",
+        label: "Download our figures",
+        description: "The public figures as CSV files",
+      },
       {
         href: "/where-scrap-goes",
         label: "Where scrap goes",
-        description: "VRRG Group, our dismantling partner, and our rules",
+        description: "VRRG Group, our licensed recycler, and our rules",
       },
     ],
   },

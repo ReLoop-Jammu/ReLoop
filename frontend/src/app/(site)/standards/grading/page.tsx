@@ -8,7 +8,7 @@ import { GRADE_INFO, type Grade } from "@/features/inventory/model";
 export const metadata: Metadata = {
   title: "Grading standard",
   description:
-    "What ReLoop's grades A to D mean, how a device is inspected, and what a tested part is.",
+    "What ReLoop's grades A to D mean, how a device is inspected, and how used parts are tested.",
 };
 
 export default function GradingPage() {
@@ -34,11 +34,11 @@ export default function GradingPage() {
           ),
         },
         {
-          title: "Tested parts",
+          title: "Used parts, tested and working",
           body: (
             <p>
-              <TestedPartBadge /> A part from a grade C device, or listed by a partner shop on the
-              Parts Exchange, is tested on its own and sold as a tested part. Parts carry no grade.
+              <TestedPartBadge /> A part from a grade C device, or listed by a partner shop in our
+              used parts shop, is tested on its own and sold only if it works. Parts carry no grade.
             </p>
           ),
         },
@@ -49,7 +49,7 @@ export default function GradingPage() {
               Staff go through a checklist for the kind of device (power, display, touch, cameras,
               ports, keys, battery and storage health where it applies) and record each check as
               pass, fail or not applicable. Nothing can be listed without an inspection. The item
-              page shows the report as &ldquo;ReLoop Checked&rdquo;.
+              page shows it as &ldquo;Our test report&rdquo;.
             </p>
           ),
         },
@@ -66,7 +66,7 @@ export default function GradingPage() {
           title: "Warranty follows the grade",
           body: (
             <p>
-              Grade A and B devices carry a {BUSINESS_RULES.warrantyDays}-day warranty; tested parts
+              Grade A and B devices carry a {BUSINESS_RULES.warrantyDays}-day warranty; used parts
               have a {BUSINESS_RULES.partReturnDays}-day return.{" "}
               <Link href="/warranty" className="font-semibold text-brand-600 underline">
                 Warranty and returns

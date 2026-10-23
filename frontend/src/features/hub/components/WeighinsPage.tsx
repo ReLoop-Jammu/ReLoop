@@ -19,13 +19,13 @@ import { formatPrice } from "@/lib/utils/money";
 import { useHubData } from "../useHubData";
 import { Field, Input, PageTitle, Panel, Select } from "./ui";
 
-/** Weigh a partner's scrap at the counter, pay by the rate card, and share the receipt. */
+/** Weigh a partner's scrap at the counter, pay by our scrap prices, and share the receipt. */
 export function WeighinsPage() {
   return (
     <>
       <PageTitle
         title="Weigh-ins"
-        description="Weigh the shop's scrap by category in front of them, pay by UPI at the rate card, and give them a numbered receipt. Likely-working parts go in the to-test bag, with no money yet."
+        description="Weigh the shop's scrap by category in front of them, pay by UPI at our scrap prices, and give them a numbered receipt. Likely-working parts go in the to-test bag, with no money yet."
       />
       {SHARED_DATABASE ? (
         <Suspense fallback={null}>
@@ -200,7 +200,7 @@ function WeighIns() {
             <p className="text-sm">
               Pay now: <strong className="tabular-nums">{formatPrice(amountPaise)}</strong>{" "}
               <span className="text-muted">
-                (at the rate card; the counter weight is the paid weight)
+                (at our scrap prices; the counter weight is the paid weight)
               </span>
             </p>
             <Button type="submit" size="sm" disabled={busy}>
@@ -341,7 +341,7 @@ function PayParts({ weighins, onPaid }: { weighins: Weighin[]; onPaid: () => voi
     }
   }
   return (
-    <Panel title="Pay for tested parts" className="mt-6">
+    <Panel title="Pay for working used parts" className="mt-6">
       <p className="mb-3 text-sm text-muted">
         Within 24 hours of a weigh-in, tag each tested working part at intake (choose the weigh-in
         there), set its part price, then pay for them here on their own receipt line.

@@ -36,8 +36,7 @@ export function HeroShowcase({ items }: { items: ShopItem[] }) {
         />
       )}
       <div className="absolute top-0 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold whitespace-nowrap text-ink shadow-lift">
-        <span className="font-mono text-xs text-muted">RL-JMU</span>
-        Tagged · tested · graded
+        Item number · tested · graded
       </div>
     </div>
   );

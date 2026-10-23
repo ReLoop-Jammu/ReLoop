@@ -1,3 +1,4 @@
+import { T } from "@/components/i18n/T";
 import { Container } from "@/components/ui/Container";
 import { formatKg, showImpactNumbers, type ImpactTotals } from "./totals";
 
@@ -8,7 +9,7 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
       <Container>
         <div className="relative overflow-hidden rounded-panel bg-mesh px-6 py-10 text-white shadow-lift sm:px-12 sm:py-12">
           <h2 id="impact-heading" className="text-sm font-semibold text-gold-400">
-            Our impact so far
+            <T en="Our impact so far" hi="अब तक का असर" />
           </h2>
           {showImpactNumbers(totals) ? (
             <dl className="mt-5 grid gap-6 sm:grid-cols-3">
@@ -16,7 +17,7 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
                 [
                   totals.itemsReused.toLocaleString("en-IN"),
                   "devices and parts resold",
-                  "Grade A and B devices, and tested parts, sold in Jammu",
+                  "Grade A and B devices, and working used parts, sold in Jammu",
                 ],
                 [
                   `${formatKg(totals.kgRecycled)} kg`,
@@ -38,9 +39,14 @@ export function ImpactCounter({ totals }: { totals: ImpactTotals | null }) {
             </dl>
           ) : (
             <>
-              <p className="mt-3 text-2xl font-bold sm:text-3xl">The Jammu pilot is running</p>
-              <p className="mt-2 text-white/70">
-                The totals appear here as the hub weighs and tags its first stock.
+              <p className="mt-3 text-2xl font-bold sm:text-3xl">
+                <T en="The Jammu pilot is running" hi="जम्मू पायलट चल रहा है" />
+              </p>
+              <p className="mt-2 text-white/75">
+                <T
+                  en="The totals appear here as the hub weighs and tags its first stock."
+                  hi="हब में पहला सामान तौलने और नंबर लगाने के बाद कुल आँकड़े यहाँ दिखेंगे।"
+                />
               </p>
             </>
           )}
